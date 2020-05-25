@@ -9,32 +9,8 @@ import yaml
 
 import util
 
-class Workload:
-    def __init__(self, config_path, delete_old_files=False, root_dir=""):
-        self.config = Config(config_path)
-        self.exp_jobs = []
-        
-        for exp_c in self.config.exp_configs:
-            self.exp_jobs.append(Exp_Job(exp_c, delete_old_files, root_dir))
 
-class Exp_Job:
-    def __init__(self, exp_config, delete_old_files=False, root_dir=""):
-        self.config = exp_config
-        self.__create_experiment_directory(delete_old_files, root_dir)
-
-    def __create_experiment_directory(self, delete_old_files=False, root_dir=""):
-         # create experiment path and subdir
-        os.makedirs(os.path.join(root_dir, self.config['path']), exist_ok=True)
-
-        # delete old histories if --del flag is active
-        if delete_old_files:
-            os.system('rm -rf {}/*'.format(self.config['path']))
-
-        # create a directory for the log path
-        os.makedirs(os.path.join(
-            root_dir, self.config['log_path']), exist_ok=True)
-
-class Config:    
+class Config:
     def __init__(self, config_path=None):
         self.slurm_config = None
         self.exp_configs = None
@@ -85,9 +61,9 @@ class Config:
 
         experiment_configs = self.__merge_default(
             default_config, experiment_configs)
-        
+
         experiment_configs = self.__expand_experiments(experiment_configs)
-    
+
         return slurm_config, experiment_configs
 
     def __seperate_configs(self, all_configs: List[dict]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
@@ -133,7 +109,7 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-    # TODO: Parameterized Experiment
+    # TODO: "Expand 2 Jobs"-Name ??
     def __expand_experiments(self, experiment_configs: List[dict]) -> List[dict]:
         """Expand the experiment configuration with concrete parameter instantiations
         FIXME: Copied from cluster_work_v1. Maybe rework??
@@ -182,17 +158,19 @@ class Config:
                     _config['_experiment_path'] = config['path']
 
                     # TODO Parameterized Path?
-                    _config['path'] = os.path.join(config['path'], _converted_name)
+                    _config['path'] = os.path.join(
+                        config['path'], _converted_name)
                     _config['experiment_name'] = _config['name']
                     _config['name'] += '__' + _converted_name
-                    
+
                     # Use dedicated logging path or use "internal" one
                     if 'log_path' in config:
                         _config['log_path'] = os.path.join(
                             config['log_path'], config['name'], _converted_name, 'log')
                     else:
-                        _config['log_path'] = os.path.join(_config['path'], 'log')
-                    
+                        _config['log_path'] = os.path.join(
+                            _config['path'], 'log')
+
                     for i, t in enumerate(tuple_dict.keys()):
                         util.insert_deep_dictionary(
                             _config['params'], t, values[i])

@@ -1,5 +1,5 @@
-import workload
+import foreman
 if __name__ == "__main__":
-    yaml = "./config.yml"
+    yaml = "./cma_config.yml"
 
-    c = workload.Workload(yaml)
+    c = foreman.Foreman(yaml)
