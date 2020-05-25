@@ -3,11 +3,11 @@
 name: "SLURM"
 project_name: ""  # important for HHLR cluster
 experiment_name: "cma"  # this will be the experiment's name in slurm
-experiment_root: "/tmp/experiments"
-path_to_template: "sbatch_template.sh"  # TODO: get absolute path from current pwd or so
+experiment_root: "/home/max/experiments"
+path_to_template: "/home/max/code/cluster_work/cw_tutorial/slurm/max/sbatch_template.sh"  # TODO: get absolute path from current pwd or so
 path_to_config: "config.yml"  # name of the copied experiment yml file
 num_parallel_jobs: 120
-number_of_jobs: 24
+number_of_jobs: 1
 number_of_cpu_per_job: 1
 mem: 1000
 time_limit: 30
@@ -17,7 +17,7 @@ time_limit: 30
 name: "DEFAULT"
 repetitions: 5  # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
-path: "/tmp/experiments/cmaes/"
+path: "cmaes"
 gui: false
 params:
   stop_at_target: true
@@ -36,7 +36,7 @@ params:
 
 ---
 name: "rosenbrock"
-path: "./rosenbrock/"
+path: "./exp_output/rosenbrock/"
 params:
   problem:
     name: 'rosenbrock'
