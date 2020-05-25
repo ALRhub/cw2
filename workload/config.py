@@ -147,17 +147,9 @@ class Config:
                     _config = deepcopy(config)
                     del _config[key]
 
-                    _converted_name = '_'.join("{}{}".format(
-                        util.shorten_param(k), v) for k, v in zip(_param_names, values))
-                    # _converted_name = re.sub("[' \[\],()]", '', _converted_name)
-                    _converted_name = re.sub("[' ]", '', _converted_name)
-                    _converted_name = re.sub('["]', '', _converted_name)
-                    _converted_name = re.sub("[(\[]", '_', _converted_name)
-                    _converted_name = re.sub("[)\]]", '', _converted_name)
-                    _converted_name = re.sub("[,]", '_', _converted_name)
+                    _converted_name = convert_param_names(_param_names, values)
                     _config['_experiment_path'] = config['path']
 
-                    # TODO Parameterized Path?
                     _config['path'] = os.path.join(
                         config['path'], _converted_name)
                     _config['experiment_name'] = _config['name']
@@ -179,3 +171,24 @@ class Config:
                 expanded_config_list.append(config)
 
         return expanded_config_list
+
+
+def convert_param_names(_param_names, values) -> str:
+    """create new shorthand name derived from parameter and value association
+    Arguments:
+        _param_names {[type]} -- [description]
+        values {[type]} -- [description]
+
+    Returns:
+        str -- shorthand name
+    """
+
+    _converted_name = '_'.join("{}{}".format(
+        util.shorten_param(k), v) for k, v in zip(_param_names, values))
+    # _converted_name = re.sub("[' \[\],()]", '', _converted_name)
+    _converted_name = re.sub("[' ]", '', _converted_name)
+    _converted_name = re.sub('["]', '', _converted_name)
+    _converted_name = re.sub("[(\[]", '_', _converted_name)
+    _converted_name = re.sub("[)\]]", '', _converted_name)
+    _converted_name = re.sub("[,]", '_', _converted_name)
+    return _converted_name
