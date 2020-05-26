@@ -16,19 +16,20 @@ class CWCMA(workload.job.AbstractJob):
         self.optimizer = None
 
     def initialize(self, config: dict, rep: int) -> None:
-        dim = config.problem.dim
-        x_start = config.optim_params.x_init * np.random.randn(dim)
-        init_sigma = config.optim_params.init_sigma
+        dim = config.params.problem.dim
+        x_start = config.params.optim_params.x_init * np.random.randn(dim)
+        init_sigma = config.params.optim_params.init_sigma
         self.problem = nfreefunclasses[7](iinstance=rep)
         self.problem.initwithsize(curshape=(1, dim), dim=dim)
         self.optimizer = es = cma.CMAEvolutionStrategy(
             x0=x_start,
             sigma0=init_sigma,
             inopts={
-                'popsize': config.optim_params.n_samples
+                'popsize': config.params.optim_params.n_samples
             }
         )
         es.f_obj = self.problem
+        os.makedirs(os.path.join(config['log_path'], 'rep_{:02d}'.format(rep), ''))
 
         def entropy(self):
             cov = self.sigma ** 2 * self.sm.covariance_matrix
@@ -41,16 +42,16 @@ class CWCMA(workload.job.AbstractJob):
             self.optimizer, cma.CMAEvolutionStrategy)
 
         self.optimizer.adapt_sigma.initialize(self.optimizer)
-        if config.optim_params.c_c is not None:
-            self.optimizer.sp.cc = config.optim_params.c_c
-        if config.optim_params.c_1 is not None:
-            self.optimizer.sm._parameters['c1'] = config.optim_params.c_1
-        if config.optim_params.c_mu is not None:
-            self.optimizer.sm._parameters['cmu'] = config.optim_params.c_mu
-        if config.optim_params.d_sigma is not None:
-            self.optimizer.adapt_sigma.damps = config.optim_params.d_sigma
-        if config.optim_params.c_sigma is not None:
-            config.adapt_sigma.cs = config.optim_params.c_sigma
+        if config.params.optim_params.c_c is not None:
+            self.optimizer.sp.cc = config.params.optim_params.c_c
+        if config.params.optim_params.c_1 is not None:
+            self.optimizer.sm._parameters['c1'] = config.params.optim_params.c_1
+        if config.params.optim_params.c_mu is not None:
+            self.optimizer.sm._parameters['cmu'] = config.params.optim_params.c_mu
+        if config.params.optim_params.d_sigma is not None:
+            self.optimizer.adapt_sigma.damps = config.params.optim_params.d_sigma
+        if config.params.optim_params.c_sigma is not None:
+            config.adapt_sigma.cs = config.params.optim_params.c_sigma
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
         # do one iteration of cma es
@@ -70,7 +71,7 @@ class CWCMA(workload.job.AbstractJob):
                         "mean_opt": mean_opt,
                         "median_opt": median_opt,
                         "entropy": self.optimizer.entropy(),
-                        "total_samples": (n + 1) * config.optim_params.n_samples
+                        "total_samples": (n + 1) * config.params.optim_params.n_samples
                         }
 
         return results_dict

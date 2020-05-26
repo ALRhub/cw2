@@ -3,7 +3,7 @@ import os
 
 
 class AbstractJob(abc.ABC):
-    def _assign(self, exp_config, delete_old_files=False, root_dir=""):
+    def configure(self, exp_config, delete_old_files=False, root_dir=""):
         self.config = exp_config
         self.__create_experiment_directory(delete_old_files, root_dir)
 

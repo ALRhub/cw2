@@ -1,5 +1,5 @@
 from workload import config, job
-
+import scheduler
 
 class Foreman:
     def __init__(self, config_path, job_cls: job.AbstractJob, delete_old_files: bool = False, root_dir: str = ""):
@@ -8,5 +8,9 @@ class Foreman:
 
         for exp_c in self.config.exp_configs:
             j = job_cls()
-            j._assign(exp_c, delete_old_files, root_dir)
+            j.configure(exp_c, delete_old_files, root_dir)
             self.jobs.append(j)
+
+        s = scheduler.LocalScheduler()
+        s.assign(self.jobs)
+        s.run()
