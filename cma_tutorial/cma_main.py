@@ -5,12 +5,11 @@ import dill
 import numpy as np
 from cma.bbobbenchmarks import nfreefunclasses
 
-import experiment
-import foreman
-import workload.job
+import cw2.experiment
+import cw2.cluster_work
 
 
-class CWCMA(experiment.AbstractExperiment):
+class CWCMA(cw2.experiment.AbstractExperiment):
     def __init__(self):
         super().__init__()
         self.problem = None
@@ -91,6 +90,7 @@ class CWCMA(experiment.AbstractExperiment):
 
 
 if __name__ == "__main__":
-    yaml = "./cma_config.yml"
+    DIR = os.path.dirname(__file__)
+    yaml = os.path.join(DIR, "cma_config.yml")
 
-    c = foreman.Foreman(yaml, CWCMA)
+    c = cw2.cluster_work.ClusterWork(yaml, CWCMA)

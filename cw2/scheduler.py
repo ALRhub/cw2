@@ -1,8 +1,7 @@
 import abc
 from typing import List
 
-import experiment
-from workload import job
+from . import experiment, job
 
 
 class AbstractScheduler(abc.ABC):

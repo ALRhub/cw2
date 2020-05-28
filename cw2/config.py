@@ -7,7 +7,7 @@ from typing import List, Tuple
 import attrdict
 import yaml
 
-import util
+from . import util
 
 
 class Config:

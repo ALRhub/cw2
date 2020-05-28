@@ -1,9 +1,7 @@
-import experiment
-import scheduler
-from workload import config, job
+from . import config, experiment, job, scheduler
 
 
-class Foreman:
+class ClusterWork:
     def __init__(self, config_path, exp_cls: experiment.AbstractExperiment, delete_old_files: bool = False, root_dir: str = ""):
         self.config = config.Config(config_path)
         self.jobs = []
