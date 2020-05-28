@@ -5,11 +5,12 @@ import dill
 import numpy as np
 from cma.bbobbenchmarks import nfreefunclasses
 
+import experiment
 import foreman
 import workload.job
 
 
-class CWCMA(workload.job.AbstractJob):
+class CWCMA(experiment.AbstractExperiment):
     def __init__(self):
         super().__init__()
         self.problem = None
@@ -29,7 +30,6 @@ class CWCMA(workload.job.AbstractJob):
             }
         )
         es.f_obj = self.problem
-        os.makedirs(os.path.join(config['log_path'], 'rep_{:02d}'.format(rep), ''))
 
         def entropy(self):
             cov = self.sigma ** 2 * self.sm.covariance_matrix
@@ -79,7 +79,7 @@ class CWCMA(workload.job.AbstractJob):
     def save_state(self, config: dict, rep: int, n: int) -> None:
         if n % 50 == 0:
             f_name = os.path.join(
-                config.log_path, 'rep_{:02d}'.format(rep), 'optimizer.pkl')
+                config.rep_log_paths[rep], 'optimizer.pkl')
             with open(f_name, 'wb') as f:
                 dill.dump(self.optimizer, f)
 

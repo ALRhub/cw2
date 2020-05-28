@@ -28,34 +28,35 @@ class Config:
 
         self.config_path = config_path
 
-        configs = self.__read_config(self.config_path)
-        self.slurm_config, self.exp_configs = self.__parse_configs(configs)
+        self.slurm_config, self.exp_configs = self.__parse_configs(config_path)
 
-    def __read_config(self, config_path: str) -> List[dict]:
+    def __read_config(self, config_path: str) -> List[attrdict.AttrDict]:
         """reads a YAML configuration file containing potentially multiple experiments
 
         Arguments:
             config_path {str} -- path to the YAML config file
 
         Returns:
-            List[dict] -- all configs found in the yaml file
+            List[attrdict.AttrDict] -- all configs found in the yaml file
         """
         all_configs = []
 
         with open(config_path, 'r') as f:
             for exp_conf in yaml.load_all(f, yaml.FullLoader):
-                all_configs.append(exp_conf)
+                all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
-    def __parse_configs(self, all_configs: List[dict]) -> list:
-        """[summary]
+    def __parse_configs(self, config_path: str) -> Tuple[attrdict.AttrDict, attrdict.AttrDict]:
+        """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
 
         Arguments:
-            all_configs {List[dict]} -- [description]
+            config_path {str} -- path to the configuration file
 
         Returns:
-            list -- [description]
+            Tuple[attrdict.AttrDict, attrdict.AttrDict] -- SLURM configuration, list of expanded experiment configurations
         """
+        all_configs = self.__read_config(self.config_path)
+
         slurm_config, default_config, experiment_configs = self.__seperate_configs(
             all_configs)
 
@@ -66,11 +67,11 @@ class Config:
 
         return slurm_config, experiment_configs
 
-    def __seperate_configs(self, all_configs: List[dict]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def __seperate_configs(self, all_configs: List[attrdict.AttrDict]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
         """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
         Arguments:
-            all_configs {List[dict]} -- a list of all configurations
+            all_configs {List[attrdict.AttrDict]} -- a list of all configurations
 
         Returns:
             Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]] -- SLURM, DEFAULT, Experiment Configurations, in this order
@@ -80,27 +81,26 @@ class Config:
         experiment_configs = []
 
         for c in all_configs:
-            attr_c = attrdict.AttrDict(c)
-            name = c['name'].lower()
+            name = c.name.lower()
 
             if name == 'slurm':
-                slurm_config = attr_c
+                slurm_config = c
             elif name == 'default':
-                default_config = attr_c
+                default_config = c
             else:
-                experiment_configs.append(attr_c)
+                experiment_configs.append(c)
 
         return slurm_config, default_config, experiment_configs
 
-    def __merge_default(self, default_config: dict, experiment_configs: List[dict]) -> List[dict]:
+    def __merge_default(self, default_config: attrdict.AttrDict, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """merges each individual experiment configuration with the default parameters
 
         Arguments:
-            default_config {dict} -- default configuration parameters
-            experiment_configs {List[dict]} -- a list of individual experiment configurations
+            default_config {attrdict.AttrDict} -- default configuration parameters
+            experiment_configs {List[attrdict.AttrDict]} -- a list of individual experiment configurations
 
         Returns:
-            List[dict] -- a list of all experiment configurations
+            List[attrdict.AttrDict] -- a list of all experiment configurations
         """
         expanded_exp_configs = []
         for c in experiment_configs:
@@ -110,15 +110,15 @@ class Config:
         return expanded_exp_configs
 
     # TODO: "Expand 2 Jobs"-Name ??
-    def __expand_experiments(self, experiment_configs: List[dict]) -> List[dict]:
+    def __expand_experiments(self, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
-        FIXME: Copied from cluster_work_v1. Maybe rework??
+        TODO: Copied from cluster_work_v1. Maybe rework??
 
         Arguments:
-            experiment_configs {List[dict]} -- List with experiment configs
+            experiment_configs {List[attrdict.AttrDict]} -- List with experiment configs
 
         Returns:
-            List[dict] -- List of experiment configs, with set parameters
+            List[attrdict.AttrDict] -- List of experiment configs, with set parameters
         """
 
         # get all options that are iteratable and build all combinations (grid) or tuples (list)
@@ -148,20 +148,20 @@ class Config:
                     del _config[key]
 
                     _converted_name = convert_param_names(_param_names, values)
-                    _config['_experiment_path'] = config['path']
+                    _config['_experiment_path'] = config.path
 
                     _config['path'] = os.path.join(
-                        config['path'], _converted_name)
-                    _config['experiment_name'] = _config['name']
+                        config.path, _converted_name)
+                    _config['experiment_name'] = _config.name
                     _config['name'] += '__' + _converted_name
 
                     # Use dedicated logging path or use "internal" one
                     if 'log_path' in config:
                         _config['log_path'] = os.path.join(
-                            config['log_path'], config['name'], _converted_name, 'log')
+                            config.log_path, config.name, _converted_name, 'log')
                     else:
                         _config['log_path'] = os.path.join(
-                            _config['path'], 'log')
+                            _config.path, 'log')
 
                     for i, t in enumerate(tuple_dict.keys()):
                         util.insert_deep_dictionary(
@@ -175,6 +175,7 @@ class Config:
 
 def convert_param_names(_param_names, values) -> str:
     """create new shorthand name derived from parameter and value association
+    TODO: Argument Descriptions
     Arguments:
         _param_names {[type]} -- [description]
         values {[type]} -- [description]
