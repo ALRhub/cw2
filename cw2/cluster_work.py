@@ -1,4 +1,4 @@
-from . import config, experiment, job, scheduler
+from . import config, experiment, job, scheduler, result
 
 
 class ClusterWork:
@@ -8,6 +8,7 @@ class ClusterWork:
 
         for exp_conf in self.config.exp_configs:
             j = job.Job(exp_cls, exp_conf, delete_old_files, root_dir)
+            j.add_res_processor(result.PandasSaver())
             self.jobs.append(j)
 
         s = scheduler.LocalScheduler()

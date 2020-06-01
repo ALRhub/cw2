@@ -1,11 +1,16 @@
 import os
 
+from . import result, experiment
+import attrdict
+from typing import List
+
 
 class Job():
-    def __init__(self, exp_cls, exp_config, delete_old_files=False, root_dir=""):
+    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, delete_old_files: bool = False, root_dir: str = ""):
         self.exp = exp_cls()
         self.config = exp_config
         self.__create_experiment_directory(delete_old_files, root_dir)
+        self.res_processors: List[result.ResultProcessor] = []
 
     # TODO: save new path with root dir appended?
 
@@ -38,10 +43,17 @@ class Job():
         for r in range(c.repetitions):
             self.exp.initialize(c, r)
 
-            results = {}
             for n in range(c.iterations):
-                results = self.exp.iterate(c, r, n)
+                res = self.exp.iterate(c, r, n)
+                self._process_result(res, r, n)
                 self.exp.save_state(c, r, n)
 
             self.exp.finalize()
-            print(results)
+
+    def _process_result(self, res: dict, rep: int, n: int) -> None:
+        res_data = result.ResultData(res, rep, n)
+        for processor in self.res_processors:
+            processor.process(res_data, self.config)
+
+    def add_res_processor(self, res_p: result.ResultProcessor) -> None:
+        self.res_processors.append(res_p)
