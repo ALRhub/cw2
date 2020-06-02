@@ -1,16 +1,16 @@
 import os
 
-from . import result, experiment
+from . import logging, experiment
 import attrdict
 from typing import List
 
 
 class Job():
-    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, logger: logging.ResultLogger, delete_old_files: bool = False, root_dir: str = ""):
         self.exp = exp_cls()
         self.config = exp_config
         self.__create_experiment_directory(delete_old_files, root_dir)
-        self.res_processors: List[result.ResultProcessor] = []
+        self.logger = logger
 
     # TODO: save new path with root dir appended?
 
@@ -40,20 +40,18 @@ class Job():
 
     def run(self):
         c = self.config
+        self.logger.configure(c)
+
         for r in range(c.repetitions):
             self.exp.initialize(c, r)
+            self.logger.rep_setup(r)
 
             for n in range(c.iterations):
                 res = self.exp.iterate(c, r, n)
-                self._process_result(res, r, n)
+                self.logger.log_raw_result(res, r, n)
+
                 self.exp.save_state(c, r, n)
-
             self.exp.finalize()
+            self.logger.rep_finalize()
 
-    def _process_result(self, res: dict, rep: int, n: int) -> None:
-        res_data = result.ResultData(res, rep, n)
-        for processor in self.res_processors:
-            processor.process(res_data, self.config)
-
-    def add_res_processor(self, res_p: result.ResultProcessor) -> None:
-        self.res_processors.append(res_p)
+        self.logger.global_finalize()
