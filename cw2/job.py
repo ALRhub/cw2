@@ -1,12 +1,13 @@
 import os
-
-from . import logging, experiment
-import attrdict
 from typing import List
+
+import attrdict
+
+from . import experiment, logging
 
 
 class Job():
-    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, logger: logging.ResultLogger, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, logger: logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
         self.exp = exp_cls()
         self.config = exp_config
         self.__create_experiment_directory(delete_old_files, root_dir)
