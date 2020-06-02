@@ -7,7 +7,7 @@ class ClusterWork:
         self.jobs = []
         
         logArray = logging.ResultLoggerArray()
-        logArray.add(logging.PandasSaver())
+        logArray.add(logging.PandasRepSaver())
         #logArray.add(logging.Printer())
 
         for exp_conf in self.config.exp_configs:

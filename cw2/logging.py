@@ -90,19 +90,14 @@ class Printer(ResultLogger):
         pass
 
 
-class PandasSaver(ResultLogger):
+class PandasAllSaver(ResultLogger):
     def __init__(self):
         self._data = []
-        self.path: str = ""
+        self.f_name = 'results.csv'
 
     def configure(self, config: attrdict) -> None:
-        _index = pd.MultiIndex.from_product(
-            [range(config.repetitions), range(config.iterations)],
-            names=['r', 'i']
-        )
+        self.f_name = os.path.join(config.path, self.f_name)
 
-        self.path = config.path
-    
     def rep_setup(self, rep: int) -> None:
         pass
 
@@ -117,5 +112,34 @@ class PandasSaver(ResultLogger):
         df = pd.DataFrame(self._data)
         df = df.set_index(["r", "i"])
 
-        with open(os.path.join(self.path, 'results.csv'), 'w') as results_file:
+        with open(self.f_name, 'w') as results_file:
             df.to_csv(results_file)
+
+
+class PandasRepSaver(ResultLogger):
+    def __init__(self):
+        self.rep_paths = []
+        self.f_name = "rep.csv"
+
+    def configure(self, config: attrdict) -> None:
+        self.rep_paths = config.rep_log_paths
+
+    def rep_setup(self, rep: int):
+        self.f_name = os.path.join(
+            self.rep_paths[rep], 'rep_{}.csv'.format(rep))
+
+    def process(self, res: ResultData) -> None:
+        full_res = res.get()
+
+        if full_res['i'] == 0:
+            pd.DataFrame(full_res, index=[0]).to_csv(
+                self.f_name, mode='w', header=True, index_label='iteration')
+        else:
+            pd.DataFrame(full_res, index=[full_res['i']]).to_csv(
+                self.f_name, mode='a', header=False)
+
+    def rep_finalize(self) -> None:
+        pass
+
+    def global_finalize(self) -> None:
+        pass
