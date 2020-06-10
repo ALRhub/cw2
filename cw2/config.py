@@ -1,4 +1,5 @@
 import itertools
+import logging
 import os
 import re
 from copy import deepcopy
@@ -11,24 +12,26 @@ from . import util
 
 
 class Config:
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, experiment_selections=None):
         self.slurm_config = None
         self.exp_configs = None
 
         if config_path is not None:
-            self.load_config(config_path)
+            self.load_config(config_path, experiment_selections)
 
-    def load_config(self, config_path: str):
+    def load_config(self, config_path: str, experiment_selections: List[str] = None):
         """Loads config from YAML file
         The config can include multiple experiments, DEFAULT paramters and a SLURM configuration
 
         Arguments:
             config_path {str} -- path to a YAML configuraton file
+            experiment_selections (List[str], optional): List of specific experiments to run. If None runs all. Defaults to None.
         """
 
         self.config_path = config_path
 
-        self.slurm_config, self.exp_configs = self.__parse_configs(config_path)
+        self.slurm_config, self.exp_configs = self.__parse_configs(
+            config_path, experiment_selections)
 
     def __read_config(self, config_path: str) -> List[attrdict.AttrDict]:
         """reads a YAML configuration file containing potentially multiple experiments
@@ -46,11 +49,12 @@ class Config:
                 all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
-    def __parse_configs(self, config_path: str) -> Tuple[attrdict.AttrDict, attrdict.AttrDict]:
+    def __parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, attrdict.AttrDict]:
         """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
 
         Arguments:
             config_path {str} -- path to the configuration file
+            experiment_selections (List[str], optional): List of specific experiments to run. If None runs all. Defaults to None.
 
         Returns:
             Tuple[attrdict.AttrDict, attrdict.AttrDict] -- SLURM configuration, list of expanded experiment configurations
@@ -58,7 +62,7 @@ class Config:
         all_configs = self.__read_config(self.config_path)
 
         slurm_config, default_config, experiment_configs = self.__seperate_configs(
-            all_configs)
+            all_configs, experiment_selections)
 
         experiment_configs = self.__merge_default(
             default_config, experiment_configs)
@@ -67,11 +71,12 @@ class Config:
 
         return slurm_config, experiment_configs
 
-    def __seperate_configs(self, all_configs: List[attrdict.AttrDict]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def __seperate_configs(self, all_configs: List[attrdict.AttrDict], experiment_selections: List[str]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
         """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
         Arguments:
             all_configs {List[attrdict.AttrDict]} -- a list of all configurations
+            experiment_selections (List[str], optional): List of specific experiments to run. If None runs all. Defaults to None.
 
         Returns:
             Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]] -- SLURM, DEFAULT, Experiment Configurations, in this order
@@ -88,7 +93,11 @@ class Config:
             elif name == 'default':
                 default_config = c
             else:
-                experiment_configs.append(c)
+                if experiment_selections is None or name in experiment_selections:
+                    experiment_configs.append(c)
+
+        if len(experiment_configs) == 0:
+            logging.warning("No experiment found in config file.",)
 
         return slurm_config, default_config, experiment_configs
 

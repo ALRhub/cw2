@@ -1,20 +1,21 @@
-from . import config, experiment, job, logging, scheduler
+from cw2 import cli_parser, config, experiment, job, logging, scheduler
 
 
-class ClusterWork:
-    def __init__(self, config_path, exp_cls: experiment.AbstractExperiment, delete_old_files: bool = False, root_dir: str = ""):
-        self.config = config.Config(config_path)
-        self.jobs = []
+def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
+    args = cli_parser.Arguments().get()
 
-        logArray = logging.LoggerArray()
-        logArray.add(logging.PandasRepSaver())
-        # logArray.add(logging.Printer())
+    _config = config.Config(args.config, args.experiments)
+    _jobs = []
 
-        for exp_conf in self.config.exp_configs:
-            j = job.Job(exp_cls, exp_conf, logArray,
-                        delete_old_files, root_dir)
-            self.jobs.append(j)
+    logArray = logging.LoggerArray()
+    logArray.add(logging.PandasRepSaver())
+    # logArray.add(logging.Printer())
 
-        s = scheduler.LocalScheduler()
-        s.assign(self.jobs, exp_cls)
-        s.run()
+    for exp_conf in _config.exp_configs:
+        j = job.Job(exp_cls, exp_conf, logArray,
+                    args.delete, root_dir)
+        _jobs.append(j)
+
+    s = scheduler.LocalScheduler()
+    s.assign(_jobs, exp_cls)
+    s.run()
