@@ -1,4 +1,5 @@
-from cw2 import cli_parser, config, experiment, job, logging, scheduler
+from cw2 import (cli_parser, config, cw_slurm, experiment, job, logging,
+                 scheduler)
 
 
 def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
@@ -10,6 +11,8 @@ def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
     logArray = logging.LoggerArray()
     logArray.add(logging.PandasRepSaver())
     # logArray.add(logging.Printer())
+
+    cw_slurm.create_slurm_skript(_config)
 
     for exp_conf in _config.exp_configs:
         j = job.Job(exp_cls, exp_conf, logArray,

@@ -1,7 +1,6 @@
 import collections
 import datetime
 
-
 def deep_update(base_dict: dict, update_dict: dict) -> dict:
     """Updates the base dictionary with corresponding values from the update dictionary, including nested collections. Not updated values are kept as is.
 

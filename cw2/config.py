@@ -49,7 +49,7 @@ class Config:
                 all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
-    def __parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, attrdict.AttrDict]:
+    def __parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, List[attrdict.AttrDict]]:
         """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
 
         Arguments:
@@ -97,7 +97,7 @@ class Config:
                     experiment_configs.append(c)
 
         if len(experiment_configs) == 0:
-            logging.warning("No experiment found in config file.",)
+            logging.warning("No experiment found in config file.")
 
         return slurm_config, default_config, experiment_configs
 
@@ -180,6 +180,49 @@ class Config:
                 expanded_config_list.append(config)
 
         return expanded_config_list
+
+    def total_num_reps(self) -> int:
+        """computes the total number of repetitions for all experiments
+
+        Returns:
+            int: total number of repetitions
+        """
+        total_number_of_reps = 0
+        for exp in self.exp_configs:
+            total_number_of_reps += exp['repetitions']
+        return total_number_of_reps
+
+    def get_job_indices(self, j: int) -> Tuple[int, int]:
+        """computes the experiment and repetition index
+        Used to skip to the relevant job when used with -j flag.
+        Intended use with slurm.
+
+        Args:
+            j (int): job index from cli argument. 
+
+        Returns:
+            Tuple[int, int]: returns two values: index for the experiment configuration and index of the corresponding repetition.
+        """
+        count = 0
+        exp_index = 0
+        rep_index = 0
+
+        max_num = self.total_num_reps()
+
+        if j < 0 or j > max_num:
+            logging.warning("Job index -j outside of valid range 0..{}".format(max_num))
+
+        while j > count:
+            if rep_index >= self.exp_configs[exp_index]['repetitions']:
+                exp_index += 1
+                rep_index = 0
+            else:
+                rep_index += 1
+            count += 1
+
+        return exp_index, rep_index
+
+
 
 
 def convert_param_names(_param_names, values) -> str:
