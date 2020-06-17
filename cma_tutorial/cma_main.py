@@ -5,8 +5,8 @@ import dill
 import numpy as np
 from cma.bbobbenchmarks import nfreefunclasses
 
-import cw2.experiment
 import cw2.cluster_work
+import cw2.experiment
 
 
 class CWCMA(cw2.experiment.AbstractExperiment):
@@ -91,6 +91,6 @@ class CWCMA(cw2.experiment.AbstractExperiment):
 
 if __name__ == "__main__":
     DIR = os.path.dirname(__file__)
-    yaml = os.path.join(DIR, "cma_config.yml")
+    #yaml = os.path.join(DIR, "cma_config.yml")
 
-    c = cw2.cluster_work.ClusterWork(yaml, CWCMA)
+    cw2.cluster_work.run(CWCMA)
