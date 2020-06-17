@@ -1,3 +1,5 @@
+import subprocess
+
 from cw2 import (cli_parser, config, cw_slurm, experiment, job, logging,
                  scheduler)
 
@@ -13,12 +15,18 @@ def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
     logArray.add(logging.PandasAllSaver())
 
     if args.slurm:
-        cw_slurm.create_slurm_skript(_config)
+        slurm_script = cw_slurm.create_slurm_skript(_config)
+
+        cmd = "sbatch " + slurm_script
+        print(cmd)
+
+        subprocess.check_output(cmd, shell=True)
+        return
 
     rep = None
     if args.job is not None:
         exp_configs, rep = _config.get_single_job(args.job)
-    
+
     _jobs = []
     for exp_conf in exp_configs:
         j = job.Job(exp_cls, exp_conf, logArray,

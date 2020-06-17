@@ -3,6 +3,7 @@ import sys
 
 import attrdict
 
+import __main__
 from cw2 import cli_parser, config
 
 DEFAULT_TEMPLATE = os.path.join(
@@ -14,12 +15,12 @@ def finalize_slurm_config(configuration: config.Config) -> attrdict:
     slurm_config = configuration.slurm_config
 
     # numjobs is last job index, counting starts at 0
-    slurm_config['num_jobs'] = configuration.total_num_reps() - 1 
+    slurm_config['num_jobs'] = configuration.total_num_reps() - 1
 
     if "experiment_cwd" not in slurm_config:
         slurm_config["experiment_cwd"] = os.getcwd()
 
-    #TODO: Automatically fill in python path?
+    # TODO: Automatically fill in python path?
     print(sys.path)
 
     return slurm_config
@@ -37,6 +38,8 @@ def create_slurm_skript(configuration: config.Config, template_path: str = DEFAU
 
     slurm_config = finalize_slurm_config(configuration)
 
+    experiment_code = __main__.__file__
+
     while tline:
         tline = tline.replace('%%project_name%%', slurm_config['project_name'])
         tline = tline.replace('%%experiment_name%%',
@@ -48,10 +51,9 @@ def create_slurm_skript(configuration: config.Config, template_path: str = DEFAU
                               slurm_config['experiment_root'])
         tline = tline.replace('%%experiment_cwd%%',
                               slurm_config['experiment_cwd'])
-        #tline = tline.replace('%%python_script%%', experiment_code)
+        tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', experiment_selectors)
-        tline = tline.replace('%%path_to_yaml_config%%', os.path.join(
-            slurm_config['experiment_cwd'], "config.yml"))
+        tline = tline.replace('%%path_to_yaml_config%%', configuration.config_path)
         tline = tline.replace(
             '%%num_jobs%%', '{:d}'.format(slurm_config['num_jobs']))
         tline = tline.replace('%%num_parallel_jobs%%', '{:d}'.format(
@@ -67,3 +69,4 @@ def create_slurm_skript(configuration: config.Config, template_path: str = DEFAU
         tline = fid_in.readline()
     fid_in.close()
     fid_out.close()
+    return output_path
