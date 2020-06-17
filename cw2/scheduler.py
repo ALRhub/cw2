@@ -18,11 +18,11 @@ class AbstractScheduler(abc.ABC):
         self.exp = exp_cls()
 
     @abc.abstractmethod
-    def run(self):
+    def run(self, rep=None):
         raise NotImplementedError
 
 
 class LocalScheduler(AbstractScheduler):
-    def run(self):
+    def run(self, rep=None):
         for j in self.joblist:
-            j.run()
+            j.run(rep)

@@ -1,4 +1,5 @@
 import os
+import shutil
 from typing import List
 
 import attrdict
@@ -16,20 +17,22 @@ class Job():
     # TODO: save new path with root dir appended?
 
     def __create_experiment_directory(self, delete_old_files=False, root_dir=""):
-         # create experiment path and subdir
-        os.makedirs(os.path.join(root_dir, self.config.path), exist_ok=True)
-
-        # delete old histories if --del flag is active
-        # TODO: Should this be the same path as before??
-        # TODO: use shutil.rmtree?
+        # FIXME: Will be called multiple times when used together with slurm -j cascade
         if delete_old_files:
-            os.system('rm -rf {}/*'.format(self.config.path))
+            try:
+                shutil.rmtree(os.path.join(root_dir,self.config.path))
+            except:
+                pass
+
+        # create experiment path and subdir
+        os.makedirs(os.path.join(root_dir, self.config.path), exist_ok=True)
 
         # create a directory for the log path
         os.makedirs(os.path.join(
             root_dir, self.config.log_path), exist_ok=True)
 
         # create log path for each repetition
+        # FIXME: different handling for -j case
         rep_path_list = []
         for r in range(self.config.repetitions):
             rep_path = os.path.join(
@@ -39,11 +42,16 @@ class Job():
             rep_path_list.append(rep_path)
         self.config['rep_log_paths'] = rep_path_list
 
-    def run(self):
+    def run(self, rep=None):
         c = self.config
         self.logger.configure(c)
 
-        for r in range(c.repetitions):
+        repetitions = range(c.repetitions)
+
+        if rep is not None:
+            repetitions = [rep]
+
+        for r in repetitions:
             self.exp.initialize(c, r)
             self.logger.rep_setup(r)
 

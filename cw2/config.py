@@ -178,7 +178,7 @@ class Config:
                     expanded_config_list.append(_config)
             else:
                 expanded_config_list.append(config)
-
+    
         return expanded_config_list
 
     def total_num_reps(self) -> int:
@@ -192,7 +192,7 @@ class Config:
             total_number_of_reps += exp['repetitions']
         return total_number_of_reps
 
-    def get_job_indices(self, j: int) -> Tuple[int, int]:
+    def get_single_job(self, j: int) -> Tuple[List[attrdict.AttrDict], int]:
         """computes the experiment and repetition index
         Used to skip to the relevant job when used with -j flag.
         Intended use with slurm.
@@ -201,7 +201,7 @@ class Config:
             j (int): job index from cli argument. 
 
         Returns:
-            Tuple[int, int]: returns two values: index for the experiment configuration and index of the corresponding repetition.
+            Tuple[List[attrdict.AttrDict], int]: list containing the selected experiment configurations and repetition index
         """
         count = 0
         exp_index = 0
@@ -211,16 +211,15 @@ class Config:
 
         if j < 0 or j > max_num:
             logging.warning("Job index -j outside of valid range 0..{}".format(max_num))
-
-        while j > count:
-            if rep_index >= self.exp_configs[exp_index]['repetitions']:
-                exp_index += 1
-                rep_index = 0
-            else:
+        else:
+            while j > count:
                 rep_index += 1
-            count += 1
+                count += 1
+                if rep_index >= self.exp_configs[exp_index]['repetitions']:
+                    exp_index += 1
+                    rep_index = 0
 
-        return exp_index, rep_index
+        return [self.exp_configs[exp_index]], rep_index
 
 
 
