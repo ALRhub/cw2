@@ -4,11 +4,11 @@ from typing import List
 
 import attrdict
 
-from . import experiment, logging
+from cw2 import cw_logging, experiment
 
 
 class Job():
-    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, logger: logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, exp_config: attrdict, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
         self.exp = exp_cls()
         self.config = exp_config
         self.__create_experiment_directory(delete_old_files, root_dir)
