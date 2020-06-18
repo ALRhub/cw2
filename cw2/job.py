@@ -83,6 +83,8 @@ class JobFactory():
     def _divide_repetitions(self, exp_conf: attrdict.AttrDict) -> list:
         reps = []
         max_rep = exp_conf.repetitions
+        rep_portion = 1
+
         if "reps_per_job" in exp_conf:
             rep_portion = exp_conf["reps_per_job"]
 
