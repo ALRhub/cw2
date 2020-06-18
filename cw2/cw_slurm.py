@@ -20,6 +20,10 @@ def finalize_slurm_config(configuration: config.Config) -> attrdict:
     if "experiment_cwd" not in slurm_config:
         slurm_config["experiment_cwd"] = os.getcwd()
 
+    if "experiment_log" not in slurm_config:
+        slurm_config["experiment_log"] = os.path.join(slurm_config["experiment_cwd"], 'log')
+    os.makedirs(slurm_config["experiment_log"])
+
     # TODO: Automatically fill in python path?
     print(sys.path)
 
@@ -51,6 +55,8 @@ def create_slurm_skript(configuration: config.Config, template_path: str = DEFAU
                               slurm_config['experiment_root'])
         tline = tline.replace('%%experiment_cwd%%',
                               slurm_config['experiment_cwd'])
+        tline = tline.replace('%%experiment_log%%',
+                              slurm_config['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', experiment_selectors)
         tline = tline.replace('%%path_to_yaml_config%%', configuration.config_path)
