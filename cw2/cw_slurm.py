@@ -10,11 +10,11 @@ DEFAULT_TEMPLATE = os.path.join(
     os.path.dirname(__file__), "slurm_template.sh")
 
 
-def _finalize_slurm_config(conf: config.Config) -> attrdict:
+def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
     sc = conf.slurm_config
 
     # numjobs is last job index, counting starts at 0
-    sc['num_jobs'] = conf.total_num_reps() - 1
+    sc['num_jobs'] = num_jobs - 1
 
     if "experiment_cwd" not in sc:
         sc["experiment_cwd"] = os.getcwd()
@@ -35,7 +35,7 @@ def _finalize_slurm_config(conf: config.Config) -> attrdict:
     return sc
 
 
-def create_slurm_script(conf: config.Config, template_path: str = DEFAULT_TEMPLATE):
+def create_slurm_script(conf: config.Config, num_jobs: int, template_path: str = DEFAULT_TEMPLATE):
     """creates an sbatch.sh script for slurm
 
     Args:
@@ -47,7 +47,7 @@ def create_slurm_script(conf: config.Config, template_path: str = DEFAULT_TEMPLA
     """
     output_path = "./sbatch.sh"
 
-    sc = _finalize_slurm_config(conf)
+    sc = _finalize_slurm_config(conf, num_jobs)
     experiment_code = __main__.__file__
 
     fid_in = open(template_path, 'r')

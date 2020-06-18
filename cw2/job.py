@@ -93,13 +93,10 @@ class JobFactory():
                 reps.append(range(start_rep, max_rep))
         return reps
 
-    def create_jobs(self, exp_configs: List[attrdict.AttrDict], rep: int = None) -> List[Job]:
+    def create_jobs(self, exp_configs: List[attrdict.AttrDict]) -> List[Job]:
         joblist = []
         for exp_conf in exp_configs:
-            if rep is not None:
-                reps = [[rep]]
-            else:
-                reps = self._divide_repetitions(exp_conf)
+            reps = self._divide_repetitions(exp_conf)
 
             for rep_list in reps:
                 j = Job(
