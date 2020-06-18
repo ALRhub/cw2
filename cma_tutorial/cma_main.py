@@ -23,7 +23,7 @@ class CWCMA(cw2.experiment.AbstractExperiment):
         self.problem.initwithsize(curshape=(1, dim), dim=dim)
         self.optimizer = es = cma.CMAEvolutionStrategy(
             x0=x_start,
-            sigma0=init_sigma,
+            sigma0=init_sigma,  
             inopts={
                 'popsize': config.params.optim_params.n_samples
             }
@@ -90,7 +90,5 @@ class CWCMA(cw2.experiment.AbstractExperiment):
 
 
 if __name__ == "__main__":
-    DIR = os.path.dirname(__file__)
-    #yaml = os.path.join(DIR, "cma_config.yml")
-
-    cw2.cluster_work.run(CWCMA)
+    cw = cw2.cluster_work.ClusterWork(CWCMA)
+    cw.run()

@@ -3,13 +3,13 @@ import shutil
 from typing import List
 
 import attrdict
-
+from copy import deepcopy
 from cw2 import cw_logging, experiment
 
 
 class Job():
     def __init__(self, exp_config: attrdict.AttrDict, reps: List[int], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
-        self.config = exp_config
+        self.config = deepcopy(exp_config)
         self.repetitions = reps
         self.exp = exp_cls()
         self.logger = logger
@@ -18,13 +18,6 @@ class Job():
     # TODO: save new path with root dir appended?
 
     def __create_experiment_directory(self, delete_old_files=False, root_dir=""):
-        # FIXME: Will be called multiple times when used together with slurm -j cascade
-        if delete_old_files:
-            try:
-                shutil.rmtree(os.path.join(root_dir, self.config.path))
-            except:
-                pass
-
         # create experiment path and subdir
         os.makedirs(os.path.join(root_dir, self.config.path), exist_ok=True)
 
@@ -33,31 +26,22 @@ class Job():
             root_dir, self.config.log_path), exist_ok=True)
 
         # create log path for each repetition
-        # FIXME: different handling for -j case
-        rep_path_list = []
-        for r in range(self.config.repetitions):
+        rep_path_map = {}
+        for r in self.repetitions:
             rep_path = os.path.join(
                 root_dir, self.config.log_path, 'rep_{:02d}'.format(r), '')
+            rep_path_map[r] = rep_path
+
+
+        for rep, rep_path in rep_path_map.items():
+            if delete_old_files:
+                try:
+                    shutil.rmtree(os.path.join(root_dir, rep_path))
+                except:
+                    pass
             os.makedirs(rep_path, exist_ok=True)
 
-            rep_path_list.append(rep_path)
-        self.config['rep_log_paths'] = rep_path_list
-
-    # XXX: Deprecated. To be removed
-
-    def run(self, rep=None):
-        c = self.config
-        self.logger.configure(c)
-
-        repetitions = self.repetitions
-
-        if rep is not None:
-            repetitions = [rep]
-
-        for r in repetitions:
-            self.run_rep(r)
-
-        self.logger.global_finalize()
+        self.config['rep_log_paths'] = rep_path_map
 
     def run_rep(self, r: int):
         c = self.config

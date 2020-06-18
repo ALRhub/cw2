@@ -4,32 +4,46 @@ from cw2 import (cli_parser, config, cw_logging, cw_slurm, experiment, job,
                  scheduler)
 
 
-def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
-    args = cli_parser.Arguments().get()
+class ClusterWork():
+    def __init__(self, exp_cls: experiment.AbstractExperiment):
+        self.args = cli_parser.Arguments().get()
+        self.exp_cls = exp_cls
+        self.config = config.Config(self.args.config, self.args.experiments)
 
-    _config = config.Config(args.config, args.experiments)
-    exp_configs = _config.exp_configs
+        self.logArray = cw_logging.LoggerArray()
+        self.add_logger(cw_logging.PandasRepSaver())
 
-    logArray = cw_logging.LoggerArray()
-    logArray.add(cw_logging.PandasRepSaver())
+    def add_logger(self, logger: cw_logging.AbstractLogger):
+        self.logArray.add(logger)
 
-    job_idx = None
-    if args.job is not None:
-        job_idx = args.job
+    def _get_jobs(self, delete: bool = False, root_dir: str = ""):
+        factory = job.JobFactory(self.exp_cls, self.logArray, delete, root_dir)
+        joblist = factory.create_jobs(self.config.exp_configs)
+        return joblist
 
-    factory = job.JobFactory(exp_cls, logArray, args.delete, root_dir)
-    _jobs = factory.create_jobs(exp_configs)
+    def run(self, root_dir: str = ""):
+        args = self.args
 
-    if args.slurm:
-        slurm_script = cw_slurm.create_slurm_script(_config, len(_jobs))
+        _jobs = self._get_jobs(self.args.delete, root_dir)
 
-        cmd = "sbatch " + slurm_script
-        print(cmd)
+        job_idx = None
+        if args.job is not None:
+            job_idx = args.job
 
-        subprocess.check_output(cmd, shell=True)
-        return
+        if args.slurm:
+            slurm_script = cw_slurm.create_slurm_script(
+                self.config, len(_jobs))
 
-    s = scheduler.LocalScheduler()
-    s.assign(_jobs)
+            cmd = "sbatch " + slurm_script
+            print(cmd)
 
-    s.run(job_idx)
+            subprocess.check_output(cmd, shell=True)
+            return
+
+        s = scheduler.LocalScheduler()
+        s.assign(_jobs)
+
+        s.run(job_idx)
+
+    def load(self, root_dir: str=""):
+        _jobs = self._get_jobs(False, root_dir)
