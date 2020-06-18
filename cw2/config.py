@@ -118,7 +118,7 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-    # TODO: "Expand 2 Jobs"-Name ??
+
     def __expand_experiments(self, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
         TODO: Copied from cluster_work_v1. Maybe rework??

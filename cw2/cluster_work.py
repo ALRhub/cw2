@@ -12,7 +12,6 @@ def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
 
     logArray = cw_logging.LoggerArray()
     logArray.add(cw_logging.PandasRepSaver())
-    logArray.add(cw_logging.PandasAllSaver())
 
     if args.slurm:
         slurm_script = cw_slurm.create_slurm_script(_config)
@@ -27,11 +26,8 @@ def run(exp_cls: experiment.AbstractExperiment, root_dir: str = ""):
     if args.job is not None:
         exp_configs, rep = _config.get_single_job(args.job)
 
-    _jobs = []
-    for exp_conf in exp_configs:
-        j = job.Job(exp_cls, exp_conf, logArray,
-                    args.delete, root_dir)
-        _jobs.append(j)
+    factory = job.JobFactory(exp_cls, logArray, args.delete, root_dir)
+    _jobs = factory.create_jobs(exp_configs, rep)
 
     s = scheduler.LocalScheduler()
     s.assign(_jobs, exp_cls)

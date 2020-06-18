@@ -25,4 +25,5 @@ class AbstractScheduler(abc.ABC):
 class LocalScheduler(AbstractScheduler):
     def run(self, rep=None):
         for j in self.joblist:
-            j.run(rep)
+            for r in j.repetitions:
+                j.run_rep(r)
