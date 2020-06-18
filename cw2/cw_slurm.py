@@ -22,7 +22,7 @@ def finalize_slurm_config(configuration: config.Config) -> attrdict:
 
     if "experiment_log" not in slurm_config:
         slurm_config["experiment_log"] = os.path.join(slurm_config["experiment_cwd"], 'log')
-    os.makedirs(slurm_config["experiment_log"])
+    os.makedirs(slurm_config["experiment_log"], exist_ok=True)
 
     # TODO: Automatically fill in python path?
     print(sys.path)
