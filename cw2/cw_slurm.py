@@ -7,6 +7,15 @@ import __main__
 from cw2 import cli_parser, config
 
 def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
+    """enrich slurm configuration with dynamicallyy computed values
+
+    Args:
+        conf (config.Config): configuration object.
+        num_jobs (int): total number of defined jobs
+
+    Returns:
+        attrdict: complete slurm configuration dictionary
+    """
     sc = conf.slurm_config
 
     # numjobs is last job index, counting starts at 0

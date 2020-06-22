@@ -76,6 +76,9 @@ class AbstractLogger(abc.ABC):
 
     @abc.abstractmethod
     def load(self):
+        """needs to be implemented by subclass.
+        called when the data should be loaded after execution is complete.
+        """
         raise NotImplementedError
 
 
