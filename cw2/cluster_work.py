@@ -47,3 +47,9 @@ class ClusterWork():
 
     def load(self, root_dir: str=""):
         _jobs = self._get_jobs(False, root_dir)
+        l = cw_logging.PandasRepSaver()
+        for j in _jobs:
+            for r in j.repetitions:
+                l.initialize(j.config, r)
+                df = l.load()
+                print(df.head())

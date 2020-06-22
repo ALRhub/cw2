@@ -166,3 +166,6 @@ class PandasRepSaver(AbstractLogger):
 
     def finalize(self) -> None:
         pass
+
+    def load(self):
+        return pd.read_csv(self.f_name) 

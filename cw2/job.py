@@ -33,7 +33,7 @@ class Job():
             rep_path_map[r] = rep_path
 
 
-        for rep, rep_path in rep_path_map.items():
+        for _, rep_path in rep_path_map.items():
             if delete_old_files:
                 try:
                     shutil.rmtree(os.path.join(root_dir, rep_path))
