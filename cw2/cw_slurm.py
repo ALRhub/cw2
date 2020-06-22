@@ -6,10 +6,6 @@ import attrdict
 import __main__
 from cw2 import cli_parser, config
 
-DEFAULT_TEMPLATE = os.path.join(
-    os.path.dirname(__file__), "slurm_template.sh")
-
-
 def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
     sc = conf.slurm_config
 
@@ -20,7 +16,11 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
         sc["experiment_cwd"] = os.getcwd()
 
     if "experiment_log" not in sc:
-        sc["experiment_log"] = os.path.join(sc["experiment_cwd"], 'log')
+        sc["experiment_log"] = os.path.join(conf.exp_configs[0]['_experiment_path'], 'log')
+
+    if "slurm_ouput" not in sc:
+        sc["slurm_out"] = os.path.join(conf.exp_configs[0]['_experiment_path'], 'sbatch.sh')
+
     os.makedirs(sc["experiment_log"], exist_ok=True)
 
     cw_options = cli_parser.Arguments().get()
@@ -35,19 +35,19 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
     return sc
 
 
-def create_slurm_script(conf: config.Config, num_jobs: int, template_path: str = DEFAULT_TEMPLATE):
+def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
     """creates an sbatch.sh script for slurm
 
     Args:
         conf (config.Config): Configuration object 
-        template_path (str, optional): path to an sbatch template script. Defaults to DEFAULT_TEMPLATE.
 
     Returns:
-        [type]: [description]
+        str: path to slurm file
     """
-    output_path = "./sbatch.sh"
-
     sc = _finalize_slurm_config(conf, num_jobs)
+    template_path = conf.slurm_config.path_to_template
+    output_path = sc["slurm_out"]
+
     experiment_code = __main__.__file__
 
     fid_in = open(template_path, 'r')
@@ -62,7 +62,7 @@ def create_slurm_script(conf: config.Config, num_jobs: int, template_path: str =
         tline = tline.replace('%%time_limit%%', '{:d}:{:d}:00'.format(sc['time_limit'] // 60,
                                                                       sc['time_limit'] % 60))
 
-        tline = tline.replace('%%experiment_root%%', sc['experiment_root'])
+        #tline = tline.replace('%%experiment_root%%', sc['experiment_root'])
         tline = tline.replace('%%experiment_cwd%%', sc['experiment_cwd'])
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)

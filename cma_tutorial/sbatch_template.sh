@@ -3,11 +3,11 @@
 # #SBATCH -A %%project_name%%
 #SBATCH --array 0-%%num_jobs%%%%%num_parallel_jobs%%
 #SBATCH -J %%experiment_name%%
-#SBATCH -D %%experiment_root%%
+# #SBATCH -D %%experiment_root%%    # Already done with cd below - also, difference to cwd ??
 #SBATCH --mail-type=END
 # Please use the complete path details :
-#SBATCH -o %%experiment_cwd%%/log/out_%A_%a.log
-#SBATCH -e %%experiment_cwd%%/log/err_%A_%a.log
+#SBATCH -o %%experiment_log%%/out_%A_%a.log
+#SBATCH -e %%experiment_log%%/err_%A_%a.log
 #
 #SBATCH -n %%number_of_jobs%%         # Number of tasks
 #SBATCH -c %%number_of_cpu_per_job%%  # Number of cores per task
@@ -19,12 +19,12 @@
 # Load the required modules
 # module load gcc openmpi/gcc
 export OPENBLAS_NUM_THREADS=1
+export PYTHONPATH=$PYTHONPATH:/home/max_li/cluster_work_v2/
 
 # Activate the virtualenv / conda environment
-source activate /home/max/nfs/venvs/stochastic_search/bin/activate
+source activate /home/max_li/venv/bin/activate
 
 # cd into the working directory
-cd %%experiment_root%%
+cd %%experiment_cwd%%
 
-# mpiexec -map-by core -bind-to core python3.6 -c "%%python_script%%" %%path_to_yaml_config%% -m -g 1 -l DEBUG -j $SLURM_ARRAY_TASK_ID %%exp_name%%
-python3.6 -c "%%python_script%%" %%path_to_yaml_config%% -l DEBUG -j $SLURM_ARRAY_TASK_ID %%exp_name%%
+python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%exp_name%%
