@@ -56,6 +56,8 @@ class Job():
         self.exp.finalize()
         self.logger.finalize()
 
+    def get_rep_path(self, r: int):
+        return self.config['rep_log_paths'][r]
 
 class JobFactory():
     def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):

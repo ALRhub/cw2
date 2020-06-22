@@ -2,6 +2,7 @@ import abc
 import datetime as dt
 import os
 import pprint
+from typing import List
 
 import attrdict
 import pandas as pd
@@ -73,6 +74,10 @@ class AbstractLogger(abc.ABC):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def load(self):
+        raise NotImplementedError
+
 
 class LoggerArray(AbstractLogger):
     """Storage for multiple AbstractLogger objects.
@@ -81,7 +86,7 @@ class LoggerArray(AbstractLogger):
     """
 
     def __init__(self):
-        self._logger_array = []
+        self._logger_array: List[AbstractLogger] = []
 
     def add(self, logger: AbstractLogger) -> None:
         self._logger_array.append(logger)
@@ -98,6 +103,14 @@ class LoggerArray(AbstractLogger):
         for logger in self._logger_array:
             logger.finalize()
 
+    def load(self):
+        data = {}
+        for logger in self._logger_array:
+            d = logger.load()
+            if d is not None:
+                data[logger.__class__.__name__] = d
+        return data
+
 
 class Printer(AbstractLogger):
     """Prints the result of each iteration to the console.
@@ -112,7 +125,9 @@ class Printer(AbstractLogger):
 
     def finalize(self) -> None:
         pass
-
+    
+    def load(self):
+        pass
 
 class PandasAllSaver(AbstractLogger):
     """Writes the results of all repetiitions and iterations as CSV to disk.
@@ -139,6 +154,8 @@ class PandasAllSaver(AbstractLogger):
         with open(self.f_name, 'w') as results_file:
             df.to_csv(results_file)
 
+    def load(self):
+        pass
 
 class PandasRepSaver(AbstractLogger):
     """Writes the results of each repetition seperately to disk
@@ -168,4 +185,4 @@ class PandasRepSaver(AbstractLogger):
         pass
 
     def load(self):
-        return pd.read_csv(self.f_name) 
+        return pd.read_csv(self.f_name)
