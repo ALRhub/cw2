@@ -164,13 +164,12 @@ class Config:
 
                     _config['path'] = os.path.join(
                         config.path, _converted_name)
-                    _config['experiment_name'] = _config.name
-                    _config['name'] += '__' + _converted_name
+                    _config['experiment_name'] = _config.name + '__' + _converted_name
 
                     # Use dedicated logging path or use "internal" one
                     if 'log_path' in config:
                         _config['log_path'] = os.path.join(
-                            config.log_path, config.name, _converted_name, 'log')
+                            config.log_path, config.experiment_name, _converted_name, 'log')
                     else:
                         _config['log_path'] = os.path.join(
                             _config.path, 'log')
