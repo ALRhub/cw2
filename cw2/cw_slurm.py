@@ -1,23 +1,31 @@
 import os
+import shutil
 import subprocess
 import sys
 
 import attrdict
-import shutil
 
 import __main__
 from cw2 import cli_parser, config
 
+
 def run_slurm(conf: config.Config, num_jobs: int) -> None:
+    """starts slurm execution
+
+    Args:
+        conf (config.Config): config object
+        num_jobs (int): total number of jobs
+    """
     sc = _finalize_slurm_config(conf, num_jobs)
 
     _prepare_dir(sc, conf)
     slurm_script = _create_slurm_script(sc, conf)
 
     cmd = "sbatch " + slurm_script
-    
+
     print(cmd)
     subprocess.check_output(cmd, shell=True)
+
 
 def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrDict:
     """enrich slurm configuration with dynamicallyy computed values
@@ -27,7 +35,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         num_jobs (int): total number of defined jobs
 
     Returns:
-        attrdict: complete slurm configuration dictionary
+        attrdict.AttrDict: complete slurm configuration dictionary
     """
     sc = conf.slurm_config
     exp_path = conf.exp_configs[0]['_experiment_path']
@@ -44,10 +52,10 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
 
     if "slurm_ouput" not in sc:
         sc["slurm_output"] = os.path.join(exp_path, 'sbatch.sh')
-    
+
     if "config_output" not in sc:
         sc["config_output"] = os.path.join(exp_path, conf.f_name)
-    
+
     cw_options = cli_parser.Arguments().get()
     sc["experiment_selectors"] = ""
 
@@ -59,7 +67,14 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
 
     return sc
 
+
 def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
+    """writes all the helper files associated with slurm execution
+
+    Args:
+        sc (attrdict.AttrDict): enriched slurm configuration
+        conf (config.Config): overall configuration object
+    """
     os.makedirs(sc["experiment_log"], exist_ok=True)
     conf.to_yaml(sc["config_output"])
 
@@ -80,12 +95,13 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     """creates an sbatch.sh script for slurm
 
     Args:
+        sc (attrdict.AttrDict): enriched slurm configuration
         conf (config.Config): Configuration object 
 
     Returns:
         str: path to slurm file
     """
-    
+
     template_path = sc["path_to_template"]
     output_path = sc["slurm_output"]
 
