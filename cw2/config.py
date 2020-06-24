@@ -112,6 +112,9 @@ class Config:
         Returns:
             List[attrdict.AttrDict] -- a list of all experiment configurations
         """
+        if default_config is None:
+            return experiment_configs
+
         expanded_exp_configs = []
         for c in experiment_configs:
             merge_c = deepcopy(default_config)
@@ -209,10 +212,10 @@ class Config:
             c = dict(exp)
             if relpath:
                 _exp_path = c["_experiment_path"]
-                c["log_path"] = os.path.relpath(c["log_path"], _exp_path)
-                c["path"] = os.path.relpath(c["path"], _exp_path)
-                c["_experiment_path"] = os.path.relpath(
-                    c["_experiment_path"], _exp_path)
+                c["log_path"] = os.path.join(".", os.path.relpath(c["log_path"], _exp_path))
+                c["path"] = os.path.join(".",os.path.relpath(c["path"], _exp_path))
+                c["_experiment_path"] = os.path.join(".",os.path.relpath(
+                    c["_experiment_path"], _exp_path))
             res.append(c)
         return res
 
