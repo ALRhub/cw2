@@ -25,6 +25,6 @@ export PYTHONPATH=$PYTHONPATH:/home/max_li/cluster_work_v2/
 source activate /home/max_li/venv/bin/activate
 
 # cd into the working directory
-cd %%experiment_cwd%%
+cd %%experiment_wd%%
 
 python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%exp_name%%

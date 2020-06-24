@@ -44,8 +44,8 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     # numjobs is last job index, counting starts at 0
     sc['num_jobs'] = num_jobs - 1
 
-    if "experiment_cwd" not in sc:
-        sc["experiment_cwd"] = os.getcwd()
+    if "experiment_wd" not in sc:
+        sc["experiment_wd"] = exp_path
 
     if "experiment_log" not in sc:
         sc["experiment_log"] = os.path.join(exp_path, 'slurmlog')
@@ -54,7 +54,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["slurm_output"] = os.path.join(exp_path, 'sbatch.sh')
 
     if "config_output" not in sc:
-        sc["config_output"] = os.path.join(exp_path, conf.f_name)
+        sc["config_output"] = os.path.join(exp_path, "relative_" + conf.f_name)
 
     cw_options = cli_parser.Arguments().get()
     sc["experiment_selectors"] = ""
@@ -120,7 +120,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
                                                                       sc['time_limit'] % 60))
 
         #tline = tline.replace('%%experiment_root%%', sc['experiment_root'])
-        tline = tline.replace('%%experiment_cwd%%', sc['experiment_cwd'])
+        tline = tline.replace('%%experiment_wd%%', sc['experiment_wd'])
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', sc["experiment_selectors"])
