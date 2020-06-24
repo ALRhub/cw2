@@ -47,7 +47,7 @@ class Job():
                     shutil.rmtree(os.path.join(root_dir, rep_path))
                 except:
                     pass
-                os.makedirs(rep_path, exist_ok=True)
+        os.makedirs(rep_path, exist_ok=True)
 
         self.config['rep_log_paths'] = rep_path_map
 

@@ -81,7 +81,7 @@ def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', sc["experiment_selectors"])
-        tline = tline.replace('%%path_to_yaml_config%%', sc["config_output"])
+        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
         tline = tline.replace('%%num_jobs%%', '{:d}'.format(sc['num_jobs']))
         tline = tline.replace('%%num_parallel_jobs%%',
                               '{:d}'.format(sc['num_parallel_jobs']))
