@@ -76,10 +76,11 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
         conf (config.Config): overall configuration object
     """
     os.makedirs(sc["experiment_log"], exist_ok=True)
+    os.makedirs(sc["experiment_wd"], exist_ok=True)
     conf.to_yaml(sc["config_output"])
 
     src = os.getcwd()
-    dst = sc["exp_path"]
+    dst = sc["experiment_wd"]
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
 
     for item in os.listdir(src):
