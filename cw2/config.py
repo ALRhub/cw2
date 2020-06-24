@@ -119,7 +119,6 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-
     def __expand_experiments(self, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
         TODO: Copied from cluster_work_v1. Maybe rework??
@@ -179,26 +178,44 @@ class Config:
                     expanded_config_list.append(_config)
             else:
                 expanded_config_list.append(config)
-    
+
         return expanded_config_list
 
-    def to_yaml(self, fpath: str) -> None:
-        data = [dict(self.slurm_config)] + self._relative_exp_configs()
+    def to_yaml(self, fpath: str, relpath: bool = True) -> None:
+        """Writes a new configuration YAML file.
+        Optionally with relative path definitions only
+        Args:
+            fpath (str): output path
+            relpath (bool, optional): True if the new experiment config file should use relative paths only. Defaults to True.
+        """
+        # Merge into single list
+        data = [dict(self.slurm_config)] + self._readable_exp_configs(relpath)
 
         with open(fpath, 'w') as f:
             yaml.dump_all(data, f, default_flow_style=False)
 
-    def _relative_exp_configs(self) -> List[dict]:
+    def _readable_exp_configs(self, relpath: bool = True) -> List[dict]:
+        """Internal function to get more readable objects when written as yaml
+        Converts to dict() and optionally use relative paths only
+        Args:
+            relpath (bool, optional): True if the new experiment config file should use relative paths only. Defaults to True.
+
+        Returns:
+            List[dict]: list of transformed experiment configuration dicts
+        """
         res = []
         for exp in self.exp_configs:
             # Convert attrdict to dict for prettier yaml write
             c = dict(exp)
-            _exp_path = c["_experiment_path"]
-            c["log_path"] = os.path.relpath(c["log_path"], _exp_path)
-            c["path"] = os.path.relpath(c["path"], _exp_path)
-            c["_experiment_path"] = os.path.relpath(c["_experiment_path"], _exp_path)
+            if relpath:
+                _exp_path = c["_experiment_path"]
+                c["log_path"] = os.path.relpath(c["log_path"], _exp_path)
+                c["path"] = os.path.relpath(c["path"], _exp_path)
+                c["_experiment_path"] = os.path.relpath(
+                    c["_experiment_path"], _exp_path)
             res.append(c)
         return res
+
 
 def convert_param_names(_param_names, values) -> str:
     """create new shorthand name derived from parameter and value association
