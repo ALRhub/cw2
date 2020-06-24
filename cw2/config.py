@@ -15,6 +15,7 @@ class Config:
     def __init__(self, config_path=None, experiment_selections=None):
         self.slurm_config = None
         self.exp_configs = None
+        self.f_name = os.path.basename(config_path)
 
         if config_path is not None:
             self.load_config(config_path, experiment_selections)
@@ -180,6 +181,24 @@ class Config:
                 expanded_config_list.append(config)
     
         return expanded_config_list
+
+    def to_yaml(self, fpath: str) -> None:
+        data = [dict(self.slurm_config)] + self._relative_exp_configs()
+
+        with open(fpath, 'w') as f:
+            yaml.dump_all(data, f, default_flow_style=False)
+
+    def _relative_exp_configs(self) -> List[dict]:
+        res = []
+        for exp in self.exp_configs:
+            # Convert attrdict to dict for prettier yaml write
+            c = dict(exp)
+            _exp_path = c["_experiment_path"]
+            c["log_path"] = os.path.relpath(c["log_path"], _exp_path)
+            c["path"] = os.path.relpath(c["path"], _exp_path)
+            c["_experiment_path"] = os.path.relpath(c["_experiment_path"], _exp_path)
+            res.append(c)
+        return res
 
 def convert_param_names(_param_names, values) -> str:
     """create new shorthand name derived from parameter and value association

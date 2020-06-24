@@ -17,6 +17,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
         attrdict: complete slurm configuration dictionary
     """
     sc = conf.slurm_config
+    exp_path = conf.exp_configs[0]['_experiment_path']
 
     # numjobs is last job index, counting starts at 0
     sc['num_jobs'] = num_jobs - 1
@@ -25,13 +26,17 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
         sc["experiment_cwd"] = os.getcwd()
 
     if "experiment_log" not in sc:
-        sc["experiment_log"] = os.path.join(conf.exp_configs[0]['_experiment_path'], 'log')
+        sc["experiment_log"] = os.path.join(exp_path, 'slurmlog')
 
     if "slurm_ouput" not in sc:
-        sc["slurm_out"] = os.path.join(conf.exp_configs[0]['_experiment_path'], 'sbatch.sh')
+        sc["slurm_output"] = os.path.join(exp_path, 'sbatch.sh')
+    
+    if "config_output" not in sc:
+        sc["config_output"] = os.path.join(exp_path, conf.f_name)
 
     os.makedirs(sc["experiment_log"], exist_ok=True)
-
+    conf.to_yaml(sc["config_output"])
+    
     cw_options = cli_parser.Arguments().get()
     sc["experiment_selectors"] = ""
 
@@ -55,7 +60,7 @@ def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
     """
     sc = _finalize_slurm_config(conf, num_jobs)
     template_path = conf.slurm_config.path_to_template
-    output_path = sc["slurm_out"]
+    output_path = sc["slurm_output"]
 
     experiment_code = __main__.__file__
 
@@ -76,7 +81,7 @@ def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', sc["experiment_selectors"])
-        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
+        tline = tline.replace('%%path_to_yaml_config%%', sc["config_ouput"])
         tline = tline.replace('%%num_jobs%%', '{:d}'.format(sc['num_jobs']))
         tline = tline.replace('%%num_parallel_jobs%%',
                               '{:d}'.format(sc['num_parallel_jobs']))
