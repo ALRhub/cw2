@@ -1,12 +1,25 @@
 import os
+import subprocess
 import sys
 
 import attrdict
+import shutil
 
 import __main__
 from cw2 import cli_parser, config
 
-def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
+def run_slurm(conf: config.Config, num_jobs: int) -> None:
+    sc = _finalize_slurm_config(conf, num_jobs)
+
+    _prepare_dir(sc, conf)
+    slurm_script = _create_slurm_script(sc, conf)
+
+    cmd = "sbatch " + slurm_script
+    
+    print(cmd)
+    subprocess.check_output(cmd, shell=True)
+
+def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrDict:
     """enrich slurm configuration with dynamicallyy computed values
 
     Args:
@@ -18,6 +31,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
     """
     sc = conf.slurm_config
     exp_path = conf.exp_configs[0]['_experiment_path']
+    sc["exp_path"] = exp_path
 
     # numjobs is last job index, counting starts at 0
     sc['num_jobs'] = num_jobs - 1
@@ -33,9 +47,6 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
     
     if "config_output" not in sc:
         sc["config_output"] = os.path.join(exp_path, conf.f_name)
-
-    os.makedirs(sc["experiment_log"], exist_ok=True)
-    conf.to_yaml(sc["config_output"])
     
     cw_options = cli_parser.Arguments().get()
     sc["experiment_selectors"] = ""
@@ -48,8 +59,24 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict:
 
     return sc
 
+def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
+    os.makedirs(sc["experiment_log"], exist_ok=True)
+    conf.to_yaml(sc["config_output"])
 
-def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
+    src = os.getcwd()
+    dst = sc["exp_path"]
+    ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, ignore=ign)
+        else:
+            shutil.copy2(s, d)
+
+
+def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     """creates an sbatch.sh script for slurm
 
     Args:
@@ -58,8 +85,8 @@ def create_slurm_script(conf: config.Config, num_jobs: int) -> str:
     Returns:
         str: path to slurm file
     """
-    sc = _finalize_slurm_config(conf, num_jobs)
-    template_path = conf.slurm_config.path_to_template
+    
+    template_path = sc["path_to_template"]
     output_path = sc["slurm_output"]
 
     experiment_code = __main__.__file__

@@ -1,4 +1,3 @@
-import subprocess
 from typing import List
 from cw2 import (cli_parser, config, cw_logging, cw_slurm, experiment, job,
                  scheduler)
@@ -47,14 +46,7 @@ class ClusterWork():
 
         # Handle SLURM execution
         if args.slurm:
-            slurm_script = cw_slurm.create_slurm_script(
-                self.config, len(_jobs))
-
-            cmd = "sbatch " + slurm_script
-            print(cmd)
-
-            subprocess.check_output(cmd, shell=True)
-            return
+            return cw_slurm.run_slurm(self.config, len(_jobs))
 
         # Do Local execution
         s = scheduler.LocalScheduler()
