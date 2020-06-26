@@ -1,5 +1,6 @@
 import abc
-
+from cw2 import cw_logging
+import datetime as dt
 
 class AbstractExperiment(abc.ABC):
     @abc.abstractmethod
@@ -12,7 +13,19 @@ class AbstractExperiment(abc.ABC):
             rep {int} -- repition counter
         """
         raise NotImplementedError
+    
+    @abc.abstractmethod
+    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+        raise NotImplementedError
 
+    @abc.abstractmethod
+    def finalize(self):
+        """needs to be implemented by subclass.
+        Called after all the iterations have finished at the end of the repitition.
+        """
+        raise NotImplementedError
+
+class AbstractIterativeExperiment(AbstractExperiment):
     @abc.abstractmethod
     def iterate(self, config: dict, rep: int, n: int) -> dict:
         """needs to be implemented by subclass.
@@ -25,13 +38,6 @@ class AbstractExperiment(abc.ABC):
 
         Returns:
             dict -- result map
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def finalize(self):
-        """needs to be implemented by subclass.
-        Called after all the iterations have finished at the end of the repitition.
         """
         raise NotImplementedError
 
@@ -64,3 +70,14 @@ class AbstractExperiment(abc.ABC):
             bool -- success
         """
         raise NotImplementedError
+
+    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+        for n in range(config.iterations):
+            res = self.iterate(config, rep, n)
+            
+            res["ts"] = dt.datetime.now()
+            res["rep"] = rep
+            res["iter"] = n
+            logger.process(res)
+            
+            self.save_state(config, rep, n)

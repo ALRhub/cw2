@@ -9,7 +9,7 @@ import cw2.cluster_work
 import cw2.experiment
 
 
-class CWCMA(cw2.experiment.AbstractExperiment):
+class CWCMA(cw2.experiment.AbstractIterativeExperiment):
     def __init__(self):
         super().__init__()
         self.problem = None
@@ -23,7 +23,7 @@ class CWCMA(cw2.experiment.AbstractExperiment):
         self.problem.initwithsize(curshape=(1, dim), dim=dim)
         self.optimizer = es = cma.CMAEvolutionStrategy(
             x0=x_start,
-            sigma0=init_sigma,  
+            sigma0=init_sigma,
             inopts={
                 'popsize': config.params.optim_params.n_samples
             }

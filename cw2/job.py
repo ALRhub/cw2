@@ -61,11 +61,8 @@ class Job():
         self.exp.initialize(c, r)
         self.logger.initialize(c, r)
 
-        for n in range(c.iterations):
-            res = self.exp.iterate(c, r, n)
-            self.logger.log_raw_result(res, r, n)
+        self.exp.run(c, r, self.logger)
 
-            self.exp.save_state(c, r, n)
         self.exp.finalize()
         self.logger.finalize()
 

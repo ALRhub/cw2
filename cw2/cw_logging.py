@@ -10,7 +10,8 @@ import pandas as pd
 
 class ResultData:
     """Wrappper for result dictionaries.
-    Adds additional metadata like the timestamp
+    Adds additional metadata like the 
+    XXX: Deprecated with true AbstractExperiment
     """
 
     def __init__(self, data: dict, rep: int, n: int):
@@ -33,17 +34,6 @@ class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """
 
-    def log_raw_result(self, data: dict, rep: int, n: int) -> None:
-        """interface to the framework to process the raw iteration result dictionary. 
-        Internally calls the process method implemented by the subclass.
-
-        Arguments:
-            data {dict} -- iteration result
-            rep {int} -- repetition counter
-            n {int} -- iteration counter
-        """
-        self.process(ResultData(data, rep, n))
-
     @abc.abstractmethod
     def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
         """needs to be implemented by subclass.
@@ -57,12 +47,12 @@ class AbstractLogger(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def process(self, res: ResultData) -> None:
+    def process(self, data) -> None:
         """needs to be implemented by subclass.
         The main method. Defines how the logger handles the result of each iteration.
 
         Arguments:
-            res {ResultData} -- iteration result including metadata
+            data -- data payload to be processed by logger
         """
         raise NotImplementedError
 
@@ -98,9 +88,9 @@ class LoggerArray(AbstractLogger):
         for logger in self._logger_array:
             logger.initialize(config, rep)
 
-    def process(self, res: ResultData) -> None:
+    def process(self, data) -> None:
         for logger in self._logger_array:
-            logger.process(res)
+            logger.process(data)
 
     def finalize(self) -> None:
         for logger in self._logger_array:
@@ -122,43 +112,16 @@ class Printer(AbstractLogger):
     def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
         pass
 
-    def process(self, res: ResultData) -> None:
+    def process(self, data) -> None:
         print()
-        pprint.pprint(res.get())
+        pprint.pprint(data)
 
     def finalize(self) -> None:
         pass
-    
-    def load(self):
-        pass
-
-class PandasAllSaver(AbstractLogger):
-    """Writes the results of all repetiitions and iterations as CSV to disk.
-    Write occurs only after the job execution is finished.
-    XXX: Deprecated: Problems with Paralellization
-    """
-
-    def __init__(self):
-        self._data = []
-        self.f_name = 'results.csv'
-
-    def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
-        self.f_name = os.path.join(config.path, self.f_name)
-        pass
-
-    def process(self, res: ResultData) -> None:
-        full_res = res.get()
-        self._data.append(full_res)
-
-    def finalize(self) -> None:
-        df = pd.DataFrame(self._data)
-        df = df.set_index(["r", "i"])
-
-        with open(self.f_name, 'w') as results_file:
-            df.to_csv(results_file)
 
     def load(self):
         pass
+
 
 class PandasRepSaver(AbstractLogger):
     """Writes the results of each repetition seperately to disk
@@ -166,23 +129,27 @@ class PandasRepSaver(AbstractLogger):
     """
 
     def __init__(self):
-        self.rep_paths = []
+        self.log_path = ""
         self.f_name = "rep.csv"
+        self.index = 0
 
     def initialize(self, config: attrdict.AttrDict, rep: int):
-        self.rep_paths = config.rep_log_paths
-        self.f_name = os.path.join(
-            self.rep_paths[rep], 'rep_{}.csv'.format(rep))
+        self.log_path = config.rep_log_paths[rep]
+        self.f_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
+        self.index = 0
 
-    def process(self, res: ResultData) -> None:
-        full_res = res.get()
+    def process(self, data) -> None:
+        if not isinstance(data, dict):
+            return
 
-        if full_res['i'] == 0:
-            pd.DataFrame(full_res, index=[0]).to_csv(
-                self.f_name, mode='w', header=True, index_label='iteration')
+        if self.index == 0:
+            pd.DataFrame(data, index=[0]).to_csv(
+                self.f_name, mode='w', header=True, index_label='index')
         else:
-            pd.DataFrame(full_res, index=[full_res['i']]).to_csv(
+            pd.DataFrame(data, index=[self.index]).to_csv(
                 self.f_name, mode='a', header=False)
+
+        self.index += 1
 
     def finalize(self) -> None:
         pass

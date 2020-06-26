@@ -4,6 +4,7 @@ name: "SLURM"
 project_name: ""  # important for HHLR cluster
 experiment_name: "cma"  # this will be the experiment's name in slurm
 # experiment_root: "/home/max_li/experiments" #unused. maybe resue for code copy befor execution?
+experiment_wd: "/home/max_li/exp_code"
 path_to_template: "/home/max_li/code/cw2/cma_tutorial/sbatch_template.sh"  # TODO: get absolute path from current pwd or so
 path_to_config: "config.yml"  # name of the copied experiment yml file
 num_parallel_jobs: 120
