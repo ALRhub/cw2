@@ -43,7 +43,10 @@ class ClusterWork():
             root_dir (str, optional): [description]. Defaults to "".
         """
         args = self.args
-        _jobs = self._get_jobs(self.args.delete, root_dir)
+
+        # XXX: Disable Delete for now
+        # _jobs = self._get_jobs(self.args.delete, root_dir)
+        _jobs = self._get_jobs(False, root_dir)
 
         # Handle SLURM execution
         if args.slurm:

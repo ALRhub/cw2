@@ -41,12 +41,15 @@ class Job():
                 root_dir, self.config.log_path, 'rep_{:02d}'.format(r), '')
             rep_path_map[r] = rep_path
 
+        # XXX: Disable Delete for now
+        """
         if delete_old_files:
             for _, rep_path in rep_path_map.items():
                 try:
                     shutil.rmtree(os.path.join(root_dir, rep_path))
                 except:
                     pass
+        """
         os.makedirs(rep_path, exist_ok=True)
 
         self.config['rep_log_paths'] = rep_path_map
