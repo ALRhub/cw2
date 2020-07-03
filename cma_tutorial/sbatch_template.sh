@@ -27,4 +27,4 @@ source activate /home/max_li/venv/bin/activate
 # cd into the working directory
 cd %%experiment_wd%%
 
-python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%exp_name%%
+python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%exp_name%% %%cw_args%%

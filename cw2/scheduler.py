@@ -17,17 +17,17 @@ class AbstractScheduler(abc.ABC):
         self.joblist = joblist
 
     @abc.abstractmethod
-    def run(self, rep=None):
+    def run(self, job_idx=None, overwrite=False):
         raise NotImplementedError
 
 
 class LocalScheduler(AbstractScheduler):
-    def run(self, job_idx=None):
+    def run(self, job_idx=None, overwrite: bool = False):
         joblist = self.joblist
-        
+
         if job_idx is not None:
             joblist = [self.joblist[job_idx]]
 
         for j in joblist:
             for r in j.repetitions:
-                j.run_rep(r)
+                j.run_rep(r, overwrite)

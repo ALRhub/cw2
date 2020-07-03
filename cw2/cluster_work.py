@@ -59,7 +59,7 @@ class ClusterWork():
         job_idx = None
         if args.job is not None:
             job_idx = args.job
-        s.run(job_idx)
+        s.run(job_idx, overwrite=args.overwrite)
 
     def load(self, root_dir: str = "") -> dict:
         """Loads all saved information.

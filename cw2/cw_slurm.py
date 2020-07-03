@@ -58,9 +58,12 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
 
     cw_options = cli_parser.Arguments().get()
     sc["experiment_selectors"] = ""
-
     if cw_options.experiments is not None:
         sc["experiment_selectors"] = "-e " + " ".join(cw_options.experiments)
+    
+    sc["cw_args"] = ""
+    if cw_options.overwrite:
+        sc["cw_args"] += " -o"
 
     # TODO: Automatically fill in python path?
     print(sys.path)
@@ -125,6 +128,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%exp_name%%', sc["experiment_selectors"])
+        tline = tline.replace('%%cw_args%%', sc["cw_args"])
         tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
         tline = tline.replace('%%num_jobs%%', '{:d}'.format(sc['num_jobs']))
         tline = tline.replace('%%num_parallel_jobs%%',

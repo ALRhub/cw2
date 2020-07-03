@@ -17,6 +17,8 @@ class Arguments():
                         help='Allows to specify which experiments should be run.')
         p.add_argument('-s', '--slurm', action='store_true',
                         help='Run using SLURM Workload Manager.')
+        p.add_argument('-o', '--overwrite', action='store_true',
+                        help='Overwrite existing results.')
 
         self.args = p.parse_args(namespace=self)
     
