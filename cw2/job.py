@@ -86,7 +86,7 @@ class Job():
             bool: True if the repetition was already run
         """
         rep_path = self.get_rep_path(r)
-        return len(os.listdir(rep_path)) == 0
+        return len(os.listdir(rep_path)) != 0
 
     def get_rep_path(self, r: int) -> str:
         """returns the path of the job and repetition combination
