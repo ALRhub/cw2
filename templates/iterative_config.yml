@@ -1,0 +1,39 @@
+---
+# Slurm config (optional)
+name: "SLURM"
+project_name: ""  # important for HHLR cluster
+experiment_name: "cma"    # this will be the experiment's name in slurm
+experiment_wd: "/path/to/code_backup"   # optional. dir to which the current code will be copied. Useful to prevent unintentional changes while the job i in queue.
+path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script TODO: get absolute path from current pwd or so
+path_to_config: "config.yml"  # deprecated. TODO: Remove in future. name of the copied experiment yml file
+
+# Cluster specific options:
+num_parallel_jobs: 120
+number_of_jobs: 1
+number_of_cpu_per_job: 1
+mem: 1000
+time_limit: 30
+
+---
+# DEFAULT parameters
+name: "DEFAULT"
+repetitions: 5  # number of times one set of parameters is run
+iterations: 1000  # number of iterations per repetition
+# Implementation default parameters
+params:
+  max_samples: 2
+
+---
+# Experiment 1
+name: "experiment_name"
+path: "path/to/output_dir/"   # location to save results in
+params:
+  problem:
+    name: 'rosenbrock'
+
+list:
+  budget: [10000, 20000, 40000, 60000]
+  optim_params:
+    n_samples: [6, 8, 10, 12]
+  problem:
+    dim: [2, 5, 10, 20]

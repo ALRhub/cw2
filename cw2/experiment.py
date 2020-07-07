@@ -52,25 +52,6 @@ class AbstractIterativeExperiment(AbstractExperiment):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def restore_state(self, config: dict, rep: int, n: int) -> bool:
-        """needs to be implemented by subclass.
-        if the experiment supports restarting within a repetition
-        (on iteration level), load necessary stored state in this
-        function. Otherwise, restarting will be done on repetition
-        level, deleting all unfinished repetitions and restarting
-        the experiments.
-
-        Arguments:
-            config {dict} -- parameter configuration
-            rep {int} -- repition counter
-            n {int} -- iteration counter
-
-        Returns:
-            bool -- success
-        """
-        raise NotImplementedError
-
     def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         for n in range(config.iterations):
             res = self.iterate(config, rep, n)
