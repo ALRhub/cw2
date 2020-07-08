@@ -38,6 +38,10 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         attrdict.AttrDict: complete slurm configuration dictionary
     """
     sc = conf.slurm_config
+    if sc is None:
+        raise NameError("No SLURM configuration found in {}".format(conf.config_path))
+
+
     exp_path = conf.exp_configs[0]['_experiment_path']
     sc["exp_path"] = exp_path
 
