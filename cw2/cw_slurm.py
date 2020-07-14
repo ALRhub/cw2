@@ -53,7 +53,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         copy_exp = False
 
     if "experiment_copy_src" not in sc:
-        sc["experiment_copy_src"] = os.path.dirname(__main__.__file__)
+        sc["experiment_copy_src"] = os.path.dirname(os.path.abspath(__main__.__file__))
         print(sc["experiment_copy_src"])
 
     if "slurm_log" not in sc:
@@ -86,9 +86,10 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> 
     os.makedirs(sc["experiment_log"], exist_ok=True)
     conf.to_yaml(sc["config_output"])
 
-    if not copy_exp:
-        return
+    if copy_exp:
+        _copy_exp_files(sc, conf)
 
+def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     # Copy code to new location
     #FIXME: Copy config too!! It can have an absolute path outside of experiment directory
     #FIXME: Use additional arg EXP_SRC
@@ -104,7 +105,7 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> 
             shutil.copytree(s, d, ignore=ign)
         else:
             shutil.copy2(s, d)
-
+    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
 def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     """creates an sbatch.sh script for slurm
@@ -149,7 +150,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
             sc['time'] // 60, sc['time'] % 60))
 
         tline = tline.replace('%%python_script%%', experiment_code)
-        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
+        tline = tline.replace('%%path_to_yaml_config%%', conf.f_name)
         tline = tline.replace('%%cw_args%%', sc["cw_args"])
 
         fid_out.write(tline)
