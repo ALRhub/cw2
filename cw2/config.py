@@ -15,7 +15,6 @@ class Config:
     def __init__(self, config_path=None, experiment_selections=None):
         self.slurm_config = None
         self.exp_configs = None
-        self.f_name = os.path.basename(config_path)
 
         if config_path is not None:
             self.load_config(config_path, experiment_selections)
@@ -30,6 +29,7 @@ class Config:
         """
 
         self.config_path = config_path
+        self.f_name = os.path.basename(config_path)
 
         self.slurm_config, self.exp_configs = self.__parse_configs(
             config_path, experiment_selections)
