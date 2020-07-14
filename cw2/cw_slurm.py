@@ -120,7 +120,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     template_path = sc["path_to_template"]
     output_path = sc["slurm_output"]
 
-    experiment_code = __main__.__file__
+    experiment_code = os.path.basename(__main__.__file__)
 
     fid_in = open(template_path, 'r')
     fid_out = open(output_path, 'w')
