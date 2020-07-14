@@ -47,7 +47,6 @@ name: "experiment_name"
 # Required: Can also be set in DEFAULT
 path: "path/to/output_dir/"   # location to save results in
 repetitions: 5    # number of times one set of parameters is run
-iterations: 1000  # number of iterations per repetition
 
 # Experiment Parameters: Can also be set in DEFAULT.
 params:

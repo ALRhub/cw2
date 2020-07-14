@@ -65,6 +65,16 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if "config_output" not in sc:
         sc["config_output"] = os.path.join(exp_output_path, "relative_" + conf.f_name)
 
+    if "venv" not in sc:
+        sc["venv"] = ""
+    else:
+        sc["venv"] = "source activate {}".format(sc["venv"])
+
+    if "sh-lines" not in sc:
+        sc["sh_lines"] = ""
+    else:
+        sc["sh_lines"] = ".\n".join(sc["sh_lines"])
+
     cw_options = cli_parser.Arguments().get()
 
     sc["cw_args"] = ""
@@ -161,6 +171,8 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
                               '{:d}'.format(sc['cpus-per-task']))
         tline = tline.replace('%%time%%', '{:d}:{:d}:00'.format(
             sc['time'] // 60, sc['time'] % 60))
+
+        tline = tline.replace('%%venv%%', sc["venv"])
 
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%path_to_yaml_config%%', conf.f_name)

@@ -18,13 +18,10 @@
 %%sbatch_args%%
 # -------------------------------
 
-# Load the required modules
-# module load gcc openmpi/gcc
-export OPENBLAS_NUM_THREADS=1
-export PYTHONPATH=$PYTHONPATH:/path/to/additional_python_code/
-
 # Activate the virtualenv / conda environment
-source activate /path/to/virtual_environment/bin/activate
+%%venv%%
 
+# Additional Instructions from CONFIG.yml
+%%sh_lines%%
 
 python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%cw_args%%
