@@ -135,7 +135,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
                               sc['experiment_code_copy'])
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
 
-        tline = tline.replace('%%mem%%', '{:d}'.format(sc['mem']))
+        tline = tline.replace('%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))
