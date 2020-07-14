@@ -56,8 +56,8 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["experiment_copy_src"] = os.path.dirname(__main__.__file__)
         print(sc["experiment_copy_src"])
 
-    if "experiment_log" not in sc:
-        sc["experiment_log"] = os.path.join(exp_output_path, 'slurmlog')
+    if "slurm_log" not in sc:
+        sc["slurm_log"] = os.path.join(exp_output_path, 'slurmlog')
 
     if "slurm_ouput" not in sc:
         sc["slurm_output"] = os.path.join(exp_output_path, 'sbatch.sh')
@@ -139,7 +139,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
 
         tline = tline.replace('%%experiment_copy_dst%%',
                               sc['experiment_copy_dst'])
-        tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
+        tline = tline.replace('%%slurm_log%%', sc['slurm_log'])
 
         tline = tline.replace('%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))

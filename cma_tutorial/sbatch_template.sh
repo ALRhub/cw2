@@ -6,10 +6,10 @@
 
 # Please use the complete path details :
 #SBATCH -D %%experiment_copy_dst%%
-#SBATCH -o %%experiment_log%%/out_%A_%a.log
-#SBATCH -e %%experiment_log%%/err_%A_%a.log
+#SBATCH -o %%slurm_log%%/out_%A_%a.log
+#SBATCH -e %%slurm_log%%/err_%A_%a.log
 
-#
+# Cluster Settings
 #SBATCH -n %%ntasks%%         # Number of tasks
 #SBATCH -c %%cpus-per-task%%  # Number of cores per task
 #SBATCH --mem-per-cpu=%%mem-per-cpu%% # Main memory in MByte per MPI task
