@@ -20,12 +20,10 @@ experiment_copy_dst: "/path/to/code_copy/dst"   # optional. dir TO which the cur
 experiment_copy_src: "/path/to/code_copy/src"   # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to directory of __MAIN__ file.
 slurm_log: "/path/to/slurmlog/outputdir"   # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path
 
-# Cluster specific options:
-num_parallel_jobs: 120
-number_of_jobs: 1
-number_of_cpu_per_job: 1
-mem: 1000
-time_limit: 30
+# Optional SBATCH Arguments
+sbatch_args:
+  kw_1: "arg1"  # Will construct the line #SBATCH --kw_1 arg1
+  kw_2: "arg2"  # Will construct the line #SBATCH --kw_2 arg2
 
 ---
 # DEFAULT parameters

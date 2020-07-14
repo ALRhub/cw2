@@ -73,8 +73,21 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if cw_options.experiments is not None:
         sc["cw_args"] = " -e " + " ".join(cw_options.experiments)
 
+    sc = _build_sbatch_args(sc)
+
     return sc, copy_exp
 
+def _build_sbatch_args(sc):
+    if "sbatch_args" not in sc:
+        sc["sbatch_args"] = ""
+        return sc
+    
+    sbatch_args = sc['sbatch_args']
+    args_list = []
+    for k in sbatch_args:
+        args_list.append("#SBATCH --{} {}".format(k, sbatch_args[k]))
+    sc['sbatch_args'] = "\n".join(args_list)
+    return sc
 
 def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> None:
     """writes all the helper files associated with slurm execution
@@ -83,7 +96,7 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> 
         sc (attrdict.AttrDict): enriched slurm configuration
         conf (config.Config): overall configuration object
     """
-    os.makedirs(sc["experiment_log"], exist_ok=True)
+    os.makedirs(sc["slurm_log"], exist_ok=True)
     conf.to_yaml(sc["config_output"])
 
     if copy_exp:
@@ -151,7 +164,9 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
 
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%path_to_yaml_config%%', conf.f_name)
+
         tline = tline.replace('%%cw_args%%', sc["cw_args"])
+        tline = tline.replace('%%sbatch_args%%', sc["sbatch_args"])
 
         fid_out.write(tline)
 
