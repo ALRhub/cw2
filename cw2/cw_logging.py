@@ -7,29 +7,6 @@ from typing import List
 import attrdict
 import pandas as pd
 
-
-class ResultData:
-    """Wrappper for result dictionaries.
-    Adds additional metadata like the 
-    XXX: Deprecated with true AbstractExperiment
-    """
-
-    def __init__(self, data: dict, rep: int, n: int):
-        self._data = data
-
-        self._data["ts"] = dt.datetime.now()
-        self._data["r"] = rep
-        self._data["i"] = n
-
-    def get(self) -> dict:
-        """getter for the data itself
-
-        Returns:
-            dict -- iteration result dictionary including 'metadata'
-        """
-        return self._data
-
-
 class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """

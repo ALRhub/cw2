@@ -221,10 +221,9 @@ class Config:
 
 def convert_param_names(_param_names, values) -> str:
     """create new shorthand name derived from parameter and value association
-    TODO: Argument Descriptions
     Arguments:
-        _param_names {[type]} -- [description]
-        values {[type]} -- [description]
+        _param_names -- parameter names for the experiment
+        values -- concrete values for each parameter
 
     Returns:
         str -- shorthand name
