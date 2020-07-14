@@ -5,7 +5,7 @@
 #SBATCH --array 0-%%last_job_idx%%%%%num_parallel_jobs%%
 
 # Please use the complete path details :
-#SBATCH -D %%experiment_code_copy%%
+#SBATCH -D %%experiment_copy_dst%%
 #SBATCH -o %%experiment_log%%/out_%A_%a.log
 #SBATCH -e %%experiment_log%%/err_%A_%a.log
 

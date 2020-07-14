@@ -42,24 +42,28 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         raise NameError(
             "No SLURM configuration found in {}".format(conf.config_path))
 
-    exp_path = conf.exp_configs[0]['_experiment_path']
+    exp_output_path = conf.exp_configs[0]['_experiment_path']
     copy_exp = True
 
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
 
-    if "experiment_code_copy" not in sc:
-        sc["experiment_code_copy"] = exp_path
+    if "experiment_copy_dst" not in sc:
+        sc["experiment_copy_dst"] = exp_output_path
         copy_exp = False
 
+    if "experiment_copy_src" not in sc:
+        sc["experiment_copy_src"] = os.path.dirname(__main__.__file__)
+        print(sc["experiment_copy_src"])
+
     if "experiment_log" not in sc:
-        sc["experiment_log"] = os.path.join(exp_path, 'slurmlog')
+        sc["experiment_log"] = os.path.join(exp_output_path, 'slurmlog')
 
     if "slurm_ouput" not in sc:
-        sc["slurm_output"] = os.path.join(exp_path, 'sbatch.sh')
+        sc["slurm_output"] = os.path.join(exp_output_path, 'sbatch.sh')
 
     if "config_output" not in sc:
-        sc["config_output"] = os.path.join(exp_path, "relative_" + conf.f_name)
+        sc["config_output"] = os.path.join(exp_output_path, "relative_" + conf.f_name)
 
     cw_options = cli_parser.Arguments().get()
 
@@ -86,9 +90,11 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> 
         return
 
     # Copy code to new location
-    os.makedirs(sc["experiment_code_copy"], exist_ok=True)
-    src = os.getcwd()
-    dst = sc["experiment_code_copy"]
+    #FIXME: Copy config too!! It can have an absolute path outside of experiment directory
+    #FIXME: Use additional arg EXP_SRC
+    os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
+    src = sc["experiment_copy_src"]
+    dst = sc["experiment_copy_dst"]
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
 
     for item in os.listdir(src):
@@ -131,8 +137,8 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%num_parallel_jobs%%',
                               '{:d}'.format(sc['num_parallel_jobs']))
 
-        tline = tline.replace('%%experiment_code_copy%%',
-                              sc['experiment_code_copy'])
+        tline = tline.replace('%%experiment_copy_dst%%',
+                              sc['experiment_copy_dst'])
         tline = tline.replace('%%experiment_log%%', sc['experiment_log'])
 
         tline = tline.replace('%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))

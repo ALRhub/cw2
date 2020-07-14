@@ -20,8 +20,6 @@ class Job():
         self.logger = logger
         self.__create_experiment_directory(delete_old_files, root_dir)
 
-    # TODO: save new path with root dir appended?
-
     def __create_experiment_directory(self, delete_old_files=False, root_dir=""):
         """internal function creating the directories in which the job will write its data.
 
