@@ -16,9 +16,9 @@ def run_slurm(conf: config.Config, num_jobs: int) -> None:
         conf (config.Config): config object
         num_jobs (int): total number of jobs
     """
-    sc, copy_exp = _finalize_slurm_config(conf, num_jobs)
+    sc = _finalize_slurm_config(conf, num_jobs)
 
-    _prepare_dir(sc, conf, copy_exp)
+    _prepare_dir(sc, conf)
     slurm_script = _create_slurm_script(sc, conf)
 
     cmd = "sbatch " + slurm_script
@@ -43,14 +43,12 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
             "No SLURM configuration found in {}".format(conf.config_path))
 
     exp_output_path = conf.exp_configs[0]['_experiment_path']
-    copy_exp = True
 
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
 
     if "experiment_copy_dst" not in sc:
         sc["experiment_copy_dst"] = exp_output_path
-        copy_exp = False
 
     if "experiment_copy_src" not in sc:
         sc["experiment_copy_src"] = os.path.dirname(os.path.abspath(__main__.__file__))
@@ -85,7 +83,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
 
     sc = _build_sbatch_args(sc)
 
-    return sc, copy_exp
+    return sc
 
 def _build_sbatch_args(sc):
     if "sbatch_args" not in sc:
@@ -99,7 +97,7 @@ def _build_sbatch_args(sc):
     sc['sbatch_args'] = "\n".join(args_list)
     return sc
 
-def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> None:
+def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
     """writes all the helper files associated with slurm execution
 
     Args:
@@ -108,14 +106,9 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config, copy_exp: bool) -> 
     """
     os.makedirs(sc["slurm_log"], exist_ok=True)
     conf.to_yaml(sc["config_output"])
-
-    if copy_exp:
-        _copy_exp_files(sc, conf)
+    _copy_exp_files(sc, conf)
 
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
-    # Copy code to new location
-    #FIXME: Copy config too!! It can have an absolute path outside of experiment directory
-    #FIXME: Use additional arg EXP_SRC
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
