@@ -187,7 +187,6 @@ All the following sections are optional arguments.
 If they are not present in this slurm configuration, a default behaviour is used.
 ```yaml
 # ... continued
-# Optional
 experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. If not set, no copy will be made.
 experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to directory of __MAIN__ file.
 slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path

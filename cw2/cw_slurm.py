@@ -51,8 +51,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["experiment_copy_dst"] = exp_output_path
 
     if "experiment_copy_src" not in sc:
-        sc["experiment_copy_src"] = os.path.dirname(os.path.abspath(__main__.__file__))
-        print(sc["experiment_copy_src"])
+        sc["experiment_copy_src"] = os.getcwd()
 
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, 'slurmlog')
@@ -137,7 +136,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     template_path = sc["path_to_template"]
     output_path = sc["slurm_output"]
 
-    experiment_code = os.path.basename(__main__.__file__)
+    experiment_code = __main__.__file__
 
     fid_in = open(template_path, 'r')
     fid_out = open(output_path, 'w')
