@@ -37,7 +37,7 @@ name: "DEFAULT"   # MUST BE 'DEFAULT'
 
 # Implementation default parameters
 params:
-  default_param_1: "default_value"
+  param_1: "default_value"
 
 # Will be overwritten by named experiments.
 ---
@@ -50,8 +50,10 @@ repetitions: 5    # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
 
 # Experiment Parameters: Can also be set in DEFAULT.
+# Experiment Parameters: Can also be set in DEFAULT.
 params:
-  exp_param_1: "exp_value_1"
+  param_1: "exp_value_1" # overwrites Default
+  param_2: "exp_value_2" # new experiment specific parameter
 
 # Dynamically assigned parameters. Can be EITHER 'list' or 'grid'. Can NOT be set in DEFAULT.
 list:   # alternative - 'grid:'
