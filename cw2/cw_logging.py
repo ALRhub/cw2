@@ -1,11 +1,13 @@
 import abc
 import datetime as dt
+import logging
 import os
 import pprint
 from typing import List
 
 import attrdict
 import pandas as pd
+
 
 class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
@@ -76,7 +78,10 @@ class LoggerArray(AbstractLogger):
     def load(self):
         data = {}
         for logger in self._logger_array:
-            d = logger.load()
+            try:
+                d = logger.load()
+            except:
+                d = "Error when loading {}".format(logger.__class__.__name__)
             if d is not None:
                 data[logger.__class__.__name__] = d
         return data
@@ -132,4 +137,10 @@ class PandasRepSaver(AbstractLogger):
         pass
 
     def load(self):
-        return pd.read_csv(self.f_name)
+        try:
+            data = pd.read_csv(self.f_name)
+        except FileNotFoundError as _:
+            data = "{} does not exist".format(self.f_name)
+            logging.warning(data)
+
+        return data

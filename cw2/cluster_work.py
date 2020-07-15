@@ -79,3 +79,4 @@ class ClusterWork():
                 data = self.logArray.load()
                 all_data[j.get_rep_path(r)] = data
         return all_data
+
