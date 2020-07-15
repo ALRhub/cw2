@@ -1,12 +1,12 @@
 ---
 # Slurm config (optional)
-name: "SLURM"   # MUST BE 'SLURM'
+name: "SLURM"   # MUST BE "SLURM"
 
 # Required
 partition: "dev"
 account: ""  # important for HHLR cluster
 job: "cma"    # this will be the experiment's name in slurm
-path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script TODO: get absolute path from current pwd or so
+path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script
 
 # Required - Cluster Specific
 num_parallel_jobs: 120
