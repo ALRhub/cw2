@@ -42,7 +42,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         raise NameError(
             "No SLURM configuration found in {}".format(conf.config_path))
 
-    exp_output_path = conf.exp_configs[0]['_experiment_path']
+    exp_output_path = conf.exp_configs[0]['_basic_path']
 
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
