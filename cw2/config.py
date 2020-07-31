@@ -136,6 +136,10 @@ class Config:
         # get all options that are iteratable and build all combinations (grid) or tuples (list)
         expanded_config_list = []
         for config in experiment_configs:
+            # Set Default Values
+            config['_basic_path'] = config.path
+            config['experiment_name'] = config.name
+
             if 'grid' in config or 'list' in config:
                 if 'grid' in config:
                     # if we want a grid then we choose the product of all parameters
@@ -155,31 +159,28 @@ class Config:
 
                 # create a new config for each parameter setting
                 for values in iter_fun(*tuple_dict.values()):
-                    # create config file for
                     _config = deepcopy(config)
+
+                    # Remove Grid/List Argument
                     del _config[key]
 
-                    _converted_name = convert_param_names(_param_names, values)
-                    _config['_experiment_path'] = config.path
-
-                    _config['path'] = os.path.join(
-                        config.path, _converted_name)
-                    _config['experiment_name'] = _config.name + '__' + _converted_name
-
-                    # Use dedicated logging path or use "internal" one
-                    if 'log_path' in config:
-                        _config['log_path'] = os.path.join(
-                            config.log_path, config.experiment_name, _converted_name, 'log')
-                    else:
-                        _config['log_path'] = os.path.join(
-                            _config.path, 'log')
-
+                    # Expand Grid/List Parameters
                     for i, t in enumerate(tuple_dict.keys()):
                         util.insert_deep_dictionary(
                             _config['params'], t, values[i])
+
+                    # Rename and append
+                    _converted_name = convert_param_names(_param_names, values)
+                    _config['experiment_name'] = _config.name + '__' + _converted_name
                     expanded_config_list.append(_config)
             else:
                 expanded_config_list.append(config)
+
+        # Set Path and LogPath Args depending on the name
+        for _config in expanded_config_list:
+            _config['path'] = os.path.join(
+                _config.basic_path, _config.experiment_name)
+            _config['log_path'] = os.path.join(_config.path, 'log')
 
         return expanded_config_list
 
@@ -210,11 +211,10 @@ class Config:
             # Convert attrdict to dict for prettier yaml write
             c = dict(exp)
             if relpath:
-                _exp_path = c["_experiment_path"]
-                c["log_path"] = os.path.join(".", os.path.relpath(c["log_path"], _exp_path))
-                c["path"] = os.path.join(".",os.path.relpath(c["path"], _exp_path))
-                c["_experiment_path"] = os.path.join(".",os.path.relpath(
-                    c["_experiment_path"], _exp_path))
+                _basic_path = c["_basic_path"]
+                c["log_path"] = os.path.join(".", os.path.relpath(c["log_path"], _basic_path))
+                c["path"] = os.path.join(".", os.path.relpath(c["path"], _basic_path))
+                c["_basic_path"] = os.path.join(".", os.path.relpath(c["_basic_path"], _basic_path))
             res.append(c)
         return res
 
