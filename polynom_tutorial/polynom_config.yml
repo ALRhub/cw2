@@ -8,7 +8,7 @@ iterations: 1000  # number of iterations per repetition
 
 # Implementation default parameters
 params:
-  noise: 0.1
+  noise: 5
   stepsize: 0.05
 
 ---
