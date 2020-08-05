@@ -112,35 +112,33 @@ class PandasRepSaver(AbstractLogger):
 
     def __init__(self):
         self.log_path = ""
-        self.f_name = "rep.csv"
-        self.index = 0
+        self.csv_name = "rep.csv"
+        self.pkl_name = "rep.pkl"
+        self.df = pd.DataFrame()
+        #self.index = 0
 
     def initialize(self, config: attrdict.AttrDict, rep: int):
         self.log_path = config["rep_log_paths"][rep]
-        self.f_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
-        self.index = 0
+        self.csv_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
+        self.pkl_name = os.path.join(self.log_path, 'rep_{}.pkl'.format(rep))
+        self.df = pd.DataFrame()
 
     def process(self, data) -> None:
         if not isinstance(data, dict):
             return
 
-        if self.index == 0:
-            pd.DataFrame(data, index=[0]).to_csv(
-                self.f_name, mode='w', header=True, index_label='index')
-        else:
-            pd.DataFrame(data, index=[self.index]).to_csv(
-                self.f_name, mode='a', header=False)
-
-        self.index += 1
+        self.df = self.df.append(data, ignore_index=True)
+        self.df.to_csv(self.csv_name, index_label='index')
+        self.df.to_pickle(self.pkl_name)
 
     def finalize(self) -> None:
         pass
 
     def load(self):
         try:
-            data = pd.read_csv(self.f_name)
+            data = pd.read_pickle(self.pkl_name)
         except FileNotFoundError as _:
-            data = "{} does not exist".format(self.f_name)
+            data = "{} does not exist".format(self.pkl_name)
             logging.warning(data)
 
         return data
