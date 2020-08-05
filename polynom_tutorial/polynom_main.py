@@ -11,7 +11,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         x = config.params.stepsize * n
         y = config.params.x_0 + config.params.x_1 * x + config.params.x_2 * (x**2)
 
-        y_noise = y + random.randint(-100, 100) * config.params.noise
+        y_noise = y + (random.randint(-100, 100) / 100.0) * config.params.noise
 
         return {"true_y": y, "sample_y": y_noise}
 
