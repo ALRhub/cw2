@@ -179,7 +179,7 @@ class Config:
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
             _config['path'] = os.path.join(
-                _config.basic_path, _config.experiment_name)
+                _config._basic_path, _config.experiment_name)
             _config['log_path'] = os.path.join(_config.path, 'log')
 
         return expanded_config_list
