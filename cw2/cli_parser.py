@@ -1,4 +1,5 @@
 import argparse
+import attrdict
 
 
 class Arguments():
@@ -22,4 +23,4 @@ class Arguments():
         self.args = p.parse_args(namespace=self)
     
     def get(self) -> dict:
-        return vars(self.args)
+        return attrdict.AttrDict(vars(self.args))
