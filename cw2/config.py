@@ -136,8 +136,10 @@ class Config:
         expanded_config_list = []
         for config in experiment_configs:
             # Set Default Values
-            config['_basic_path'] = config["path"]
-            config['experiment_name'] = config["name"]
+            if '_basic_path' not in config:
+                config['_basic_path'] = config["path"]
+            if 'experiment_name' not in config:
+                config['experiment_name'] = config["name"]
 
             if 'grid' in config or 'list' in config:
                 if 'grid' in config:
