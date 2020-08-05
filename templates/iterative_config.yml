@@ -50,7 +50,6 @@ repetitions: 5    # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
 
 # Experiment Parameters: Can also be set in DEFAULT.
-# Experiment Parameters: Can also be set in DEFAULT.
 params:
   param_1: "exp_value_1" # overwrites Default
   param_2: "exp_value_2" # new experiment specific parameter

@@ -1,24 +1,35 @@
 # DEFAULT parameters (Optional)
 name: "DEFAULT"   # MUST BE 'DEFAULT'
 
+# Required: Can also be set in DEFAULT
+path: "./log"   # location to save results in
+repetitions: 2    # number of times one set of parameters is run
+iterations: 1000  # number of iterations per repetition
+
 # Implementation default parameters
 params:
   noise: 0.1
   stepsize: 0.05
 
-# Will be overwritten by named experiments.
 ---
 # Experiment 1
 name: "polynomial"
 
-# Required: Can also be set in DEFAULT
-path: "./log"   # location to save results in
-repetitions: 5    # number of times one set of parameters is run
-iterations: 1000  # number of iterations per repetition
-
-# Experiment Parameters: Can also be set in DEFAULT.
-# Experiment Parameters: Can also be set in DEFAULT.
 params:
   x_0: 1
   x_1: 2
   x_2: 3
+
+---
+# Experiment 2
+name: "grid_polynom"
+repetitions: 1
+iterations: 100
+
+params:
+  x_0: 2
+
+# A total of 6 Runs will be created
+grid:
+  x_1: [3, 4]
+  x_2: [3, 4, 5]
