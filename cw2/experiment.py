@@ -53,7 +53,7 @@ class AbstractIterativeExperiment(AbstractExperiment):
         raise NotImplementedError
 
     def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
-        for n in range(config.iterations):
+        for n in range(config["iterations"]):
             res = self.iterate(config, rep, n)
             
             res["ts"] = dt.datetime.now()

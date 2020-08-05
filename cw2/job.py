@@ -28,17 +28,17 @@ class Job():
             root_dir (str, optional): [description]. Defaults to "".
         """
         # create experiment path and subdir
-        os.makedirs(os.path.join(root_dir, self.config.path), exist_ok=True)
+        os.makedirs(os.path.join(root_dir, self.config["path"]), exist_ok=True)
 
         # create a directory for the log path
         os.makedirs(os.path.join(
-            root_dir, self.config.log_path), exist_ok=True)
+            root_dir, self.config["log_path"]), exist_ok=True)
 
         # create log path for each repetition
         rep_path_map = {}
         for r in self.repetitions:
             rep_path = os.path.join(
-                root_dir, self.config.log_path, 'rep_{:02d}'.format(r), '')
+                root_dir, self.config["log_path"], 'rep_{:02d}'.format(r), '')
             rep_path_map[r] = rep_path
 
         # XXX: Disable Delete for now

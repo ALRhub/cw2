@@ -87,7 +87,7 @@ class Config:
         experiment_configs = []
 
         for c in all_configs:
-            name = c.name.lower()
+            name = c["name"].lower()
 
             if name == 'slurm':
                 slurm_config = c
@@ -124,7 +124,6 @@ class Config:
 
     def __expand_experiments(self, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
-        TODO: Copied from cluster_work_v1. Maybe rework??
 
         Arguments:
             experiment_configs {List[attrdict.AttrDict]} -- List with experiment configs
@@ -137,8 +136,8 @@ class Config:
         expanded_config_list = []
         for config in experiment_configs:
             # Set Default Values
-            config['_basic_path'] = config.path
-            config['experiment_name'] = config.name
+            config['_basic_path'] = config["path"]
+            config['experiment_name'] = config["name"]
 
             if 'grid' in config or 'list' in config:
                 if 'grid' in config:
@@ -179,8 +178,8 @@ class Config:
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
             _config['path'] = os.path.join(
-                _config._basic_path, _config.experiment_name)
-            _config['log_path'] = os.path.join(_config.path, 'log')
+                _config["_basic_path"], _config["experiment_name"])
+            _config['log_path'] = os.path.join(_config["path"], 'log')
 
         return expanded_config_list
 

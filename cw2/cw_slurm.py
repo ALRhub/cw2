@@ -42,7 +42,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         raise NameError(
             "No SLURM configuration found in {}".format(conf.config_path))
 
-    exp_output_path = conf.exp_configs[0]['_basic_path']
+    exp_output_path = conf.exp_configs[0]["_basic_path"]
 
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
@@ -54,13 +54,14 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["experiment_copy_src"] = os.getcwd()
 
     if "slurm_log" not in sc:
-        sc["slurm_log"] = os.path.join(exp_output_path, 'slurmlog')
+        sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
 
     if "slurm_ouput" not in sc:
-        sc["slurm_output"] = os.path.join(exp_output_path, 'sbatch.sh')
+        sc["slurm_output"] = os.path.join(exp_output_path, "sbatch.sh")
 
     if "config_output" not in sc:
-        sc["config_output"] = os.path.join(exp_output_path, "relative_" + conf.f_name)
+        sc["config_output"] = os.path.join(
+            exp_output_path, "relative_" + conf.f_name)
 
     if "venv" not in sc:
         sc["venv"] = ""
@@ -78,23 +79,33 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if cw_options.overwrite:
         sc["cw_args"] += " -o"
     if cw_options.experiments is not None:
-        sc["cw_args"] = " -e " + " ".join(cw_options.experiments)
+        sc["cw_args"] = " -e " + " ".join(cw_options["experiments"])
 
     sc = _build_sbatch_args(sc)
 
     return sc
 
-def _build_sbatch_args(sc):
+
+def _build_sbatch_args(sc: attrdict.AttrDict) -> attrdict.AttrDict:
+    """if optional SBATCH arguments are present, build a corresponding string.
+
+    Args:
+        sc (attrdict.AttrDict): slurm_config dictionary
+
+    Returns:
+        attrdict.AttrDict: extended slurm_config dictionary
+    """
     if "sbatch_args" not in sc:
         sc["sbatch_args"] = ""
         return sc
-    
+
     sbatch_args = sc['sbatch_args']
     args_list = []
     for k in sbatch_args:
         args_list.append("#SBATCH --{} {}".format(k, sbatch_args[k]))
     sc['sbatch_args'] = "\n".join(args_list)
     return sc
+
 
 def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
     """writes all the helper files associated with slurm execution
@@ -107,7 +118,14 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
     conf.to_yaml(sc["config_output"])
     _copy_exp_files(sc, conf)
 
+
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
+    """copies all files from the experiment source to the destination
+
+    Args:
+        sc (attrdict.AttrDict): slurm-configuration dictionary
+        conf (config.Config): config object
+    """
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
@@ -121,6 +139,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         else:
             shutil.copy2(s, d)
     shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
+
 
 def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
     """creates an sbatch.sh script for slurm
@@ -157,7 +176,8 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
                               sc['experiment_copy_dst'])
         tline = tline.replace('%%slurm_log%%', sc['slurm_log'])
 
-        tline = tline.replace('%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))
+        tline = tline.replace(
+            '%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))

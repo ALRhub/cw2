@@ -116,7 +116,7 @@ class PandasRepSaver(AbstractLogger):
         self.index = 0
 
     def initialize(self, config: attrdict.AttrDict, rep: int):
-        self.log_path = config.rep_log_paths[rep]
+        self.log_path = config["rep_log_paths"][rep]
         self.f_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
         self.index = 0
 
