@@ -16,7 +16,9 @@ class Job():
     def __init__(self, exp_config: attrdict.AttrDict, reps: List[int], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
         self.config = deepcopy(exp_config)
         self.repetitions = reps
-        self.exp = exp_cls()
+
+        if exp_cls is not None:
+            self.exp = exp_cls()
         self.logger = logger
         self.__create_experiment_directory(delete_old_files, root_dir)
 

@@ -5,7 +5,7 @@ from cw2 import (cli_parser, config, cw_logging, cw_slurm, experiment, job,
 
 
 class ClusterWork():
-    def __init__(self, exp_cls: experiment.AbstractExperiment):
+    def __init__(self, exp_cls: experiment.AbstractExperiment = None):
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
         self.config = config.Config(self.args.config, self.args.experiments)
@@ -42,6 +42,9 @@ class ClusterWork():
         Args:
             root_dir (str, optional): [description]. Defaults to "".
         """
+        if self.exp_cls is None:
+            raise NotImplementedError("Cannot run with missing experiment.AbstractExperiment Implementation.")
+
         args = self.args
 
         # XXX: Disable Delete for now
