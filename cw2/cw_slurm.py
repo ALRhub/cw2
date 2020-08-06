@@ -63,12 +63,15 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["config_output"] = os.path.join(
             exp_output_path, "relative_" + conf.f_name)
 
+    if "account" not in sc:
+        sc["account"] = ""
+
     if "venv" not in sc:
         sc["venv"] = ""
     else:
         sc["venv"] = "source activate {}".format(sc["venv"])
 
-    if "sh-lines" not in sc:
+    if "sh_lines" not in sc:
         sc["sh_lines"] = ""
     else:
         sc["sh_lines"] = ".\n".join(sc["sh_lines"])
@@ -183,6 +186,8 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
                               '{:d}'.format(sc['cpus-per-task']))
         tline = tline.replace('%%time%%', '{:d}:{:d}:00'.format(
             sc['time'] // 60, sc['time'] % 60))
+
+        tline = tline.replace('%%sh_lines%%', sc["sh_lines"])
 
         tline = tline.replace('%%venv%%', sc["venv"])
 

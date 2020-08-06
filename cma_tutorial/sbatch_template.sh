@@ -26,4 +26,6 @@ export PYTHONPATH=$PYTHONPATH:/home/max_li/cluster_work_v2/
 # Activate the virtualenv / conda environment
 source activate /home/max_li/venv/bin/activate
 
+%%sh_lines%%
+
 python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%cw_args%%

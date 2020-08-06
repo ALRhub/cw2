@@ -4,8 +4,7 @@ name: "SLURM"   # MUST BE "SLURM"
 
 # Required
 partition: "dev"
-account: ""  # important for HHLR cluster
-job: "cma"    # this will be the experiment's name in slurm
+job-name: "cma"    # this will be the experiment's name in slurm
 path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script
 
 # Required - Cluster Specific
@@ -16,6 +15,7 @@ mem-per-cpu: 1000
 time: 30
 
 # Optional
+account: ""  # Account name to which Cluster Time will be booked. Cluster dependent.
 experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path
 experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to CWD.
 slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path
