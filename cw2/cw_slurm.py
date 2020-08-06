@@ -48,7 +48,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     sc['last_job_idx'] = num_jobs - 1
 
     if "experiment_copy_dst" not in sc:
-        sc["experiment_copy_dst"] = exp_output_path
+        sc["experiment_copy_dst"] = os.path.join(exp_output_path, 'code')
 
     if "experiment_copy_src" not in sc:
         sc["experiment_copy_src"] = os.getcwd()

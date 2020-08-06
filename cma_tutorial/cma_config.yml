@@ -4,7 +4,7 @@ name: "SLURM"
 partition: "dev"
 account: ""  # important for HHLR cluster
 job-name: "cma"  # this will be the experiment's name in slurm
-experiment_copy_dst: "/home/max_li/exp_code"
+#experiment_copy_dst: "/home/max_li/exp_code"
 path_to_template: "/home/max_li/code/cw2/cma_tutorial/sbatch_template.sh"  # TODO: get absolute path from current pwd or so
 num_parallel_jobs: 120
 ntasks: 1
