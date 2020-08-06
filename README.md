@@ -70,15 +70,19 @@ for r in repetitions:
     exp.finalize()      # Finalize / Clean the experiment after each repetition
 ```
 
-An `AbstractIterativeExperiment` comes per default with a CSV logger, which writes the result of each iteration to disk in an CSV file.
+CW2 does not come with any logging functionality by default. Please add any `cw2.cw_logging.AbstractLogger` implementation you need for your experiment in the main function.
 
 ### Main Function
 The main function initializes and starts the `CW2` Manager.
 ```Python
-from cw2 import cluster_work
+from cw2 import cluster_work, cw_logging
 
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(MyExperiment)
+
+    # Add Logger
+    cw.add_logger(cw_logger.AbstractLogger())
+
     cw.run()
 ```
 
@@ -230,3 +234,50 @@ The following args are currently supported by CW2:
 | -s    |--slurm        | Run using SLURM Workload Manager.|
 | -o    | --overwrite   | Overwrite existing results.|
 | -e name1 [...] | --experiments | Allows to specify which experiments should be run. Corresponds to the `name` field of the configuration YAML.
+
+
+### CW_Logging
+We provide an abstract interface for logging functionality with `cw2.cw_logging.AbstractLogger`.
+
+#### Implementing `cw2.cw_logging.AbstractLogger()`
+```Python
+from cw2 import cw_logging
+
+class MyLogger(cw_logging.AbstractLogger):
+    # ...
+
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str):
+        # Initialize / Reset the logger for a new repetition
+        self.log_path = rep_log_path + 'my_file.txt'
+        self.data_list = []
+
+    def process(self, data) -> None:
+        # Processes incoming data.
+        # Need to do your own check if data is in the format you expect.
+        print(data)
+        self.data_list.append(data)
+
+    def finalize(self) -> None:
+        # Finalize the processing, e.g. write the internal data to disk.
+        write_to_disk(self.data, self.log_path)
+
+    def load(self):
+        # Implement this function to load potential results
+        self.data = read_from_disk(self.log_path)
+        return self.data
+```
+
+The execution order is very similar to the order of an `cw2.experiment.AbstractExperiment`:
+
+```Python
+log = AbstractLogger()     # Initialize only global CONSTANTS
+for r in repetitions:
+    log.initialize(...)    # Initialize / Reset the logger for each repetition.
+
+    for i in iterations:
+      result = experiment.iterate(...) # Obtain some data from an experiment
+      log.process(result)    # Log the result
+    
+    log.finalize()      # Finalize / Clean the logger after each repetition
+```
+
