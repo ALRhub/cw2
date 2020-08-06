@@ -1,4 +1,5 @@
-from cw2 import cluster_work, experiment
+from cw2 import cluster_work, cw_logging, experiment
+
 
 class MyIterativeExperiment(experiment.AbstractIterativeExperiment):
     # ...
@@ -12,11 +13,12 @@ class MyIterativeExperiment(experiment.AbstractIterativeExperiment):
     def save_state(self, config: dict, rep: int, n: int) -> None:
         if n % 50 == 0:
             print("I am stateless. Nothing to write to disk.")
-    
+
     def finalize(self):
         print("Finished. Closing Down.")
 
 
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(MyIterativeExperiment)
+    cw.add_logger(cw_logging.AbstractLogger())
     cw.run()

@@ -68,8 +68,10 @@ class Job():
             return
 
         c = self.config
+        rep_path = self.get_rep_path(r)
+
         self.exp.initialize(c, r)
-        self.logger.initialize(c, r)
+        self.logger.initialize(c, r, rep_path)
 
         self.exp.run(c, r, self.logger)
 

@@ -1,5 +1,7 @@
-from cw2 import cluster_work, experiment
 import random
+
+from cw2 import cluster_work, cw_logging, experiment
+
 
 class Polynomial(experiment.AbstractIterativeExperiment):
     # ...
@@ -24,4 +26,5 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(Polynomial)
+    cw.add_logger(cw_logging.PandasRepSaver())
     cw.run()

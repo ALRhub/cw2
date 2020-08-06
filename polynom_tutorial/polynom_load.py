@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 
-from cw2 import cluster_work
+from cw2 import cluster_work, cw_logging
 
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(None)
+    cw.add_logger(cw_logging.PandasRepSaver())
     res = cw.load()
     
     for job in res.keys():

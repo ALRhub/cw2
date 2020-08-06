@@ -14,7 +14,7 @@ class AbstractLogger(abc.ABC):
     """
 
     @abc.abstractmethod
-    def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         """needs to be implemented by subclass.
         Called once at the start of each repetition.
         Used to configure / reset the Logger for each repetition.
@@ -63,9 +63,9 @@ class LoggerArray(AbstractLogger):
     def add(self, logger: AbstractLogger) -> None:
         self._logger_array.append(logger)
 
-    def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         for logger in self._logger_array:
-            logger.initialize(config, rep)
+            logger.initialize(config, rep, rep_log_path)
 
     def process(self, data) -> None:
         for logger in self._logger_array:
@@ -86,12 +86,15 @@ class LoggerArray(AbstractLogger):
                 data[logger.__class__.__name__] = d
         return data
 
+    def is_empty(self) -> bool:
+        return len(self._logger_array) == 0
+
 
 class Printer(AbstractLogger):
     """Prints the result of each iteration to the console.
     """
 
-    def initialize(self, config: attrdict.AttrDict, rep: int) -> None:
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         pass
 
     def process(self, data) -> None:
@@ -117,8 +120,8 @@ class PandasRepSaver(AbstractLogger):
         self.df = pd.DataFrame()
         #self.index = 0
 
-    def initialize(self, config: attrdict.AttrDict, rep: int):
-        self.log_path = config["rep_log_paths"][rep]
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str):
+        self.log_path = rep_log_path
         self.csv_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
         self.pkl_name = os.path.join(self.log_path, 'rep_{}.pkl'.format(rep))
         self.df = pd.DataFrame()

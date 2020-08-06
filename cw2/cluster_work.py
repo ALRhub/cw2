@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from cw2 import (cli_parser, config, cw_logging, cw_slurm, experiment, job,
@@ -12,7 +13,6 @@ class ClusterWork():
 
         # Default Logger inlcudes Pandas CSV Saver
         self.logArray = cw_logging.LoggerArray()
-        self.add_logger(cw_logging.PandasRepSaver())
 
     def add_logger(self, logger: cw_logging.AbstractLogger) -> None:
         """add a logger to the ClusterWork pipeline
@@ -43,7 +43,11 @@ class ClusterWork():
             root_dir (str, optional): [description]. Defaults to "".
         """
         if self.exp_cls is None:
-            raise NotImplementedError("Cannot run with missing experiment.AbstractExperiment Implementation.")
+            raise NotImplementedError(
+                "Cannot run with missing experiment.AbstractExperiment Implementation.")
+
+        if self.logArray.is_empty():
+            logging.warning("No Logger has been added. Are you sure?")
 
         args = self.args
 
@@ -75,6 +79,9 @@ class ClusterWork():
         """
         _jobs = self._get_jobs(False, root_dir)
         all_data = {}
+
+        if self.logArray.is_empty():
+            logging.warning("No Logger has been added. Are you sure?")
 
         for j in _jobs:
             for r in j.repetitions:
