@@ -85,7 +85,7 @@ class ClusterWork():
 
         for j in _jobs:
             for r in j.repetitions:
-                self.logArray.initialize(j.config, r)
+                self.logArray.initialize(j.config, r, j.get_rep_path(r))
                 data = self.logArray.load()
                 all_data[j.get_rep_path(r)] = data
         return all_data
