@@ -1,3 +1,28 @@
+---
+# Slurm config (optional)
+name: "SLURM"   # MUST BE "SLURM"
+
+# Required
+partition: "dev"
+job-name: "polynom"    # this will be the experiment's name in slurm
+path_to_template: "/home/max_li/code/cw2/templates/sbatch_template.sh"   # Path to YOUR prepared sbatch script
+
+# Required - Cluster Specific
+num_parallel_jobs: 120
+ntasks: 1
+cpus-per-task: 1
+mem-per-cpu: 1000
+time: 30
+
+# Optional
+venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
+
+# Optional Code Copy: Both Args are required.
+#experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path/code
+#experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to CWD.
+
+---
+
 # DEFAULT parameters (Optional)
 name: "DEFAULT"   # MUST BE 'DEFAULT'
 

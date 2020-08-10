@@ -39,7 +39,8 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     """
     sc = conf.slurm_config
     if sc is None:
-        raise cw_error.MissingConfigError("No SLURM configuration found in {}".format(conf.config_path))
+        raise cw_error.MissingConfigError(
+            "No SLURM configuration found in {}".format(conf.config_path))
 
     exp_output_path = conf.exp_configs[0]["_basic_path"]
 
@@ -124,7 +125,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         conf (config.Config): config object
     """
 
-    ### Validity Check
+    # Validity Check
     exp_output_path = conf.exp_configs[0]["_basic_path"]
     cp_error_count = 0
     missing_arg = ""
@@ -139,13 +140,48 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         missing_arg = "experiment_copy_src"
 
     if cp_error_count == 1:
-        raise cw_error.ConfigKeyError("Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
-
-
+        raise cw_error.ConfigKeyError(
+            "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
 
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
+
+    copy_code(src, dst, conf)
+
+
+def _check_subdir(parent: str, child: str) -> bool:
+    """Check if the child is a subdirectory of the parent.
+
+    Args:
+        parent (str): Path of the suspected parent dir
+        child (str): path of the suspected child dir
+
+    Returns:
+        bool: True if child is subdir of parent
+    """
+    parent_path = os.path.abspath(parent)
+    child_path = os.path.abspath(child)
+
+    return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
+
+def copy_code(src: str, dst: str, conf: config.Config) -> None:
+    """recursively copy the files from src to dst.
+
+
+    Args:
+        src (str): source directory
+        dst (str): destination directory
+        conf (config.Config): configuration Object
+
+    Raises:
+        cw_error.ConfigKeyError: If 'dst' is subdir of 'src'
+    """
+    if _check_subdir(src, dst):
+        raise cw_error.ConfigKeyError(
+            "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
+
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
 
     for item in os.listdir(src):

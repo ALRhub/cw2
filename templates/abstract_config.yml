@@ -4,7 +4,7 @@ name: "SLURM"   # MUST BE "SLURM"
 
 # Required
 partition: "dev"
-job-name: "cma"    # this will be the experiment's name in slurm
+job-name: "experiment"    # this will be the experiment's name in slurm
 path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script
 
 # Required - Cluster Specific
@@ -16,7 +16,7 @@ time: 30
 
 # Optional
 account: ""  # Account name to which Cluster Time will be booked. Cluster dependent.
-slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path
+slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path/slurmlog
 venv: "/path/to/virtual_environment/bin/activate"   # optional. path to your virtual environment activate-file
 
 # Optional Code Copy: Both Args are required.
