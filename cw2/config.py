@@ -185,13 +185,18 @@ class Config:
 
         return expanded_config_list
 
-    def to_yaml(self, fpath: str, relpath: bool = True) -> None:
-        """Writes a new configuration YAML file.
-        Optionally with relative path definitions only
+    def to_yaml(self, fpath: str = "", relpath: bool = True) -> None:
+        """write config back into a YAML file.
+
         Args:
-            fpath (str): output path
-            relpath (bool, optional): True if the new experiment config file should use relative paths only. Defaults to True.
+            fpath (str, optional): path to write to. Will be written to outputdir unless specified differently. Defaults to "".
+            relpath (bool, optional): Use relative paths only. Usefull for loading functionality. Defaults to True.
         """
+
+        if fpath == "":
+            exp_output_path = self.exp_configs[0]["_basic_path"]
+            fpath = os.path.join(exp_output_path, "relative_" + self.f_name)
+
         # Merge into single list
         data = [dict(self.slurm_config)] + self._readable_exp_configs(relpath)
 

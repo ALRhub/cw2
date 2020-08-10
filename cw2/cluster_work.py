@@ -59,6 +59,8 @@ class ClusterWork():
         if args.slurm:
             return cw_slurm.run_slurm(self.config, len(_jobs))
 
+        self.config.to_yaml(relpath=True)
+
         # Do Local execution
         s = scheduler.LocalScheduler()
         s.assign(_jobs)

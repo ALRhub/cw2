@@ -53,10 +53,6 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if "slurm_ouput" not in sc:
         sc["slurm_output"] = os.path.join(exp_output_path, "sbatch.sh")
 
-    if "config_output" not in sc:
-        sc["config_output"] = os.path.join(
-            exp_output_path, "relative_" + conf.f_name)
-
     if "account" not in sc:
         sc["account"] = ""
 
@@ -113,7 +109,6 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
         conf (config.Config): overall configuration object
     """
     os.makedirs(sc["slurm_log"], exist_ok=True)
-    conf.to_yaml(sc["config_output"])
     _copy_exp_files(sc, conf)
 
 
@@ -158,12 +153,14 @@ def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> att
 
 
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
-    """copies all files from the experiment source to the destination.
-    If one of DST or SRC config keys are missing: Raise an exception.
+    """copy the experiment src to a new location
 
     Args:
-        sc (attrdict.AttrDict): slurm-configuration dictionary
+        sc (attrdict.AttrDict): slurm-config dictionary
         conf (config.Config): config object
+
+    Raises:
+        cw_error.ConfigKeyError: If the the new destination is a subdirectory of the src folder.
     """
 
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
