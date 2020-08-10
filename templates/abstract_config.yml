@@ -16,10 +16,12 @@ time: 30
 
 # Optional
 account: ""  # Account name to which Cluster Time will be booked. Cluster dependent.
-experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path
-experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to CWD.
 slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path
 venv: "/path/to/virtual_environment/bin/activate"   # optional. path to your virtual environment activate-file
+
+# Optional Code Copy: Both Args are required.
+experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path/code
+experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to CWD.
 
 # Optional SBATCH Arguments
 sbatch_args:    # Dictionary of SBATCH keywords and arguments

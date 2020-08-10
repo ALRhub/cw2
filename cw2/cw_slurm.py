@@ -6,7 +6,7 @@ import sys
 import attrdict
 
 import __main__
-from cw2 import cli_parser, config
+from cw2 import cli_parser, config, cw_error
 
 
 def run_slurm(conf: config.Config, num_jobs: int) -> None:
@@ -39,19 +39,12 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     """
     sc = conf.slurm_config
     if sc is None:
-        raise NameError(
-            "No SLURM configuration found in {}".format(conf.config_path))
+        raise cw_error.MissingConfigError("No SLURM configuration found in {}".format(conf.config_path))
 
     exp_output_path = conf.exp_configs[0]["_basic_path"]
 
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
-
-    if "experiment_copy_dst" not in sc:
-        sc["experiment_copy_dst"] = os.path.join(exp_output_path, 'code')
-
-    if "experiment_copy_src" not in sc:
-        sc["experiment_copy_src"] = os.getcwd()
 
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
@@ -123,12 +116,33 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
 
 
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
-    """copies all files from the experiment source to the destination
+    """copies all files from the experiment source to the destination.
+    If one of DST or SRC config keys are missing: Raise an exception.
 
     Args:
         sc (attrdict.AttrDict): slurm-configuration dictionary
         conf (config.Config): config object
     """
+
+    ### Validity Check
+    exp_output_path = conf.exp_configs[0]["_basic_path"]
+    cp_error_count = 0
+    missing_arg = ""
+    if "experiment_copy_dst" not in sc:
+        sc["experiment_copy_dst"] = os.path.join(exp_output_path, 'code')
+        cp_error_count += 1
+        missing_arg = "experiment_copy_dst"
+
+    if "experiment_copy_src" not in sc:
+        sc["experiment_copy_src"] = os.getcwd()
+        cp_error_count += 1
+        missing_arg = "experiment_copy_src"
+
+    if cp_error_count == 1:
+        raise cw_error.ConfigKeyError("Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
+
+
+
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
