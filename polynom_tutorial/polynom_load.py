@@ -7,10 +7,9 @@ if __name__ == "__main__":
     cw.add_logger(cw_logging.PandasRepSaver())
     res = cw.load()
     
-    print(res)
+    print(res[0])
 
-    for job in res.keys():
-        for logger in res[job].keys():
-            single_df = res[job][logger]
-            single_df[["sample_y", "true_y"]].plot.line()
-            plt.savefig(job + "plot.png")
+    for job in res:
+        single_df = job["PandasRepSaver"]
+        single_df[["sample_y", "true_y"]].plot.line()
+        plt.savefig(job['rep_path'] + "plot.png")

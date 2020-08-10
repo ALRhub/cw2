@@ -83,11 +83,10 @@ class ClusterWork():
         args = self.args
         job_list = self._get_jobs(False, root_dir)
 
-        s.assign(job_list)
-
-        job_idx = None
         if args.job is not None:
-            job_idx = args.job
-        return s.run(job_idx, overwrite=args.overwrite)
+            job_list = [job_list[args.job]]
+
+        s.assign(job_list)        
+        return s.run(overwrite=args.overwrite)
 
         

@@ -91,8 +91,7 @@ class Job():
         c = self.config
         rep_path = self.get_rep_path(r)
         self.logger.initialize(c, r, rep_path)
-        data = self.logger.load()
-        return {rep_path: data}
+        return self.logger.load()
 
     def _check_rep_exists(self, r: int) -> bool:
         """internal function. checks if the repetition has already been run in the past.

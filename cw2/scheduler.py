@@ -18,22 +18,17 @@ class AbstractScheduler(abc.ABC):
         self.joblist = joblist
 
     @abc.abstractmethod
-    def run(self, job_idx: int = None, overwrite=False):
+    def run(self, overwrite=False):
         raise NotImplementedError
 
 
 class LocalScheduler(AbstractScheduler):
-    def run(self, job_idx: int = None, overwrite: bool = False):
-        joblist = self.joblist
-
-        if job_idx is not None:
-            joblist = [self.joblist[job_idx]]
-
-        for j in joblist:
+    def run(self, overwrite: bool = False):
+        for j in self.joblist:
             for r in j.repetitions:
                 j.run_rep(r, overwrite)
 
 
 class SlurmScheduler(AbstractScheduler):
-    def run(self, job_idx: int = None, overwrite: bool = False):
+    def run(self, overwrite: bool = False):
         cw_slurm.run_slurm(self.config, len(self.joblist))
