@@ -1,10 +1,11 @@
+import logging
 import os
 import shutil
+from copy import deepcopy
 from typing import List
-import logging
 
 import attrdict
-from copy import deepcopy
+
 from cw2 import cw_logging, experiment
 
 
@@ -77,6 +78,21 @@ class Job():
 
         self.exp.finalize()
         self.logger.finalize()
+
+    def load_rep(self, r: int) -> dict:
+        """Load the results of a single repetition.
+
+        Args:
+            r (int): repetition number
+
+        Returns:
+            dict: the loaded data
+        """
+        c = self.config
+        rep_path = self.get_rep_path(r)
+        self.logger.initialize(c, r, rep_path)
+        data = self.logger.load()
+        return {rep_path: data}
 
     def _check_rep_exists(self, r: int) -> bool:
         """internal function. checks if the repetition has already been run in the past.

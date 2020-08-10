@@ -1,8 +1,8 @@
 import logging
 from typing import List
 
-from cw2 import (cli_parser, config, cw_logging, cw_slurm, experiment, job,
-                 scheduler)
+from cw2 import (cli_parser, config, cw_loading, cw_logging, cw_slurm,
+                 experiment, job, scheduler)
 
 
 class ClusterWork():
@@ -11,8 +11,8 @@ class ClusterWork():
         self.exp_cls = exp_cls
         self.config = config.Config(self.args.config, self.args.experiments)
 
-        # Default Logger inlcudes Pandas CSV Saver
         self.logArray = cw_logging.LoggerArray()
+        self.joblist = None
 
     def add_logger(self, logger: cw_logging.AbstractLogger) -> None:
         """add a logger to the ClusterWork pipeline
@@ -32,9 +32,10 @@ class ClusterWork():
         Returns:
             List[job.Job]: list of all configured job objects
         """
-        factory = job.JobFactory(self.exp_cls, self.logArray, delete, root_dir)
-        joblist = factory.create_jobs(self.config.exp_configs)
-        return joblist
+        if self.joblist is None:
+            factory = job.JobFactory(self.exp_cls, self.logArray, delete, root_dir)
+            self.joblist = factory.create_jobs(self.config.exp_configs)
+        return self.joblist
 
     def run(self, root_dir: str = ""):
         """Run ClusterWork computations.
@@ -46,29 +47,19 @@ class ClusterWork():
             raise NotImplementedError(
                 "Cannot run with missing experiment.AbstractExperiment Implementation.")
 
-        if self.logArray.is_empty():
-            logging.warning("No Logger has been added. Are you sure?")
+        self.config.to_yaml(relpath=True)
 
         args = self.args
 
-        # XXX: Disable Delete for now
-        # _jobs = self._get_jobs(self.args.delete, root_dir)
-        _jobs = self._get_jobs(False, root_dir)
-
         # Handle SLURM execution
         if args.slurm:
-            return cw_slurm.run_slurm(self.config, len(_jobs))
+            s = scheduler.SlurmScheduler(self.config)
+        else:
+            # Do Local execution
+            s = scheduler.LocalScheduler()
 
-        self.config.to_yaml(relpath=True)
-
-        # Do Local execution
-        s = scheduler.LocalScheduler()
-        s.assign(_jobs)
-
-        job_idx = None
-        if args.job is not None:
-            job_idx = args.job
-        s.run(job_idx, overwrite=args.overwrite)
+        self._run_scheduler(s, root_dir)
+        
 
     def load(self, root_dir: str = "") -> dict:
         """Loads all saved information.
@@ -79,15 +70,24 @@ class ClusterWork():
         Returns:
             dict: saved data in dict form. keys are the job's log folders, values are dicts of logger -> data
         """
-        _jobs = self._get_jobs(False, root_dir)
-        all_data = {}
 
+        loader = cw_loading.Loader()
+
+        return self._run_scheduler(loader, root_dir)
+
+
+    def _run_scheduler(self, s: scheduler.AbstractScheduler, root_dir: str = ""):
         if self.logArray.is_empty():
             logging.warning("No Logger has been added. Are you sure?")
 
-        for j in _jobs:
-            for r in j.repetitions:
-                self.logArray.initialize(j.config, r, j.get_rep_path(r))
-                data = self.logArray.load()
-                all_data[j.get_rep_path(r)] = data
-        return all_data
+        args = self.args
+        job_list = self._get_jobs(False, root_dir)
+
+        s.assign(job_list)
+
+        job_idx = None
+        if args.job is not None:
+            job_idx = args.job
+        return s.run(job_idx, overwrite=args.overwrite)
+
+        

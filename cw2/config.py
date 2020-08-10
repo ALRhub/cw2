@@ -8,7 +8,7 @@ from typing import List, Tuple
 import attrdict
 import yaml
 
-from . import util
+from cw2 import util
 
 
 class Config:
@@ -196,6 +196,8 @@ class Config:
         if fpath == "":
             exp_output_path = self.exp_configs[0]["_basic_path"]
             fpath = os.path.join(exp_output_path, "relative_" + self.f_name)
+
+        os.makedirs(os.path.dirname(fpath), exist_ok=True)
 
         # Merge into single list
         data = [dict(self.slurm_config)] + self._readable_exp_configs(relpath)

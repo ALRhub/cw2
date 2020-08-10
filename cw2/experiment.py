@@ -1,6 +1,8 @@
 import abc
-from cw2 import cw_logging
 import datetime as dt
+
+from cw2 import cw_logging
+
 
 class AbstractExperiment(abc.ABC):
     @abc.abstractmethod

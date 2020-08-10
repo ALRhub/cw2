@@ -7,6 +7,8 @@ if __name__ == "__main__":
     cw.add_logger(cw_logging.PandasRepSaver())
     res = cw.load()
     
+    print(res)
+
     for job in res.keys():
         for logger in res[job].keys():
             single_df = res[job][logger]
