@@ -1,3 +1,4 @@
+import os
 import random
 
 from cw2 import cluster_work, cw_logging, experiment
@@ -11,10 +12,11 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
         x = config.params.stepsize * n
-        y = config.params.x_0 + config.params.x_1 * x + config.params.x_2 * (x**2)
+        y = config.params.x_0 + config.params.x_1 * \
+            x + config.params.x_2 * (x**2)
 
         y_noise = y + (random.randint(-100, 100) / 100.0) * config.params.noise
-        
+
         return {"true_y": y, "sample_y": y_noise}
 
     def save_state(self, config: dict, rep: int, n: int) -> None:
@@ -22,6 +24,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
     def finalize(self):
         print("Finished. Closing Down.")
+        print(os.path.abspath(__file__))
 
 
 if __name__ == "__main__":

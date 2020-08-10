@@ -79,6 +79,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["cw_args"] = " -e " + " ".join(cw_options["experiments"])
 
     sc = _build_sbatch_args(sc)
+    sc = _complete_exp_copy_config(sc, conf)
 
     return sc
 
@@ -116,15 +117,22 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
     _copy_exp_files(sc, conf)
 
 
-def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
-    """copies all files from the experiment source to the destination.
-    If one of DST or SRC config keys are missing: Raise an exception.
+def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> attrdict.AttrDict:
+    """checks for and handles experiment_copy keys.
+    If both keys are present, copy src to dst and execute in dst.
+    If both keys are missing, set cwd() as src and config["path"] as dst. Execute in cwd().
+    If one key is missing throw an exception.
 
     Args:
         sc (attrdict.AttrDict): slurm-configuration dictionary
         conf (config.Config): config object
-    """
 
+    Raises:
+        cw_error.ConfigKeyError: If one key is missing.
+
+    Returns:
+        attrdict.AttrDict: updated slurm-configuration object.
+    """
     # Validity Check
     exp_output_path = conf.exp_configs[0]["_basic_path"]
     cp_error_count = 0
@@ -139,15 +147,43 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         cp_error_count += 1
         missing_arg = "experiment_copy_src"
 
-    if cp_error_count == 1:
+    if cp_error_count == 0:
+        sc["experiment_execution_dir"] = sc["experiment_copy_dst"]
+    elif cp_error_count == 1:
         raise cw_error.ConfigKeyError(
             "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
+    else:
+        sc["experiment_execution_dir"] = sc["experiment_copy_src"]
+    return sc
+
+
+def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
+    """copies all files from the experiment source to the destination.
+    If one of DST or SRC config keys are missing: Raise an exception.
+
+    Args:
+        sc (attrdict.AttrDict): slurm-configuration dictionary
+        conf (config.Config): config object
+    """
 
     os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
 
-    copy_code(src, dst, conf)
+    if _check_subdir(src, dst):
+        raise cw_error.ConfigKeyError(
+            "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
+
+    ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, ignore=ign)
+        else:
+            shutil.copy2(s, d)
+    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
 
 def _check_subdir(parent: str, child: str) -> bool:
@@ -164,34 +200,6 @@ def _check_subdir(parent: str, child: str) -> bool:
     child_path = os.path.abspath(child)
 
     return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
-
-
-def copy_code(src: str, dst: str, conf: config.Config) -> None:
-    """recursively copy the files from src to dst.
-
-
-    Args:
-        src (str): source directory
-        dst (str): destination directory
-        conf (config.Config): configuration Object
-
-    Raises:
-        cw_error.ConfigKeyError: If 'dst' is subdir of 'src'
-    """
-    if _check_subdir(src, dst):
-        raise cw_error.ConfigKeyError(
-            "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
-
-    ign = shutil.ignore_patterns('*.pyc', 'tmp*')
-
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, ignore=ign)
-        else:
-            shutil.copy2(s, d)
-    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
 
 def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
@@ -225,8 +233,9 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%num_parallel_jobs%%',
                               '{:d}'.format(sc['num_parallel_jobs']))
 
-        tline = tline.replace('%%experiment_copy_dst%%',
-                              sc['experiment_copy_dst'])
+        tline = tline.replace('%%experiment_execution_dir%%',
+                              sc['experiment_execution_dir'])
+
         tline = tline.replace('%%slurm_log%%', sc['slurm_log'])
 
         tline = tline.replace(
