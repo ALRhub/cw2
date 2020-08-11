@@ -63,6 +63,7 @@ setup(
               'distributed computing', 'mpi', 'research'],
 
     packages=['cw2'],
+    package_data={'cw2': ['default_sbatch.sh']},
 
     install_requires=['PyYAML', 'numpy', 'pandas', 'attrdict'],
 )

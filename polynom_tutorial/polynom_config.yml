@@ -5,7 +5,7 @@ name: "SLURM"   # MUST BE "SLURM"
 # Required
 partition: "dev"
 job-name: "polynom"    # this will be the experiment's name in slurm
-path_to_template: "/home/max_li/code/cw2/templates/sbatch_template.sh"   # Path to YOUR prepared sbatch script
+#path_to_template: "/home/max_li/code/cw2/templates/sbatch_template.sh"   # Path to YOUR prepared sbatch script
 
 # Required - Cluster Specific
 num_parallel_jobs: 120

@@ -47,6 +47,11 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     # counting starts at 0
     sc['last_job_idx'] = num_jobs - 1
 
+    if "path_to_template" not in sc:
+        sc['path_to_template'] = os.path.join(os.path.dirname(__file__), 'default_sbatch.sh')
+        if not os.path.exists(sc['path_to_template']):
+            raise cw_error.ConfigKeyError("Could not find default sbatch template. Please specify your own 'path_to_template'.")
+
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
 
