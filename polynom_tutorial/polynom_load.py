@@ -5,8 +5,9 @@ from cw2 import cluster_work, cw_logging
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(None)
     cw.add_logger(cw_logging.PandasRepSaver())
-    res = cw.load()
+    res = cw.load().get_data()
     
+    print(res)
     print(res[0])
 
     for job in res:
