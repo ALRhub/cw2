@@ -48,9 +48,11 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     sc['last_job_idx'] = num_jobs - 1
 
     if "path_to_template" not in sc:
-        sc['path_to_template'] = os.path.join(os.path.dirname(__file__), 'default_sbatch.sh')
+        sc['path_to_template'] = os.path.join(
+            os.path.dirname(__file__), 'default_sbatch.sh')
         if not os.path.exists(sc['path_to_template']):
-            raise cw_error.ConfigKeyError("Could not find default sbatch template. Please specify your own 'path_to_template'.")
+            raise cw_error.ConfigKeyError(
+                "Could not find default sbatch template. Please specify your own 'path_to_template'.")
 
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
@@ -149,16 +151,19 @@ def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> att
 
     if cp_error_count == 0:
         sc["experiment_execution_dir"] = sc["experiment_copy_dst"]
+        sc["zip"] = False
     elif cp_error_count == 1:
         raise cw_error.ConfigKeyError(
             "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
     else:
         sc["experiment_execution_dir"] = sc["experiment_copy_src"]
+        sc["zip"] = True
     return sc
 
 
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
-    """copy the experiment src to a new location
+    """copy the experiment files to a new location.
+    Copys both the python source files, and the YAML configuration
 
     Args:
         sc (attrdict.AttrDict): slurm-config dictionary
@@ -168,7 +173,6 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         cw_error.ConfigKeyError: If the the new destination is a subdirectory of the src folder.
     """
 
-    os.makedirs(sc["experiment_copy_dst"], exist_ok=True)
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
 
@@ -176,16 +180,14 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
         raise cw_error.ConfigKeyError(
             "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
 
-    ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+    # XXX: Probably deprecated.
+    #shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, ignore=ign)
-        else:
-            shutil.copy2(s, d)
-    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
+    ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+    if sc['zip']:
+        shutil.make_archive(dst, 'zip', src)
+    else:
+        shutil.copytree(src, dst, ignore=ign)
 
 
 def _check_subdir(parent: str, child: str) -> bool:
