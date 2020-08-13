@@ -73,6 +73,8 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     else:
         sc["sh_lines"] = ".\n".join(sc["sh_lines"])
 
+    sc["pythonpath"] = ""
+
     cw_options = cli_parser.Arguments().get()
 
     sc["cw_args"] = ""
@@ -152,6 +154,7 @@ def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> att
     if cp_error_count == 0:
         sc["experiment_execution_dir"] = sc["experiment_copy_dst"]
         sc["zip"] = False
+        sc["pythonpath"] = _build_python_path(sc)
     elif cp_error_count == 1:
         raise cw_error.ConfigKeyError(
             "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
@@ -187,7 +190,14 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     if sc['zip']:
         shutil.make_archive(dst, 'zip', src)
     else:
-        shutil.copytree(src, dst, ignore=ign)
+        os.makedirs(dst)
+        for item in os.listdir(src):
+            s = os.path.join(src, item)
+            d = os.path.join(dst, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, ignore=ign)
+            else:
+                shutil.copy2(s, d)
 
 
 def _check_subdir(parent: str, child: str) -> bool:
@@ -204,6 +214,16 @@ def _check_subdir(parent: str, child: str) -> bool:
     child_path = os.path.abspath(child)
 
     return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
+def _build_python_path(sc: attrdict.AttrDict) -> str:
+    pypath = sys.path.copy()
+
+    src = sc["experiment_copy_src"]
+    dst = sc["experiment_copy_dst"]
+
+    new_path = [x for x in pypath if x != src]
+    new_path.append(dst)
+    return "export PYTHONPATH=" + ":".join(new_path)
 
 
 def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
@@ -253,6 +273,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%sh_lines%%', sc["sh_lines"])
 
         tline = tline.replace('%%venv%%', sc["venv"])
+        tline = tline.replace('%%pythonpath%%', sc['pythonpath'])
 
         tline = tline.replace('%%python_script%%', experiment_code)
         tline = tline.replace('%%path_to_yaml_config%%', conf.f_name)

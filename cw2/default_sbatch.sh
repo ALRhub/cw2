@@ -21,6 +21,10 @@
 # Activate the virtualenv / conda environment
 %%venv%%
 
+
+# Export Pythonpath
+%%pythonpath%%
+
 # Additional Instructions from CONFIG.yml
 %%sh_lines%%
 

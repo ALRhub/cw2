@@ -21,7 +21,13 @@
 # Activate the virtualenv / conda environment
 %%venv%%
 
+
+# Export Pythonpath
+%%pythonpath%%
+
 # Additional Instructions from CONFIG.yml
 %%sh_lines%%
 
 python3 %%python_script%% %%path_to_yaml_config%% -j $SLURM_ARRAY_TASK_ID %%cw_args%%
+
+# THIS WAS BUILT FROM THE DEFAULLT SBATCH TEMPLATE

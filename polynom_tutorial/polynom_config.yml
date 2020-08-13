@@ -18,7 +18,7 @@ time: 30
 venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
 
 # Optional Code Copy: Both Args are required.
-#experiment_copy_dst: "/home/max_li/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path/code
+#experiment_copy_dst: "/home/max_li/polylog/code"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path/code
 #experiment_copy_src: "/home/max_li/code/cw2/polynom_tutorial"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to CWD.
 
 ---
