@@ -61,7 +61,7 @@ class ClusterWork():
         self._run_scheduler(s, root_dir)
         
 
-    def load(self, root_dir: str = "") -> dict:
+    def load(self, root_dir: str = "") -> cw_loading.CWResult:
         """Loads all saved information.
 
         Args:
