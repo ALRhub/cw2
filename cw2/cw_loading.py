@@ -45,10 +45,27 @@ class CWResult():
         return self.df
 
     def filter(self, param_dict: dict):
+        """filter by parameter dictionary.
+        Supports nested dictionarys. Has to be the same format as the config file.
+
+        Args:
+            param_dict (dict): parameter dictionary
+
+        Returns:
+            CWResult: Filtered Result. Supports method chaining.
+        """
         df = self.df.cw2.filter(param_dict)
         return CWResult(df)
 
     def get_repetition(self, r: int):
+        """only select a specific repetition.
+
+        Args:
+            r (int): repetition number
+
+        Returns:
+            CWResult: Filtered Result. Supports method chaining.
+        """
         df = self.df.cw2.repetition(r)
         return CWResult(df)
 
@@ -58,15 +75,31 @@ class Cw2Accessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    
     def filter(self, param_dict: dict):
+        """filter by parameter dictionary.
+        Supports nested dictionarys. Has to be the same format as the config file.
+
+        Args:
+            param_dict (dict): parameter dictionary
+
+        Returns:
+            pd.DataFrame: Filtered Result
+        """
         flattened = util.flatten_dict(param_dict)
 
         df = self._obj.copy()
-        for k,v in flattened.items():
+        for k, v in flattened.items():
             df = df[df[k] == v]
         return df
 
     def repetition(self, r: int):
+        """only select a specific repetition.
+
+        Args:
+            r (int): repetition number
+
+        Returns:
+            pd.DataFrame: Filtered Result
+        """
         df = self._obj
         return df[df['r'] == r]
