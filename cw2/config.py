@@ -136,10 +136,15 @@ class Config:
         expanded_config_list = []
         for config in experiment_configs:
             # Set Default Values
+            # save path argument from YML for grid modification
             if '_basic_path' not in config:
                 config['_basic_path'] = config["path"]
+            # save name argument from YML for grid modification
             if 'experiment_name' not in config:
                 config['experiment_name'] = config["name"]
+            # add empty string for parent DIR in case of grid
+            if '_nested_dir' not in config:
+                config['nested_dir'] = ''
 
             if 'grid' in config or 'list' in config:
                 if 'grid' in config:
@@ -172,7 +177,9 @@ class Config:
 
                     # Rename and append
                     _converted_name = convert_param_names(_param_names, values)
-                    _config['experiment_name'] = _config.name + '__' + _converted_name
+                    _config['experiment_name'] = _config['name'] + \
+                        '__' + _converted_name
+                    _config['nested_dir'] = _config['name']
                     expanded_config_list.append(_config)
             else:
                 expanded_config_list.append(config)
@@ -180,9 +187,10 @@ class Config:
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
             _config['path'] = os.path.join(
-                _config["_basic_path"], _config["experiment_name"])
-            _config['log_path'] = os.path.join(_config["path"], 'log')
+                _config["_basic_path"], _config['nested_dir'], _config["experiment_name"])
 
+            if 'log_path' not in _config:
+                _config['log_path'] = os.path.join(_config["path"], 'log')
         return expanded_config_list
 
     def to_yaml(self, fpath: str = "", relpath: bool = True) -> None:
@@ -220,9 +228,12 @@ class Config:
             c = dict(exp)
             if relpath:
                 _basic_path = c["_basic_path"]
-                c["log_path"] = os.path.join(".", os.path.relpath(c["log_path"], _basic_path))
-                c["path"] = os.path.join(".", os.path.relpath(c["path"], _basic_path))
-                c["_basic_path"] = os.path.join(".", os.path.relpath(c["_basic_path"], _basic_path))
+                c["log_path"] = os.path.join(
+                    ".", os.path.relpath(c["log_path"], _basic_path))
+                c["path"] = os.path.join(
+                    ".", os.path.relpath(c["path"], _basic_path))
+                c["_basic_path"] = os.path.join(
+                    ".", os.path.relpath(c["_basic_path"], _basic_path))
             res.append(c)
         return res
 
