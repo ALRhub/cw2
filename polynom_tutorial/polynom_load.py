@@ -7,10 +7,10 @@ if __name__ == "__main__":
     cw.add_logger(cw_logging.PandasRepSaver())
     res = cw.load()
     
-    print(res.data())
-    print(res.get_repetition(2).data())
-    print(res.data().cw2.repetition(2))
-    print(res.data().cw2.filter({'optim_params': {'n_samples': 6}}))
+    print(res.head())
+    print(res.cw2.repetition(2))
+    print(res['name'])
+    print(res.cw2.filter({'optim_params': {'n_samples': 6}}))
 
     for job in res:
         single_df = job["PandasRepSaver"]

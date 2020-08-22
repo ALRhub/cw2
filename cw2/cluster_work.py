@@ -61,14 +61,14 @@ class ClusterWork():
         self._run_scheduler(s, root_dir)
         
 
-    def load(self, root_dir: str = "") -> cw_loading.CWResult:
+    def load(self, root_dir: str = ""):
         """Loads all saved information.
 
         Args:
             root_dir (str, optional): [description]. Defaults to "".
 
         Returns:
-            dict: saved data in dict form. keys are the job's log folders, values are dicts of logger -> data
+            pd.DataFrame: saved data in Dataframe form.
         """
 
         loader = cw_loading.Loader()

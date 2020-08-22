@@ -14,10 +14,7 @@ class Loader(scheduler.AbstractScheduler):
             cw_res._load_job(j)
 
         cw_res._compile()
-        return cw_res
-
-# TODO: Use https://pandas.pydata.org/pandas-docs/stable/development/extending.html isntead?
-
+        return cw_res.data()
 
 class CWResult():
     def __init__(self, df: pd.DataFrame = None):
@@ -44,31 +41,6 @@ class CWResult():
     def data(self) -> pd.DataFrame:
         return self.df
 
-    def filter(self, param_dict: dict):
-        """filter by parameter dictionary.
-        Supports nested dictionarys. Has to be the same format as the config file.
-
-        Args:
-            param_dict (dict): parameter dictionary
-
-        Returns:
-            CWResult: Filtered Result. Supports method chaining.
-        """
-        df = self.df.cw2.filter(param_dict)
-        return CWResult(df)
-
-    def get_repetition(self, r: int):
-        """only select a specific repetition.
-
-        Args:
-            r (int): repetition number
-
-        Returns:
-            CWResult: Filtered Result. Supports method chaining.
-        """
-        df = self.df.cw2.repetition(r)
-        return CWResult(df)
-
 
 @pd.api.extensions.register_dataframe_accessor("cw2")
 class Cw2Accessor:
@@ -83,7 +55,7 @@ class Cw2Accessor:
             param_dict (dict): parameter dictionary
 
         Returns:
-            pd.DataFrame: Filtered Result
+            pd.DataFrame: filtered result
         """
         flattened = util.flatten_dict(param_dict)
 
@@ -99,7 +71,19 @@ class Cw2Accessor:
             r (int): repetition number
 
         Returns:
-            pd.DataFrame: Filtered Result
+            pd.DataFrame: filtered result
         """
         df = self._obj
         return df[df['r'] == r]
+
+    def name(self, name: str):
+        """only select experiments with a specific name
+
+        Args:
+            name (str): experiment name
+
+        Returns:
+            pd.DataFrame: filtered result
+        """
+        df = self._obj
+        return df[df['name'] == name]
