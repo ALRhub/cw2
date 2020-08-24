@@ -8,14 +8,20 @@ class Polynomial(experiment.AbstractIterativeExperiment):
     # ...
 
     def initialize(self, config: dict, rep: int) -> None:
-        print("Ready to start repetition {}. Resetting everything.".format(rep))
+        random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
-        x = config.params.stepsize * n
-        y = config.params.x_0 + config.params.x_1 * \
-            x + config.params.x_2 * (x**2)
+        params = config['params']
 
-        y_noise = y + (random.randint(-100, 100) / 100.0) * config.params.noise
+        x_0 = params['x_0']
+        x_1 = params['x_1']
+        x_2 = params['x_2']
+        x_3 = params['x_3']
+
+        x = params['stepsize'] * n
+        y = x_3 * (x ** 3) + x_2 * (x**2) + x_1 * x + x_0
+
+        y_noise = y + (random.randint(-10, 10) / 10.0) * params['noise']
 
         return {"true_y": y, "sample_y": y_noise}
 
@@ -24,7 +30,6 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
     def finalize(self):
         print("Finished. Closing Down.")
-        print(os.path.abspath(__file__))
 
 
 if __name__ == "__main__":

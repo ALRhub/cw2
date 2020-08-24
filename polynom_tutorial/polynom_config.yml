@@ -44,6 +44,7 @@ params:
   x_0: 1
   x_1: 2
   x_2: 3
+  x_3: 4
 
 ---
 # Experiment 2
@@ -54,7 +55,8 @@ iterations: 100
 params:
   x_0: 2
 
-# A total of 6 Runs will be created
+# A total of 12 Runs will be created
 grid:
   x_1: [3, 4]
-  x_2: [3, 4, 5]
+  x_2: [3, 4, 5],
+  x_3: [0, 1]
