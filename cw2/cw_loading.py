@@ -1,9 +1,9 @@
 from copy import deepcopy
-from typing import List
+from typing import List, Type
 
 import pandas as pd
 
-from cw2 import job, scheduler, util
+from cw2 import cw_logging, job, scheduler, util
 
 
 class Loader(scheduler.AbstractScheduler):
@@ -15,6 +15,7 @@ class Loader(scheduler.AbstractScheduler):
 
         cw_res._compile()
         return cw_res.data()
+
 
 class CWResult():
     def __init__(self, df: pd.DataFrame = None):
@@ -87,3 +88,23 @@ class Cw2Accessor:
         """
         df = self._obj
         return df[df['name'] == name]
+
+    def logger(l_name: str = "", l_obj: cw_logging.AbstractLogger = None, l_cls: Type[cw_logging.AbstractLogger] = None):
+        """select the column containg the results from a specific logger
+
+        Args:
+            l_name (str, optional): the class name of the logger. Defaults to "".
+            l_obj (cw_logging.AbstractLogger, optional): an instance object of the logger. Defaults to None.
+            l_cls (Type[cw_logging.AbstractLogger], optional): the class object of the logger. Defaults to None.
+
+        Returns:
+            pd.Series: The column with the logger results
+        """
+        if l_obj is not None:
+            l_cls = l_obj.__class__
+
+        if l_cls is not None:
+            l_name = l_cls.__name__
+
+        df = self._obj
+        return df[l_name]

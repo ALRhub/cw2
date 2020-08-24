@@ -1,12 +1,12 @@
 import logging
-from typing import List
+from typing import List, Type
 
 from cw2 import (cli_parser, config, cw_loading, cw_logging, cw_slurm,
                  experiment, job, scheduler)
 
 
 class ClusterWork():
-    def __init__(self, exp_cls: experiment.AbstractExperiment = None):
+    def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
         self.config = config.Config(self.args.config, self.args.experiments)
