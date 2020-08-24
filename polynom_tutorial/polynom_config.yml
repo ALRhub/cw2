@@ -58,5 +58,5 @@ params:
 # A total of 12 Runs will be created
 grid:
   x_1: [3, 4]
-  x_2: [3, 4, 5],
+  x_2: [3, 4, 5]
   x_3: [0, 1]
