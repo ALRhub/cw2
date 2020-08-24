@@ -143,7 +143,7 @@ class Config:
             if 'experiment_name' not in config:
                 config['experiment_name'] = config["name"]
             # add empty string for parent DIR in case of grid
-            if '_nested_dir' not in config:
+            if 'nested_dir' not in config:
                 config['nested_dir'] = ''
 
             if 'grid' in config or 'list' in config:
@@ -188,9 +188,7 @@ class Config:
         for _config in expanded_config_list:
             _config['path'] = os.path.join(
                 _config["_basic_path"], _config['nested_dir'], _config["experiment_name"])
-
-            if 'log_path' not in _config:
-                _config['log_path'] = os.path.join(_config["path"], 'log')
+            _config['log_path'] = os.path.join(_config["path"], 'log')
         return expanded_config_list
 
     def to_yaml(self, fpath: str = "", relpath: bool = True) -> None:
