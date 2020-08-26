@@ -2,6 +2,7 @@ import abc
 from typing import List
 
 from cw2 import config, cw_slurm, experiment, job
+from joblib import Parallel, delayed
 
 
 class AbstractScheduler(abc.ABC):
@@ -25,8 +26,8 @@ class AbstractScheduler(abc.ABC):
 class LocalScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
         for j in self.joblist:
-            for c in j.tasks:
-                j.run_task(c, overwrite)
+            Parallel(n_jobs=j.n_parallel)(delayed(j.run_task)(c, overwrite)
+                               for c in j.tasks)
 
 
 class SlurmScheduler(AbstractScheduler):

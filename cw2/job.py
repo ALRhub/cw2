@@ -21,7 +21,11 @@ class Job():
         if exp_cls is not None:
             self.exp = exp_cls()
         self.logger = logger
-        self.rep_path_map = {}
+
+        self.n_parallel = 1
+        if "reps_in_parallel" in tasks[0]:
+            self.n_parallel = tasks[0]['reps_in_parallel']
+
         self.__create_experiment_directory(tasks, delete_old_files, root_dir)
 
     def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
@@ -47,11 +51,7 @@ class Job():
             # XXX: Disable Delete for now
             """
             if delete_old_files:
-                for _, rep_path in rep_path_map.items():
-                    try:
-                        shutil.rmtree(os.path.join(root_dir, rep_path))
-                    except:
-                        pass
+                pass
             """
             os.makedirs(rep_path, exist_ok=True)
 
@@ -63,6 +63,7 @@ class Job():
         """
         rep_path = c['_rep_log_path']
         r = c['_rep_idx']
+        print(rep_path)
 
         if not overwrite and self._check_task_exists(c, r):
             logging.warning(

@@ -53,6 +53,7 @@ iterations: 1000  # number of iterations per repetition
 
 # Optional: Can also be set in DEFAULT
 reps_per_job: 1    # number of repetitions in each job. useful for paralellization. defaults to 1.
+reps_in_parallel: 1 # number of repetitions in each job that are executed in parallel. defaults to 1.
 
 # Experiment Parameters: Can also be set in DEFAULT.
 params:
