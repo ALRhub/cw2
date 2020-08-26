@@ -25,8 +25,8 @@ class AbstractScheduler(abc.ABC):
 class LocalScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
         for j in self.joblist:
-            for r in j.repetitions:
-                j.run_rep(r, overwrite)
+            for c in j.tasks:
+                j.run_task(c, overwrite)
 
 
 class SlurmScheduler(AbstractScheduler):

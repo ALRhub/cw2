@@ -27,16 +27,15 @@ class CWResult():
         self.data_list = None
 
     def _load_job(self, j: job.Job) -> None:
-        job_config = deepcopy(j.config)
-        job_dict = {}
-        job_dict['name'] = job_config['name']
 
-        job_dict.update(util.flatten_dict(job_config['params']))
-
-        for r in j.repetitions:
-            rep_data = j.load_rep(r)
-            rep_data.update({'r': r, 'rep_path': j.get_rep_path(r)})
-            rep_data.update(job_dict)
+        for c in j.tasks:
+            rep_data = j.load_task(c)
+            rep_data.update({
+                'name': c['name'],
+                'r': c['_rep_idx'], 
+                'rep_path': c['_rep_log_path']
+            })
+            rep_data.update(util.flatten_dict(c['params']))
             self.data_list.append(rep_data)
 
     def data(self) -> pd.DataFrame:
@@ -89,7 +88,7 @@ class Cw2Accessor:
         df = self._obj
         return df[df['name'] == name]
 
-    def logger(l_name: str = "", l_obj: cw_logging.AbstractLogger = None, l_cls: Type[cw_logging.AbstractLogger] = None):
+    def logger(self, l_name: str = "", l_obj: cw_logging.AbstractLogger = None, l_cls: Type[cw_logging.AbstractLogger] = None):
         """select the column containg the results from a specific logger
 
         Args:

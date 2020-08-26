@@ -51,15 +51,15 @@ path: "path/to/output_dir/"   # location to save results in
 repetitions: 5    # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
 
+# Optional: Can also be set in DEFAULT
+reps_per_job: 1    # number of repetitions in each job. useful for paralellization. defaults to 1.
+
 # Experiment Parameters: Can also be set in DEFAULT.
 params:
   param_1: "exp_value_1" # overwrites Default
   param_2: "exp_value_2" # new experiment specific parameter
 
-# Dynamically assigned parameters. Can be EITHER 'list' or 'grid'. Can NOT be set in DEFAULT.
+# Dynamically assigned parameters. Can be EITHER 'list' or 'grid'. Can NOT be set in DEFAULT. Can be a nested dictionary.
 list:   # alternative - 'grid:'
-  budget: [10000, 20000, 40000, 60000]
-  optim_params:
-    n_samples: [6, 8, 10, 12]
-  problem:
-    dim: [2, 5, 10, 20]
+  param_3: [1, 2]
+  param_4: [3, 4]
