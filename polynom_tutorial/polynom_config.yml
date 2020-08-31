@@ -25,6 +25,8 @@ venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual enviro
 
 # DEFAULT parameters (Optional)
 name: "DEFAULT"   # MUST BE 'DEFAULT'
+reps_per_job: 4
+reps_in_parallel: 3
 
 # Required: Can also be set in DEFAULT
 path: "/home/max_li/polylog"   # location to save results in

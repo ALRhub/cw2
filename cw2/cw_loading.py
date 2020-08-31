@@ -1,9 +1,9 @@
 from copy import deepcopy
-from typing import List
+from typing import List, Type
 
 import pandas as pd
 
-from cw2 import job, scheduler, util
+from cw2 import cw_logging, job, scheduler, util
 
 
 class Loader(scheduler.AbstractScheduler):
@@ -16,6 +16,7 @@ class Loader(scheduler.AbstractScheduler):
         cw_res._compile()
         return cw_res.data()
 
+
 class CWResult():
     def __init__(self, df: pd.DataFrame = None):
         self.data_list = []
@@ -26,16 +27,15 @@ class CWResult():
         self.data_list = None
 
     def _load_job(self, j: job.Job) -> None:
-        job_config = deepcopy(j.config)
-        job_dict = {}
-        job_dict['name'] = job_config['name']
 
-        job_dict.update(util.flatten_dict(job_config['params']))
-
-        for r in j.repetitions:
-            rep_data = j.load_rep(r)
-            rep_data.update({'r': r, 'rep_path': j.get_rep_path(r)})
-            rep_data.update(job_dict)
+        for c in j.tasks:
+            rep_data = j.load_task(c)
+            rep_data.update({
+                'name': c['name'],
+                'r': c['_rep_idx'], 
+                'rep_path': c['_rep_log_path']
+            })
+            rep_data.update(util.flatten_dict(c['params']))
             self.data_list.append(rep_data)
 
     def data(self) -> pd.DataFrame:
@@ -87,3 +87,23 @@ class Cw2Accessor:
         """
         df = self._obj
         return df[df['name'] == name]
+
+    def logger(self, l_name: str = "", l_obj: cw_logging.AbstractLogger = None, l_cls: Type[cw_logging.AbstractLogger] = None):
+        """select the column containg the results from a specific logger
+
+        Args:
+            l_name (str, optional): the class name of the logger. Defaults to "".
+            l_obj (cw_logging.AbstractLogger, optional): an instance object of the logger. Defaults to None.
+            l_cls (Type[cw_logging.AbstractLogger], optional): the class object of the logger. Defaults to None.
+
+        Returns:
+            pd.Series: The column with the logger results
+        """
+        if l_obj is not None:
+            l_cls = l_obj.__class__
+
+        if l_cls is not None:
+            l_name = l_cls.__name__
+
+        df = self._obj
+        return df[l_name]

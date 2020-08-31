@@ -69,6 +69,7 @@ class Config:
             default_config, experiment_configs)
 
         experiment_configs = self.__expand_experiments(experiment_configs)
+        experiment_configs = self.__unroll_exp_reps(experiment_configs)
 
         return slurm_config, experiment_configs
 
@@ -140,11 +141,11 @@ class Config:
             if '_basic_path' not in config:
                 config['_basic_path'] = config["path"]
             # save name argument from YML for grid modification
-            if 'experiment_name' not in config:
-                config['experiment_name'] = config["name"]
+            if '_experiment_name' not in config:
+                config['_experiment_name'] = config["name"]
             # add empty string for parent DIR in case of grid
             if '_nested_dir' not in config:
-                config['nested_dir'] = ''
+                config['_nested_dir'] = ''
 
             if 'grid' in config or 'list' in config:
                 if 'grid' in config:
@@ -177,9 +178,9 @@ class Config:
 
                     # Rename and append
                     _converted_name = convert_param_names(_param_names, values)
-                    _config['experiment_name'] = _config['name'] + \
+                    _config['_experiment_name'] = _config['name'] + \
                         '__' + _converted_name
-                    _config['nested_dir'] = _config['name']
+                    _config['_nested_dir'] = _config['name']
                     expanded_config_list.append(_config)
             else:
                 expanded_config_list.append(config)
@@ -187,11 +188,32 @@ class Config:
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
             _config['path'] = os.path.join(
-                _config["_basic_path"], _config['nested_dir'], _config["experiment_name"])
-
-            if 'log_path' not in _config:
-                _config['log_path'] = os.path.join(_config["path"], 'log')
+                _config["_basic_path"], _config['_nested_dir'], _config["_experiment_name"])
+            _config['log_path'] = os.path.join(_config["path"], 'log')
         return expanded_config_list
+
+    def __unroll_exp_reps(self, exp_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+        """unrolls experiment repetitions into their own configuration object
+
+        Args:
+            exp_configs (List[attrdict.AttrDict]): List of experiment configurations
+
+        Returns:
+            List[attrdict.AttrDict]: List of unrolled experiment configurations
+        """
+        unrolled_exps = []
+
+        for config in exp_configs:
+            if '_rep_idx' in config:
+                unrolled_exps.append(config)
+                continue
+
+            for r in range(config['repetitions']):
+                c = deepcopy(config)
+                c['_rep_idx'] = r
+                c['_rep_log_path'] = os.path.join(c["log_path"], 'rep_{:02d}'.format(r))
+                unrolled_exps.append(c)
+        return unrolled_exps
 
     def to_yaml(self, fpath: str = "", relpath: bool = True) -> None:
         """write config back into a YAML file.

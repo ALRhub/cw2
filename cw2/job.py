@@ -2,7 +2,7 @@ import logging
 import os
 import shutil
 from copy import deepcopy
-from typing import List
+from typing import List, Type
 
 import attrdict
 
@@ -11,65 +11,64 @@ from cw2 import cw_logging, experiment
 
 class Job():
     """Class defining a computation job.
-    Can contain 1..n repetitions. Each job should encapsulate all information necessary for execution.
+    Can contain 1..n tasks. Each job should encapsulate all information necessary for execution.
+    A task is an experiment configuration with unique repetition idx.
     """
 
-    def __init__(self, exp_config: attrdict.AttrDict, reps: List[int], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
-        self.config = deepcopy(exp_config)
-        self.repetitions = reps
+    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
+        self.tasks = tasks
 
         if exp_cls is not None:
             self.exp = exp_cls()
         self.logger = logger
-        self.__create_experiment_directory(delete_old_files, root_dir)
 
-    def __create_experiment_directory(self, delete_old_files=False, root_dir=""):
+        self.n_parallel = 1
+        if "reps_in_parallel" in tasks[0]:
+            self.n_parallel = tasks[0]['reps_in_parallel']
+
+        self.__create_experiment_directory(tasks, delete_old_files, root_dir)
+
+    def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
         """internal function creating the directories in which the job will write its data.
 
         Args:
+            task (List[attrdict.Attrdict]): a list of experiment tasks
             delete_old_files (bool, optional): Should the directory be emptied beforehand?. Defaults to False.
             root_dir (str, optional): [description]. Defaults to "".
         """
-        # create experiment path and subdir
-        os.makedirs(os.path.join(root_dir, self.config["path"]), exist_ok=True)
+        for conf in tasks:
+            # create experiment path and subdir
+            os.makedirs(os.path.join(root_dir, conf["path"]), exist_ok=True)
 
-        # create a directory for the log path
-        os.makedirs(os.path.join(
-            root_dir, self.config["log_path"]), exist_ok=True)
+            # create a directory for the log path
+            os.makedirs(os.path.join(
+                root_dir, conf["log_path"]), exist_ok=True)
 
-        # create log path for each repetition
-        rep_path_map = {}
-        for r in self.repetitions:
+            # create log path for each repetition
             rep_path = os.path.join(
-                root_dir, self.config["log_path"], 'rep_{:02d}'.format(r), '')
-            rep_path_map[r] = rep_path
+                root_dir, conf['_rep_log_path'])
 
-        # XXX: Disable Delete for now
-        """
-        if delete_old_files:
-            for _, rep_path in rep_path_map.items():
-                try:
-                    shutil.rmtree(os.path.join(root_dir, rep_path))
-                except:
-                    pass
-        """
-        os.makedirs(rep_path, exist_ok=True)
+            # XXX: Disable Delete for now
+            """
+            if delete_old_files:
+                pass
+            """
+            os.makedirs(rep_path, exist_ok=True)
 
-        self.config['rep_log_paths'] = rep_path_map
-
-    def run_rep(self, r: int, overwrite: bool):
-        """Execute a single repetition of the job. 
+    def run_task(self, c: attrdict.AttrDict, overwrite: bool):
+        """Execute a single task of the job. 
 
         Args:
-            r (int): repetition number
+            c (attrdict.AttrDict): task configuration
         """
-        if not overwrite and self._check_rep_exists(r):
-            logging.warning(
-                "Skipping run, as {} is not empty. Use -o to overwrite.".format(self.get_rep_path(r)))
-            return
+        rep_path = c['_rep_log_path']
+        r = c['_rep_idx']
+        print(rep_path)
 
-        c = self.config
-        rep_path = self.get_rep_path(r)
+        if not overwrite and self._check_task_exists(c, r):
+            logging.warning(
+                "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
+            return
 
         self.exp.initialize(c, r)
         self.logger.initialize(c, r, rep_path)
@@ -79,42 +78,31 @@ class Job():
         self.exp.finalize()
         self.logger.finalize()
 
-    def load_rep(self, r: int) -> dict:
-        """Load the results of a single repetition.
+    def load_task(self, c: attrdict.AttrDict) -> dict:
+        """Load the results of a single task.
 
         Args:
-            r (int): repetition number
+            c (attrdict.AttrDict): task configuration
 
         Returns:
             dict: the loaded data
         """
-        c = self.config
-        rep_path = self.get_rep_path(r)
+        rep_path = c['_rep_log_path']
+        r = c['_rep_idx']
         self.logger.initialize(c, r, rep_path)
         return self.logger.load()
 
-    def _check_rep_exists(self, r: int) -> bool:
-        """internal function. checks if the repetition has already been run in the past.
+    def _check_task_exists(self, c: attrdict.AttrDict, r: int) -> bool:
+        """internal function. checks if the task has already been run in the past.
 
         Args:
-            r (int): repetition number
+            c (attrdict.AttrDict): task configuration
 
         Returns:
             bool: True if the repetition was already run
         """
-        rep_path = self.get_rep_path(r)
+        rep_path = c['_rep_log_path']
         return len(os.listdir(rep_path)) != 0
-
-    def get_rep_path(self, r: int) -> str:
-        """returns the path of the job and repetition combination
-
-        Args:
-            r (int): repetition number
-
-        Returns:
-            str: path of this job and repetition combination
-        """
-        return self.config['rep_log_paths'][r]
 
 
 class JobFactory():
@@ -122,36 +110,55 @@ class JobFactory():
     Specifially used to map experiment repetitions to Jobs.
     """
 
-    def __init__(self, exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
         self.exp_cls = exp_cls
         self.logger = logger
         self.delete_old_files = delete_old_files
         self.root_dir = root_dir
 
-    def _divide_repetitions(self, exp_conf: attrdict.AttrDict) -> list:
+    def _group_exp_tasks(self, task_confs: List[attrdict.AttrDict]) -> dict:
+        """group tasks by experiment to access common attributes like reps_per_job
+
+        Args:
+            task_confs (List[attrdict.AttrDict]): list of all task configurations
+
+        Returns:
+            dict: dictionary of task configurations grouped by name.
+        """
+        grouped_exps = {}
+        for t in task_confs:
+            name = t['name']
+            if name not in grouped_exps:
+                grouped_exps[name] = []
+            grouped_exps[name].append(t)
+        return grouped_exps
+
+    def _divide_tasks(self, task_confs: List[attrdict.AttrDict]) -> List[List[attrdict.AttrDict]]:
         """internal function to divide experiment repetitions into sets of repetitions.
         Dependent on configured reps_per_job attribute. Each set of repetitions will be one job.
 
         Args:
-            exp_conf (attrdict.AttrDict): single experiment configuration
+            task_confs (List[attrdict.AttrDict]): List of task configurations
 
         Returns:
-            list: List of repetition indices.
+            List[List[attrdict.AttrDict]]: a list containing all subpackages of tasks as lists
         """
-        reps = []
-        max_rep = exp_conf.repetitions
+        grouped_exps = self._group_exp_tasks(task_confs)
+        tasks = []
 
-        # Use 1 Repetition per job if not defined otherwise
-        rep_portion = 1
-        if "reps_per_job" in exp_conf:
-            rep_portion = exp_conf["reps_per_job"]
+        for exp_name in grouped_exps:
+            exp_group = grouped_exps[exp_name]
 
-        for start_rep in range(0, max_rep, rep_portion):
-            if start_rep + rep_portion - 1 < max_rep:
-                reps.append(range(start_rep, start_rep + rep_portion))
-            else:
-                reps.append(range(start_rep, max_rep))
-        return reps
+            max_rep = len(exp_group)
+
+            # Use 1 Repetition per job if not defined otherwise
+            rep_portion = 1
+            if "reps_per_job" in exp_group[0]:
+                rep_portion = exp_group[0]["reps_per_job"]
+
+            for start_rep in range(0, max_rep, rep_portion):
+                tasks.append(exp_group[start_rep:start_rep + rep_portion])
+        return tasks
 
     def create_jobs(self, exp_configs: List[attrdict.AttrDict]) -> List[Job]:
         """creates a list of all jobs.
@@ -162,18 +169,15 @@ class JobFactory():
         Returns:
             List[Job]: list of configured jobs.
         """
+        task_list = self._divide_tasks(exp_configs)
         joblist = []
-        for exp_conf in exp_configs:
-            reps = self._divide_repetitions(exp_conf)
-
-            for rep_list in reps:
-                j = Job(
-                    exp_conf,
-                    rep_list,
-                    self.exp_cls,
-                    self.logger,
-                    self.delete_old_files,
-                    self.root_dir
-                )
-                joblist.append(j)
+        for task in task_list:
+            j = Job(
+                task,
+                self.exp_cls,
+                self.logger,
+                self.delete_old_files,
+                self.root_dir
+            )
+            joblist.append(j)
         return joblist
