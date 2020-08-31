@@ -179,10 +179,6 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
 
-    if _check_subdir(src, dst):
-        raise cw_error.ConfigKeyError(
-            "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
-
     # XXX: Probably deprecated.
     #shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
@@ -190,6 +186,10 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     if sc['zip']:
         shutil.make_archive(dst, 'zip', src)
     else:
+        if _check_subdir(src, dst):
+            raise cw_error.ConfigKeyError(
+                "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
+
         os.makedirs(dst)
         for item in os.listdir(src):
             s = os.path.join(src, item)
@@ -214,6 +214,7 @@ def _check_subdir(parent: str, child: str) -> bool:
     child_path = os.path.abspath(child)
 
     return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
 
 def _build_python_path(sc: attrdict.AttrDict) -> str:
     pypath = sys.path.copy()
