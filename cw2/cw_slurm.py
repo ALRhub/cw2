@@ -175,6 +175,10 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     Raises:
         cw_error.ConfigKeyError: If the the new destination is a subdirectory of the src folder.
     """
+    cw_options = cli_parser.Arguments().get()
+    if cw_options['no-code-copy']:
+        print('Skipping Code Copy')
+        return
 
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]

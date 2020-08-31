@@ -19,6 +19,7 @@ class Arguments():
                         help='Run using SLURM Workload Manager.')
         p.add_argument('-o', '--overwrite', action='store_true',
                         help='Overwrite existing results.')
+        p.add_argument('--no-code-copy', action='store_true', help='Skip code copy.')
 
         self.args = p.parse_args(namespace=self)
     
