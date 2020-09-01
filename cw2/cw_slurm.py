@@ -71,7 +71,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if "sh_lines" not in sc:
         sc["sh_lines"] = ""
     else:
-        sc["sh_lines"] = ".\n".join(sc["sh_lines"])
+        sc["sh_lines"] = "\n".join(sc["sh_lines"])
 
     sc["pythonpath"] = ""
 
