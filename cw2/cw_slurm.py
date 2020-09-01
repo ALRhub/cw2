@@ -281,7 +281,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%pythonpath%%', sc['pythonpath'])
 
         tline = tline.replace('%%python_script%%', experiment_code)
-        tline = tline.replace('%%path_to_yaml_config%%', conf.f_name)
+        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
 
         tline = tline.replace('%%cw_args%%', sc["cw_args"])
         tline = tline.replace('%%sbatch_args%%', sc["sbatch_args"])
