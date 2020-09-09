@@ -1,8 +1,8 @@
 import logging
 from typing import List, Type
 
-from cw2 import (cli_parser, config, cw_loading, cw_logging, cw_slurm,
-                 experiment, job, scheduler)
+from cw2 import cli_parser, config, cw_slurm, experiment, job, scheduler
+from cw2.cw_data import cw_loading, cw_logging
 
 
 class ClusterWork():
@@ -88,5 +88,3 @@ class ClusterWork():
 
         s.assign(job_list)        
         return s.run(overwrite=args.overwrite)
-
-        

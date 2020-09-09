@@ -6,7 +6,8 @@ from typing import List, Type
 
 import attrdict
 
-from cw2 import cw_logging, experiment
+from cw2 import experiment
+from cw2.cw_data import cw_logging
 
 
 class Job():

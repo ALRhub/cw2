@@ -1,7 +1,8 @@
 import os
 import random
 
-from cw2 import cluster_work, cw_logging, experiment
+from cw2 import cluster_work, experiment
+from cw2.cw_data import cw_logging
 
 
 class Polynomial(experiment.AbstractIterativeExperiment):

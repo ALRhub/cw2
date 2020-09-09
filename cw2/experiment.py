@@ -1,7 +1,7 @@
 import abc
 import datetime as dt
 
-from cw2 import cw_logging
+from cw2.cw_data import cw_logging
 
 
 class AbstractExperiment(abc.ABC):

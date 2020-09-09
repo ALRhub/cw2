@@ -3,7 +3,8 @@ from typing import List, Type
 
 import pandas as pd
 
-from cw2 import cw_logging, job, scheduler, util
+from cw2 import job, scheduler, util
+from cw2.cw_data import cw_logging
 
 
 class Loader(scheduler.AbstractScheduler):

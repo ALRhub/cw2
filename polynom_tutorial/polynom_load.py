@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
-from cw2 import cluster_work, cw_logging
+from cw2 import cluster_work
+from cw2.cw_data import cw_logging
 
 if __name__ == "__main__":
     cw = cluster_work.ClusterWork(None)
@@ -18,5 +19,6 @@ if __name__ == "__main__":
 
     for i, job in df.iterrows():
         single_df = job["PandasRepSaver"]
+        single_df['elbow_result'].mean()
         single_df[["sample_y", "true_y"]].plot.line()
         plt.savefig(job['rep_path'] + "plot.png")
