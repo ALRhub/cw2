@@ -81,7 +81,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if cw_options.overwrite:
         sc["cw_args"] += " -o"
     if cw_options.experiments is not None:
-        sc["cw_args"] = " -e " + " ".join(cw_options["experiments"])
+        sc["cw_args"] += " -e " + " ".join(cw_options["experiments"])
 
     sc = _build_sbatch_args(sc)
     sc = _complete_exp_copy_config(sc, conf)
