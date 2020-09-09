@@ -6,8 +6,9 @@ import numpy as np
 from cma.bbobbenchmarks import nfreefunclasses
 
 import cw2.cluster_work
+import cw2.cw_data.cw_pd_logger
 import cw2.experiment
-import cw2.cw_logging
+
 
 class CWCMA(cw2.experiment.AbstractIterativeExperiment):
     def __init__(self):
@@ -91,5 +92,5 @@ class CWCMA(cw2.experiment.AbstractIterativeExperiment):
 
 if __name__ == "__main__":
     cw = cw2.cluster_work.ClusterWork(CWCMA)
-    cw.add_logger(cw2.cw_logging.PandasRepSaver())
+    cw.add_logger(cw2.cw_data.cw_pd_logger.PandasLogger())
     cw.run()

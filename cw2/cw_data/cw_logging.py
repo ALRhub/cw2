@@ -6,7 +6,6 @@ import pprint
 from typing import List
 
 import attrdict
-import pandas as pd
 
 
 class AbstractLogger(abc.ABC):
@@ -82,8 +81,12 @@ class LoggerArray(AbstractLogger):
                 d = logger.load()
             except:
                 d = "Error when loading {}".format(logger.__class__.__name__)
+                aaaa
+    
             if d is not None:
-                data[logger.__class__.__name__] = d
+                if not isinstance(d, dict):
+                    d = {logger.__class__.__name__: d}
+                data.update(d)
         return data
 
     def is_empty(self) -> bool:
@@ -106,42 +109,3 @@ class Printer(AbstractLogger):
 
     def load(self):
         pass
-
-
-class PandasRepSaver(AbstractLogger):
-    """Writes the results of each repetition seperately to disk
-    Each repetition is saved in its own directory. Write occurs after every iteration.
-    """
-
-    def __init__(self):
-        self.log_path = ""
-        self.csv_name = "rep.csv"
-        self.pkl_name = "rep.pkl"
-        self.df = pd.DataFrame()
-        #self.index = 0
-
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str):
-        self.log_path = rep_log_path
-        self.csv_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
-        self.pkl_name = os.path.join(self.log_path, 'rep_{}.pkl'.format(rep))
-        self.df = pd.DataFrame()
-
-    def process(self, data) -> None:
-        if not isinstance(data, dict):
-            return
-
-        self.df = self.df.append(data, ignore_index=True)
-        self.df.to_csv(self.csv_name, index_label='index')
-        self.df.to_pickle(self.pkl_name)
-
-    def finalize(self) -> None:
-        pass
-
-    def load(self):
-        try:
-            data = pd.read_pickle(self.pkl_name)
-        except FileNotFoundError as _:
-            data = "{} does not exist".format(self.pkl_name)
-            logging.warning(data)
-
-        return data
