@@ -4,7 +4,7 @@ from typing import List, Type
 import pandas as pd
 
 from cw2 import job, scheduler, util
-from cw2.cw_data import cw_logging
+from cw2.cw_data import cw_logging, cw_pd_logger
 
 
 class Loader(scheduler.AbstractScheduler):
@@ -108,3 +108,20 @@ class Cw2Accessor:
 
         df = self._obj
         return df[l_name]
+
+
+    def flatten_pd_log(self):
+        pd_log_col = cw_pd_logger.PandasLogger.__name__
+        if pd_log_col  not in self._obj.columns:
+            return self._obj
+
+        df = self._obj
+        new_df = pd.DataFrame()
+        for _, row in df.iterrows():
+            nested_df = row[pd_log_col]
+
+            outer_row = row.drop(pd_log_col)
+            for c, v in outer_row.iteritems():
+                nested_df[c] = v
+            new_df = new_df.append(nested_df, ignore_index = True)
+        return new_df

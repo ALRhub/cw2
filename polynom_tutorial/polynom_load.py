@@ -16,6 +16,7 @@ if __name__ == "__main__":
 
     print(df.head())
 
+    print(df.cw2.flatten_pd_log().shape)
 
     for i, job in df.iterrows():
         single_df = job["PandasLogger"]
