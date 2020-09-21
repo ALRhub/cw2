@@ -57,7 +57,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
 
-    if "slurm_ouput" not in sc:
+    if "slurm_output" not in sc:
         sc["slurm_output"] = os.path.join(exp_output_path, "sbatch.sh")
 
     if "account" not in sc:
