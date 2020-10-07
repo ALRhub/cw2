@@ -16,7 +16,7 @@ class Job():
     A task is an experiment configuration with unique repetition idx.
     """
 
-    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
         self.tasks = tasks
 
         if exp_cls is not None:
@@ -28,7 +28,9 @@ class Job():
             self.n_parallel = tasks[0]['reps_in_parallel']
 
         self._root_dir = root_dir
-        self.__create_experiment_directory(tasks, delete_old_files, root_dir)
+        
+        if not read_only:
+            self.__create_experiment_directory(tasks, delete_old_files, root_dir)
 
     def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
         """internal function creating the directories in which the job will write its data.
@@ -112,11 +114,12 @@ class JobFactory():
     Specifially used to map experiment repetitions to Jobs.
     """
 
-    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = ""):
+    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
         self.exp_cls = exp_cls
         self.logger = logger
         self.delete_old_files = delete_old_files
         self.root_dir = root_dir
+        self.read_only = read_only
 
     def _group_exp_tasks(self, task_confs: List[attrdict.AttrDict]) -> dict:
         """group tasks by experiment to access common attributes like reps_per_job
@@ -179,7 +182,8 @@ class JobFactory():
                 self.exp_cls,
                 self.logger,
                 self.delete_old_files,
-                self.root_dir
+                self.root_dir,
+                self.read_only
             )
             joblist.append(j)
         return joblist

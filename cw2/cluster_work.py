@@ -22,7 +22,7 @@ class ClusterWork():
         """
         self.logArray.add(logger)
 
-    def _get_jobs(self, delete: bool = False, root_dir: str = "") -> List[job.Job]:
+    def _get_jobs(self, delete: bool = False, root_dir: str = "", read_only: bool = False) -> List[job.Job]:
         """private method. creates and returns all configured jobs.
 
         Args:
@@ -33,7 +33,8 @@ class ClusterWork():
             List[job.Job]: list of all configured job objects
         """
         if self.joblist is None:
-            factory = job.JobFactory(self.exp_cls, self.logArray, delete, root_dir)
+            factory = job.JobFactory(
+                self.exp_cls, self.logArray, delete, root_dir, read_only)
             self.joblist = factory.create_jobs(self.config.exp_configs)
         return self.joblist
 
@@ -59,7 +60,6 @@ class ClusterWork():
             s = scheduler.LocalScheduler()
 
         self._run_scheduler(s, root_dir)
-        
 
     def load(self, root_dir: str = ""):
         """Loads all saved information.
@@ -73,18 +73,17 @@ class ClusterWork():
 
         loader = cw_loading.Loader()
 
-        return self._run_scheduler(loader, root_dir)
+        return self._run_scheduler(loader, root_dir, True)
 
-
-    def _run_scheduler(self, s: scheduler.AbstractScheduler, root_dir: str = ""):
+    def _run_scheduler(self, s: scheduler.AbstractScheduler, root_dir: str = "", read_only: bool = False):
         if self.logArray.is_empty():
             logging.warning("No Logger has been added. Are you sure?")
 
         args = self.args
-        job_list = self._get_jobs(False, root_dir)
+        job_list = self._get_jobs(False, root_dir, read_only)
 
         if args.job is not None:
             job_list = [job_list[args.job]]
 
-        s.assign(job_list)        
+        s.assign(job_list)
         return s.run(overwrite=args.overwrite)
