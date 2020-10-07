@@ -6,3 +6,6 @@ class ConfigKeyError(Exception):
 class MissingConfigError(Exception):
     """raise when a config document is missing in the configuration."""
     pass
+
+class ExperimentSurrender(Exception):
+    pass

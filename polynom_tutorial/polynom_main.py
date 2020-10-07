@@ -1,7 +1,7 @@
 import os
 import random
 
-from cw2 import cluster_work, experiment
+from cw2 import cluster_work, experiment, cw_error
 from cw2.cw_data import cw_logging, cw_pd_logger
 
 
@@ -12,6 +12,9 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
+        if n > 100:
+            raise cw_error.ExperimentSurrender()
+
         params = config['params']
 
         x_0 = params['x_0']

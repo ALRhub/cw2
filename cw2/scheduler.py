@@ -1,8 +1,9 @@
 import abc
 from typing import List
 
-from cw2 import config, cw_slurm, experiment, job
 from joblib import Parallel, delayed
+
+from cw2 import config, cw_error, cw_slurm, experiment, job
 
 
 class AbstractScheduler(abc.ABC):
@@ -26,8 +27,14 @@ class AbstractScheduler(abc.ABC):
 class LocalScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
         for j in self.joblist:
-            Parallel(n_jobs=j.n_parallel)(delayed(j.run_task)(c, overwrite)
-                               for c in j.tasks)
+            Parallel(n_jobs=j.n_parallel)(delayed(self.execute_task)(j, c, overwrite)
+                                          for c in j.tasks)
+
+    def execute_task(self, j: job.Job, c: dict, overwrite: bool = False):
+        try:
+            j.run_task(c, overwrite)
+        except cw_error.ExperimentSurrender as _:
+            return
 
 
 class SlurmScheduler(AbstractScheduler):
