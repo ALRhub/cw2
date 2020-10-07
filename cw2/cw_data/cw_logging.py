@@ -11,6 +11,20 @@ import attrdict
 class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """
+    def __init__(self, ignore_keys: list = []):
+        self.ignore_keys = ignore_keys
+
+    def filter(self, data: dict):
+        """Base Function. Filters out ingored keys
+
+        Args:
+            data (dict): data payload dict
+        """
+        tmp_data = {}
+        for key in data.keys():
+            if key not in self.ignore_keys:
+                tmp_data[key] = data[key]
+        return tmp_data
 
     @abc.abstractmethod
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
@@ -25,7 +39,7 @@ class AbstractLogger(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def process(self, data) -> None:
+    def process(self, data: dict) -> None:
         """needs to be implemented by subclass.
         The main method. Defines how the logger handles the result of each iteration.
 
@@ -66,7 +80,7 @@ class LoggerArray(AbstractLogger):
         for logger in self._logger_array:
             logger.initialize(config, rep, rep_log_path)
 
-    def process(self, data) -> None:
+    def process(self, data: dict) -> None:
         for logger in self._logger_array:
             logger.process(data)
 
@@ -99,9 +113,10 @@ class Printer(AbstractLogger):
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         pass
 
-    def process(self, data) -> None:
+    def process(self, data: dict) -> None:
+        data_ = self.filter(data)
         print()
-        pprint.pprint(data)
+        pprint.pprint(data_)
 
     def finalize(self) -> None:
         pass
