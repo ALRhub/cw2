@@ -27,6 +27,7 @@ class Job():
         if "reps_in_parallel" in tasks[0]:
             self.n_parallel = tasks[0]['reps_in_parallel']
 
+        self._root_dir = root_dir
         self.__create_experiment_directory(tasks, delete_old_files, root_dir)
 
     def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
@@ -88,7 +89,7 @@ class Job():
         Returns:
             dict: the loaded data
         """
-        rep_path = c['_rep_log_path']
+        rep_path = os.path.join(self._root_dir, c['_rep_log_path'])
         r = c['_rep_idx']
         self.logger.initialize(c, r, rep_path)
         return self.logger.load()

@@ -162,3 +162,7 @@ $RECYCLE.BIN/
 
 exp_output
 polynom_tutorial/log
+
+# ignore ide files
+.idea
+venv 
