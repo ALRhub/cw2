@@ -81,7 +81,6 @@ class LoggerArray(AbstractLogger):
                 d = logger.load()
             except:
                 d = "Error when loading {}".format(logger.__class__.__name__)
-                aaaa
     
             if d is not None:
                 if not isinstance(d, dict):

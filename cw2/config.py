@@ -257,6 +257,8 @@ class Config:
                 _basic_path = c["_basic_path"]
                 c["log_path"] = os.path.join(
                     ".", os.path.relpath(c["log_path"], _basic_path))
+                c["_rep_log_path"] = os.path.join(
+                    ".", os.path.relpath(c["_rep_log_path"], _basic_path))
                 c["path"] = os.path.join(
                     ".", os.path.relpath(c["path"], _basic_path))
                 c["_basic_path"] = os.path.join(
