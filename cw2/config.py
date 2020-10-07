@@ -31,6 +31,8 @@ class Config:
         self.config_path = config_path
         self.f_name = os.path.basename(config_path)
 
+        self.exp_selections = experiment_selections
+
         self.slurm_config, self.exp_configs = self.__parse_configs(
             config_path, experiment_selections)
 
@@ -226,6 +228,9 @@ class Config:
         if fpath == "":
             exp_output_path = self.exp_configs[0]["_basic_path"]
             fpath = os.path.join(exp_output_path, "relative_" + self.f_name)
+
+        if self.exp_selections is not None:
+            fpath = os.path.splitext(fpath)[0] + "_" + "_".join(self.exp_selections) + ".yml"
 
         os.makedirs(os.path.dirname(fpath), exist_ok=True)
 
