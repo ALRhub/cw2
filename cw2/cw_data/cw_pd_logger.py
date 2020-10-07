@@ -28,7 +28,7 @@ class PandasLogger(AbstractLogger):
 
     def process(self, log_data: dict) -> None:
         data = self.filter(log_data)
-        print(data)
+        # print(data)
 
         self.df = self.df.append(data, ignore_index=True)
 
