@@ -111,6 +111,9 @@ class LoggerArray(AbstractLogger):
                 data.update(d)
         return data
 
+    def __iter__(self):
+        return iter(self._logger_array)
+
     def is_empty(self) -> bool:
         return len(self._logger_array) == 0
 
