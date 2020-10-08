@@ -74,8 +74,9 @@ class Job():
                 "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
             return
 
-        self.exp.initialize(c, r)
         self.logger.initialize(c, r, rep_path)
+        self.exp.initialize(c, r, self.logger)
+        
 
         self.exp.run(c, r, self.logger)
 

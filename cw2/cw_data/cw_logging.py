@@ -26,6 +26,11 @@ class AbstractLogger(abc.ABC):
                 tmp_data[key] = data[key]
         return tmp_data
 
+    def preprocess(self, *args):
+        """intended to be called during Experiment.initialize()
+        """
+        pass
+
     @abc.abstractmethod
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         """needs to be implemented by subclass.
@@ -79,6 +84,10 @@ class LoggerArray(AbstractLogger):
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         for logger in self._logger_array:
             logger.initialize(config, rep, rep_log_path)
+
+    def preprocess(self, *args):
+        for logger in self._logger_array:
+            logger.preprocess(*args)
 
     def process(self, data: dict) -> None:
         for logger in self._logger_array:

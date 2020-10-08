@@ -6,13 +6,14 @@ from cw2.cw_data import cw_logging
 
 class AbstractExperiment(abc.ABC):
     @abc.abstractmethod
-    def initialize(self, config: dict, rep: int) -> None:
+    def initialize(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         """needs to be implemented by subclass.
         Called once at the start of each repition for initialization purposes.
 
         Arguments:
             config {dict} -- parameter configuration
             rep {int} -- repition counter
+            logger {cw_logging.AbstractLogger} -- initialized loggers for preprocessing
         """
         raise NotImplementedError
     
