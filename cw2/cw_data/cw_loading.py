@@ -34,7 +34,8 @@ class CWResult():
             rep_data.update({
                 'name': c['name'],
                 'r': c['_rep_idx'], 
-                'rep_path': c['_rep_log_path']
+                'rep_path': c['_rep_log_path'],
+                'params': c['params']
             })
             rep_data.update(util.flatten_dict(c['params']))
             self.data_list.append(rep_data)
