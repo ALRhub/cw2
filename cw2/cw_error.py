@@ -7,5 +7,7 @@ class MissingConfigError(Exception):
     """raise when a config document is missing in the configuration."""
     pass
 
+
 class ExperimentSurrender(Exception):
-    pass
+    def __init__(self, payload: dict = {}):
+        self.payload = payload

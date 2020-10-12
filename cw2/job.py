@@ -6,7 +6,7 @@ from typing import List, Type
 
 import attrdict
 
-from cw2 import experiment
+from cw2 import experiment, cw_error
 from cw2.cw_data import cw_logging
 
 
@@ -28,9 +28,10 @@ class Job():
             self.n_parallel = tasks[0]['reps_in_parallel']
 
         self._root_dir = root_dir
-        
+
         if not read_only:
-            self.__create_experiment_directory(tasks, delete_old_files, root_dir)
+            self.__create_experiment_directory(
+                tasks, delete_old_files, root_dir)
 
     def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
         """internal function creating the directories in which the job will write its data.
@@ -76,9 +77,11 @@ class Job():
 
         self.logger.initialize(c, r, rep_path)
         self.exp.initialize(c, r, self.logger)
-        
 
-        self.exp.run(c, r, self.logger)
+        try:
+            self.exp.run(c, r, self.logger)
+        except cw_error.ExperimentSurrender as e:
+            pass
 
         self.exp.finalize()
         self.logger.finalize()

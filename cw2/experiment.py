@@ -2,6 +2,7 @@ import abc
 import datetime as dt
 
 from cw2.cw_data import cw_logging
+from cw2.cw_error import ExperimentSurrender
 
 
 class AbstractExperiment(abc.ABC):
@@ -16,7 +17,7 @@ class AbstractExperiment(abc.ABC):
             logger {cw_logging.AbstractLogger} -- initialized loggers for preprocessing
         """
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         raise NotImplementedError
@@ -27,6 +28,7 @@ class AbstractExperiment(abc.ABC):
         Called after all the iterations have finished at the end of the repitition.
         """
         raise NotImplementedError
+
 
 class AbstractIterativeExperiment(AbstractExperiment):
     @abc.abstractmethod
@@ -57,11 +59,19 @@ class AbstractIterativeExperiment(AbstractExperiment):
 
     def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         for n in range(config["iterations"]):
-            res = self.iterate(config, rep, n)
-            
+            surrender = False
+            try:
+                res = self.iterate(config, rep, n)
+            except ExperimentSurrender as e:
+                res = e.payload
+                surrender = True
+
             res["ts"] = dt.datetime.now()
             res["rep"] = rep
             res["iter"] = n
             logger.process(res)
-            
+
             self.save_state(config, rep, n)
+
+            if surrender:
+                raise ExperimentSurrender()
