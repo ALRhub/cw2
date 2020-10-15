@@ -19,7 +19,7 @@ class AbstractExperiment(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def run(self, config: dict, rep: int) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -75,3 +75,5 @@ class AbstractIterativeExperiment(AbstractExperiment):
 
             if surrender:
                 raise ExperimentSurrender()
+
+        logger.finalize()
