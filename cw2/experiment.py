@@ -19,7 +19,7 @@ class AbstractExperiment(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def run(self, config: dict, rep: int) -> None:
+    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
