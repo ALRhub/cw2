@@ -8,7 +8,7 @@ from cw2.cw_data import cw_logging, cw_pd_logger
 class Polynomial(experiment.AbstractIterativeExperiment):
     # ...
 
-    def initialize(self, config: dict, rep: int) -> None:
+    def initialize(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
         random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
