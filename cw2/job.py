@@ -76,15 +76,15 @@ class Job():
                 "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
             return
 
-        surrender = False
+        surrender = None
         crash = False
 
         self.logger.initialize(c, r, rep_path)
         try:
             self.exp.initialize(c, r, self.logger)
             self.exp.run(c, r, self.logger)
-        except cw_error.ExperimentSurrender:
-            surrender = True
+        except cw_error.ExperimentSurrender as s:
+            surrender = s
         except:
             crash = True
             traceback.print_exc()

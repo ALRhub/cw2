@@ -23,12 +23,12 @@ class AbstractExperiment(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def finalize(self, surrender: bool = False, crash: bool = False):
+    def finalize(self, surrender: ExperimentSurrender = None, crash: bool = False):
         """needs to be implemented by subclass.
         Called after all the iterations have finished at the end of the repitition.
 
         Args:
-            surrender (bool, optional): indicating if the experiment raised an ExperimentSurrenderException. Defaults to False.
+            surrender (ExperimentSurrender, optional): when the experiment raises an ExperimentSurrender, this object can be accessed here. Defaults to None.
             crash (bool, optional): indicating if the experiment raised a 'serious' Exception. Defaults to False.
         """
         raise NotImplementedError
