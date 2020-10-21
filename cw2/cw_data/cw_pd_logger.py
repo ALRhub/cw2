@@ -59,10 +59,9 @@ class PandasLogger(AbstractLogger):
 
         # Enrich Payload with descriptive statistics for loading DF structure
         for c in df.columns:
-            payload['{}_min'.format(c)] = df[c].min()
-            payload['{}_max'.format(c)] = df[c].max()
-
             if pd.api.types.is_numeric_dtype(df[c]):
+                payload['{}_min'.format(c)] = df[c].min()
+                payload['{}_max'.format(c)] = df[c].max()
                 payload['{}_mean'.format(c)] = df[c].mean()
                 payload['{}_std'.format(c)] = df[c].std()
 
