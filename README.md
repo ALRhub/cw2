@@ -44,7 +44,7 @@ from cw2 import experiment
 class MyIterativeExperiment(experiment.AbstractIterativeExperiment):
     # ...
 
-    def initialize(self, config: dict, rep: int) -> None:
+    def initialize(self, config: dict, rep: int, logger) -> None:
         print("Ready to start repetition {}. Resetting everything.".format(rep))
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
@@ -54,7 +54,7 @@ class MyIterativeExperiment(experiment.AbstractIterativeExperiment):
         if n % 50 == 0:
             print("I am stateless. Nothing to write to disk.")
     
-    def finalize(self):
+    def finalize(self, surrender: bool = False, crash: bool = False):
         print("Finished. Closing Down.")
 ```
 The internal execution order of an `AbstractIterativeExperiment` is, in abstract:
