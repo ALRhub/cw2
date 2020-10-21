@@ -34,7 +34,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
     def save_state(self, config: dict, rep: int, n: int) -> None:
         pass
 
-    def finalize(self, surrender=False, crash=False):
+    def finalize(self, surrender: bool = False, crash: bool = False):
         print("Finished. Closing Down.")
 
 
