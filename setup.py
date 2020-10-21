@@ -65,5 +65,5 @@ setup(
     packages=['cw2', 'cw2.cw_data'],
     package_data={'cw2': ['default_sbatch.sh']},
 
-    install_requires=['PyYAML', 'numpy', 'pandas', 'attrdict'],
+    install_requires=['PyYAML', 'numpy', 'pandas', 'attrdict', 'joblib'],
 )
