@@ -23,7 +23,7 @@ class AbstractExperiment(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def finalize(self):
+    def finalize(self, surrender=False, crash=False):
         """needs to be implemented by subclass.
         Called after all the iterations have finished at the end of the repitition.
         """

@@ -27,12 +27,14 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
         y_noise = y + (random.randint(-10, 10) / 10.0) * params['noise']
 
+        y = 3 / 0
+
         return {"true_y": y, "sample_y": y_noise}
 
     def save_state(self, config: dict, rep: int, n: int) -> None:
         pass
 
-    def finalize(self):
+    def finalize(self, surrender=False, crash=False):
         print("Finished. Closing Down.")
 
 

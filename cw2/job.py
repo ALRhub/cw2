@@ -1,12 +1,13 @@
 import logging
 import os
 import shutil
+import traceback
 from copy import deepcopy
 from typing import List, Type
 
 import attrdict
 
-from cw2 import experiment, cw_error
+from cw2 import cw_error, experiment
 from cw2.cw_data import cw_logging
 
 
@@ -75,15 +76,20 @@ class Job():
                 "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
             return
 
+        surrender = False
+        crash = False
+
         self.logger.initialize(c, r, rep_path)
-        self.exp.initialize(c, r, self.logger)
-
         try:
+            self.exp.initialize(c, r, self.logger)
             self.exp.run(c, r, self.logger)
-        except cw_error.ExperimentSurrender as e:
-            pass
+        except cw_error.ExperimentSurrender:
+            surrender = True
+        except:
+            crash = True
+            traceback.print_exc()
 
-        self.exp.finalize()
+        self.exp.finalize(surrender, crash)
         self.logger.finalize()
 
     def load_task(self, c: attrdict.AttrDict) -> dict:
