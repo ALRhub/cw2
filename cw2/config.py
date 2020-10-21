@@ -101,7 +101,7 @@ class Config:
                     experiment_configs.append(c)
 
         if len(experiment_configs) == 0:
-            logging.warning("No experiment found in config file.")
+            logging.getLogger('cw2').warning("No experiment found in config file.")
 
         return slurm_config, default_config, experiment_configs
 

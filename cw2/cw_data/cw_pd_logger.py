@@ -28,19 +28,18 @@ class PandasLogger(AbstractLogger):
 
     def process(self, log_data: dict) -> None:
         data = self.filter(log_data)
-        # print(data)
 
         self.df = self.df.append(data, ignore_index=True)
 
         try:
             self.df.to_csv(self.csv_name, index_label='index')
         except:
-            logging.warning('Could not save {}'.format(self.csv_name))
+            logging.getLogger('cw2').warning('Could not save {}'.format(self.csv_name))
 
         try:
             self.df.to_pickle(self.pkl_name)
         except:
-            logging.warning('Could not save {}'.format(self.pkl_name))
+            logging.getLogger('cw2').warning('Could not save {}'.format(self.pkl_name))
 
     def finalize(self) -> None:
         pass
@@ -54,7 +53,7 @@ class PandasLogger(AbstractLogger):
             df = pd.read_pickle(self.pkl_name)
         except FileNotFoundError as _:
             warn = "{} does not exist".format(self.pkl_name)
-            logging.warning(warn)
+            logging.getLogger('cw2').warning(warn)
             return warn
 
         # Enrich Payload with descriptive statistics for loading DF structure

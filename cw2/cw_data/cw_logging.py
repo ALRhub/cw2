@@ -127,11 +127,36 @@ class Printer(AbstractLogger):
 
     def process(self, data: dict) -> None:
         data_ = self.filter(data)
-        print()
         pprint.pprint(data_)
 
     def finalize(self) -> None:
         pass
 
+    def load(self):
+        pass
+
+
+class PythonLogger(AbstractLogger):
+    def __init__(self):
+        self.logger = logging.getLogger('cw2')
+
+    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+        self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'))
+        self.outh.setLevel(logging.INFO)
+        self.logger.addHandler(self.outh)
+
+        self.errh = logging.FileHandler(os.path.join(rep_log_path, 'err.log'))
+        self.errh.setLevel(logging.ERROR)
+        self.logger.addHandler(self.errh)
+       
+    def process(self, data: dict) -> None:
+        pass
+
+    def finalize(self) -> None:
+        for h in [self.outh, self.errh]:
+            h.flush()
+            h.close()
+            self.logger.removeHandler(h)
+        
     def load(self):
         pass

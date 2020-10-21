@@ -72,7 +72,7 @@ class Job():
         print(rep_path)
 
         if not overwrite and self._check_task_exists(c, r):
-            logging.warning(
+            logging.getLogger('cw2').warning(
                 "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
             return
 

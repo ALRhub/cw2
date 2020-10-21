@@ -3,6 +3,7 @@ import random
 
 from cw2 import cluster_work, experiment, cw_error
 from cw2.cw_data import cw_logging, cw_pd_logger
+import logging
 
 
 class Polynomial(experiment.AbstractIterativeExperiment):
@@ -12,6 +13,13 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
+        logging.getLogger('cw2').info(config)
+        logging.getLogger('cw2').warning('warn')
+        logging.getLogger('cw2').error('wtf')
+
+        if rep > 0:
+            y = 3 / 0
+
         if n > 100:
             raise cw_error.ExperimentSurrender()
 
@@ -26,9 +34,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         y = x_3 * (x ** 3) + x_2 * (x**2) + x_1 * x + x_0
 
         y_noise = y + (random.randint(-10, 10) / 10.0) * params['noise']
-
-        y = 3 / 0
-
+    
         return {"true_y": y, "sample_y": y_noise}
 
     def save_state(self, config: dict, rep: int, n: int) -> None:
@@ -36,6 +42,8 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
     def finalize(self, surrender = None, crash: bool = False):
         print("Finished. Closing Down.")
+        logging.getLogger('cw2').warning('log')
+        print('aaah')
 
 
 if __name__ == "__main__":
