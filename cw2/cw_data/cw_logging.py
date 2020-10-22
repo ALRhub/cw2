@@ -146,10 +146,12 @@ class PythonLogger(AbstractLogger):
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'))
         self.outh.setLevel(logging.INFO)
+        self.outh.setFormatter(_formatter)
         self.logger.addHandler(self.outh)
 
         self.errh = logging.FileHandler(os.path.join(rep_log_path, 'err.log'))
         self.errh.setLevel(logging.ERROR)
+        self.errh.setFormatter(_formatter)
         self.logger.addHandler(self.errh)
        
     def process(self, data: dict) -> None:
@@ -164,6 +166,27 @@ class PythonLogger(AbstractLogger):
     def load(self):
         pass
 
+
+
+
+### logging module functionality ####
+
+class _CWFormatter(logging.Formatter):
+    """Taken From CW V1
+    """
+    def __init__(self):
+        #self.std_formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
+        self.std_formatter = logging.Formatter('[%(name)s] %(message)s')
+        self.red_formatter = logging.Formatter('[%(asctime)s]:[%(name)s] %(message)s')
+    
+    def format(self, record: logging.LogRecord):
+        if record.levelno < logging.ERROR:
+            return self.std_formatter.format(record)
+        else:
+            return self.red_formatter.format(record)
+
+_formatter = _CWFormatter()
+
 def getLogger() -> logging.Logger:
     """creates a logging.getLogger('cw2') object with initialization.
     Parallelization via joblib needs a more sophisticated getLogger function.
@@ -174,9 +197,11 @@ def getLogger() -> logging.Logger:
     _logging_logger = logging.getLogger('cw2')
 
     if _logging_logger.getEffectiveLevel() > logging.INFO:
-        _logging_logger.setLevel(logging.INFO)
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(logging.INFO)
+        ch.setFormatter(_formatter)
+
+        _logging_logger.setLevel(logging.INFO)
         _logging_logger.addHandler(ch)
 
     return _logging_logger
