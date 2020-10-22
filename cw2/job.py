@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import traceback
@@ -72,7 +71,7 @@ class Job():
         print(rep_path)
 
         if not overwrite and self._check_task_exists(c, r):
-            logging.getLogger('cw2').warning(
+            cw_logging.getLogger().warning(
                 "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
             return
 

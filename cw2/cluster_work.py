@@ -8,16 +8,7 @@ from cw2.cw_data import cw_loading, cw_logging
 
 class ClusterWork():
     def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-        self.logger = logging.getLogger('cw2')
-        self.logger.setLevel(logging.INFO)
-
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        self.logger.addHandler(ch)
-        
-        
+          
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
         self.config = config.Config(self.args.config, self.args.experiments)
@@ -89,7 +80,7 @@ class ClusterWork():
 
     def _run_scheduler(self, s: scheduler.AbstractScheduler, root_dir: str = "", read_only: bool = False):
         if self.logArray.is_empty():
-            self.logger.warning("No Logger has been added. Are you sure?")
+            cw_logging.getLogger().warning("No Logger has been added. Are you sure?")
 
         args = self.args
         job_list = self._get_jobs(False, root_dir, read_only)

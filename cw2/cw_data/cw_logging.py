@@ -3,6 +3,7 @@ import datetime as dt
 import logging
 import os
 import pprint
+import sys
 from typing import List
 
 import attrdict
@@ -137,8 +138,10 @@ class Printer(AbstractLogger):
 
 
 class PythonLogger(AbstractLogger):
+    """Logger which writes calls to logging.getLogger('cw2') on to disk
+    """
     def __init__(self):
-        self.logger = logging.getLogger('cw2')
+        self.logger = getLogger()
 
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'))
@@ -160,3 +163,20 @@ class PythonLogger(AbstractLogger):
         
     def load(self):
         pass
+
+def getLogger() -> logging.Logger:
+    """creates a logging.getLogger('cw2') object with initialization.
+    Parallelization via joblib needs a more sophisticated getLogger function.
+
+    Returns:
+        logging.Logger
+    """
+    _logging_logger = logging.getLogger('cw2')
+
+    if _logging_logger.getEffectiveLevel() > logging.INFO:
+        _logging_logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        _logging_logger.addHandler(ch)
+
+    return _logging_logger

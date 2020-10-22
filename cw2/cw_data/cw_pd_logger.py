@@ -1,13 +1,11 @@
-import logging
 import os
 
 import attrdict
 import pandas as pd
+from cw2.cw_data import cw_logging
 
-from cw2.cw_data.cw_logging import AbstractLogger
 
-
-class PandasLogger(AbstractLogger):
+class PandasLogger(cw_logging.AbstractLogger):
     """Writes the results of each repetition seperately to disk
     Each repetition is saved in its own directory. Write occurs after every iteration.
     """
@@ -34,12 +32,12 @@ class PandasLogger(AbstractLogger):
         try:
             self.df.to_csv(self.csv_name, index_label='index')
         except:
-            logging.getLogger('cw2').warning('Could not save {}'.format(self.csv_name))
+            cw_logging.getLogger().warning('Could not save {}'.format(self.csv_name))
 
         try:
             self.df.to_pickle(self.pkl_name)
         except:
-            logging.getLogger('cw2').warning('Could not save {}'.format(self.pkl_name))
+            cw_logging.getLogger().warning('Could not save {}'.format(self.pkl_name))
 
     def finalize(self) -> None:
         pass
@@ -53,7 +51,7 @@ class PandasLogger(AbstractLogger):
             df = pd.read_pickle(self.pkl_name)
         except FileNotFoundError as _:
             warn = "{} does not exist".format(self.pkl_name)
-            logging.getLogger('cw2').warning(warn)
+            cw_logging.getLogger().warning(warn)
             return warn
 
         # Enrich Payload with descriptive statistics for loading DF structure

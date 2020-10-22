@@ -1,5 +1,4 @@
 import itertools
-import logging
 import os
 import re
 from copy import deepcopy
@@ -9,6 +8,7 @@ import attrdict
 import yaml
 
 from cw2 import util
+from cw2.cw_data import cw_logging
 
 
 class Config:
@@ -101,7 +101,7 @@ class Config:
                     experiment_configs.append(c)
 
         if len(experiment_configs) == 0:
-            logging.getLogger('cw2').warning("No experiment found in config file.")
+            cw_logging.getLogger().warning("No experiment found in config file.")
 
         return slurm_config, default_config, experiment_configs
 

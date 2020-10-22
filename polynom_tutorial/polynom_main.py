@@ -1,9 +1,8 @@
 import os
 import random
 
-from cw2 import cluster_work, experiment, cw_error
+from cw2 import cluster_work, cw_error, experiment
 from cw2.cw_data import cw_logging, cw_pd_logger
-import logging
 
 
 class Polynomial(experiment.AbstractIterativeExperiment):
@@ -13,9 +12,9 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
-        logging.getLogger('cw2').info(config)
-        logging.getLogger('cw2').warning('warn')
-        logging.getLogger('cw2').error('wtf')
+        cw_logging.getLogger().info(config)
+        cw_logging.getLogger().warning('warn')
+        cw_logging.getLogger().error('wtf')
 
         if rep > 0:
             y = 3 / 0
@@ -42,7 +41,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
     def finalize(self, surrender = None, crash: bool = False):
         print("Finished. Closing Down.")
-        logging.getLogger('cw2').warning('log')
+        cw_logging.getLogger().warning('log')
         print('aaah')
 
 
