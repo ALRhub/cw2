@@ -237,8 +237,12 @@ The following args are currently supported by CW2:
 | -e name1 [...] | --experiments | Allows to specify which experiments should be run. Corresponds to the `name` field of the configuration YAML.
 
 
+### Logging
+If you want to log your own INFO or WARNING messages, use the `cw2.cw_data.cw_logging.getLogger()` object. It is an instance of pythons `logging.Logger()`.
+The messages will be saved to disk in your repetition directory.
+
 ### CW_Logging
-We provide an abstract interface for logging functionality with `cw2.cw_logging.AbstractLogger`.
+We provide an abstract interface for result logging functionality with `cw2.cw_data.cw_logging.AbstractLogger`.
 
 #### Implementing `cw2.cw_logging.AbstractLogger()`
 ```Python
@@ -326,3 +330,8 @@ interesting_results = res.cw2.filter(
   interesting_params
 )
 ```
+
+### Error Handling
+Should any kind of exception be raised during an Experiment execution (`initialize()` or `run()`), `CW2` will abort this experiment run, log the error including stacktrace to a log file in the repetition directory and continue with the next task.
+
+If you want to end an (iterative) experiment early, you can raise the `cw_error.ExperimentSurrender` exception to gracefully abort the experiment execution.

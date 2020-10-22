@@ -83,10 +83,11 @@ class Job():
             self.exp.initialize(c, r, self.logger)
             self.exp.run(c, r, self.logger)
         except cw_error.ExperimentSurrender as s:
+            cw_logging.getLogger().warning('SURRENDER: {}'.format(rep_path))
             surrender = s
         except:
             crash = True
-            traceback.print_exc()
+            cw_logging.getLogger().exception('EXEPTION: {}'.format(rep_path))
 
         self.exp.finalize(surrender, crash)
         self.logger.finalize()

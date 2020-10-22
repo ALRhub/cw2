@@ -12,15 +12,14 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         random.seed(rep)
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:
-        cw_logging.getLogger().info(config)
-        cw_logging.getLogger().warning('warn')
-        cw_logging.getLogger().error('wtf')
 
         if rep > 0:
-            y = 3 / 0
-
-        if n > 100:
+            # You can raise an Experiment Surrender Exception to gracefully end a task prematurely
             raise cw_error.ExperimentSurrender()
+
+        if n > 10:
+            # Should a task raise an Exception, it will be logged and the next job execution starts.
+            y = 3 / 0
 
         params = config['params']
 
@@ -40,9 +39,8 @@ class Polynomial(experiment.AbstractIterativeExperiment):
         pass
 
     def finalize(self, surrender = None, crash: bool = False):
-        print("Finished. Closing Down.")
-        cw_logging.getLogger().warning('log')
-        print('aaah')
+        # Use cw_logging.getLogger() for logging functionality
+        cw_logging.getLogger().info("Finished. Closing Down.")
 
 
 if __name__ == "__main__":
