@@ -104,6 +104,7 @@ class LoggerArray(AbstractLogger):
             try:
                 d = logger.load()
             except:
+                getLogger().exception(logger.__class__.__name__)
                 d = "Error when loading {}".format(logger.__class__.__name__)
     
             if d is not None:
