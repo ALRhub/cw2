@@ -32,7 +32,7 @@ class WandBLogger(cw_logging.AbstractLogger):
         self.run = wandb.init(project=config.wandb.project,
                               group=config.wandb.group,
                               job_type=config.name,
-                              name="rep_{:02d}".format(rep),
+                              name=config.name + "_rep_{:02d}".format(rep),
                               config=config,
                               dir=rep_log_path
                               )
