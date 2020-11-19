@@ -26,12 +26,9 @@ class WandBLogger(cw_logging.AbstractLogger):
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
         self.log_path = rep_log_path
         reset_wandb_env()
-        # wandb.init(project=config.name, config=config.params, group=config.name + "_1")
-        # print(config.name)
-        # print(config.name + "_{:02d}".format(rep))
         self.run = wandb.init(project=config.wandb.project,
                               group=config.wandb.group,
-                              job_type=config.name,
+                              job_type=config._experiment_name,
                               name=config.name + "_rep_{:02d}".format(rep),
                               config=config,
                               dir=rep_log_path
