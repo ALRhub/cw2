@@ -28,10 +28,11 @@ class WandBLogger(cw_logging.AbstractLogger):
         reset_wandb_env()
         self.run = wandb.init(project=config.wandb.project,
                               group=config.wandb.group,
-                              job_type=config._experiment_name,
+                              job_type=config['_experiment_name'],
                               name=config.name + "_rep_{:02d}".format(rep),
                               config=config,
-                              dir=rep_log_path
+                              dir=rep_log_path,
+                              settings=wandb.Settings(_disable_stats=config.wandb.disable_stats)
                               )
 
     def process(self, data: dict) -> None:
