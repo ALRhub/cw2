@@ -191,7 +191,12 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
             raise cw_error.ConfigKeyError(
                 "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
 
-        os.makedirs(dst)
+        try:
+            os.makedirs(dst, exist_ok=cw_options['overwrite'])
+        except FileExistsError:
+            raise cw_error.ConfigKeyError(
+                "{} already exists. Please define a different 'experiment_copy_dst', use '-o' to overwrite or '--nocodecopy' to skip.")
+
         for item in os.listdir(src):
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
