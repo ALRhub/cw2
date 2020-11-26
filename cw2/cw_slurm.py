@@ -183,9 +183,6 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
 
-    # XXX: Probably deprecated.
-    #shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
-
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
     if sc['zip']:
         shutil.make_archive(dst, 'zip', src)
