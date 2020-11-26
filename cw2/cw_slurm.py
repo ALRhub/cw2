@@ -6,7 +6,8 @@ import sys
 import attrdict
 
 import __main__
-from cw2 import cli_parser, config, cw_error
+from cw2 import cli_parser, config, cw_error, util
+from cw2.cw_data import cw_logging
 
 
 def run_slurm(conf: config.Config, num_jobs: int) -> None:
@@ -161,6 +162,8 @@ def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> att
     else:
         sc["experiment_execution_dir"] = sc["experiment_copy_src"]
         sc["zip"] = True
+        cw_logging.getLogger().info(
+            "No experiment_copy configuration found. Will zip cwd() for documentation.")
     return sc
 
 
@@ -175,19 +178,25 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     Raises:
         cw_error.ConfigKeyError: If the the new destination is a subdirectory of the src folder.
     """
+    src = sc["experiment_copy_src"]
+    dst = sc["experiment_copy_dst"]
+
+    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
+
     cw_options = cli_parser.Arguments().get()
     if cw_options['nocodecopy']:
         print('Skipping Code Copy')
         return
 
-    src = sc["experiment_copy_src"]
-    dst = sc["experiment_copy_dst"]
-
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+
+    if not cw_options['skipsizecheck']:
+        _check_src_size(src, sc['zip'])
+
     if sc['zip']:
         shutil.make_archive(dst, 'zip', src)
     else:
-        if _check_subdir(src, dst):
+        if util.check_subdir(src, dst):
             raise cw_error.ConfigKeyError(
                 "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
 
@@ -205,24 +214,36 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
             else:
                 shutil.copy2(s, d)
 
-
-def _check_subdir(parent: str, child: str) -> bool:
-    """Check if the child is a subdirectory of the parent.
+def _check_src_size(src: str, zipflag: bool):
+    """Check if the src directory is smaller than 200MByte
 
     Args:
-        parent (str): Path of the suspected parent dir
-        child (str): path of the suspected child dir
+        src (str): source directory
+        zipflag (bool): should it be zipped
 
-    Returns:
-        bool: True if child is subdir of parent
+    Raises:
+        cw_error.ConfigKeyError: Abort with error message, as a too large dir indicates a missconfigured experiment.
     """
-    parent_path = os.path.abspath(parent)
-    child_path = os.path.abspath(child)
-
-    return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
-
+    dirsize = util.get_size(src)
+    if dirsize > 200.0:
+        cw_logging.getLogger().warning("SourceDir {} is greater than 200MByte".format(src))
+        if zipflag:
+            msg = "CWD {} is greater than 200MByte. If you are sure you want to zip this dir, use --skipsizecheck.\nElse define experiment_copy__ configuration keys or use --nocodecopy option.".format(
+                src)
+        else:
+            msg = "experiment_copy_src {} is greater than 200MByte. If you are sure you want to copy this dir, use --skipsizecheck.\nElse change the experiment_copy_src configuration or use --nocodecopy option.".format(
+                src)
+        raise cw_error.ConfigKeyError(msg)
 
 def _build_python_path(sc: attrdict.AttrDict) -> str:
+    """clean the python path for the new experiment copy
+
+    Args:
+        sc (attrdict.AttrDict): slurm configuration
+
+    Returns:
+        str: python path bash command for slurm script
+    """
     pypath = sys.path.copy()
 
     src = sc["experiment_copy_src"]
