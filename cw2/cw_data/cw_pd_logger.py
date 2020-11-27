@@ -55,6 +55,7 @@ class PandasLogger(cw_logging.AbstractLogger):
             return warn
 
         # Enrich Payload with descriptive statistics for loading DF structure
+        """
         for c in df.columns:
             if pd.api.types.is_numeric_dtype(df[c]):
                 payload['{}_min'.format(c)] = df[c].min()
@@ -63,6 +64,6 @@ class PandasLogger(cw_logging.AbstractLogger):
                 payload['{}_std'.format(c)] = df[c].std()
 
             payload['{}_last'.format(c)] = df[c].iloc[-1]
-
+        """
         payload[self.__class__.__name__] = df
         return payload

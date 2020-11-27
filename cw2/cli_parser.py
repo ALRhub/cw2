@@ -20,6 +20,7 @@ class Arguments():
         p.add_argument('-o', '--overwrite', action='store_true',
                         help='Overwrite existing results.')
         p.add_argument('--nocodecopy', action='store_true', help='Skip code copy.')
+        p.add_argument('--skipsizecheck', action='store_true', help='Skip check if code copy src < 200MByte')
 
         self.args = p.parse_args(namespace=self)
     

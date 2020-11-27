@@ -213,11 +213,12 @@ class Config:
             for r in range(config['repetitions']):
                 c = deepcopy(config)
                 c['_rep_idx'] = r
-                c['_rep_log_path'] = os.path.join(c["log_path"], 'rep_{:02d}'.format(r))
+                c['_rep_log_path'] = os.path.join(
+                    c["log_path"], 'rep_{:02d}'.format(r))
                 unrolled_exps.append(c)
         return unrolled_exps
 
-    def to_yaml(self, fpath: str = "", relpath: bool = True) -> None:
+    def to_yaml(self, dir_path: str = "", relpath: bool = True) -> None:
         """write config back into a YAML file.
 
         Args:
@@ -225,20 +226,33 @@ class Config:
             relpath (bool, optional): Use relative paths only. Usefull for loading functionality. Defaults to True.
         """
 
-        if fpath == "":
-            exp_output_path = self.exp_configs[0]["_basic_path"]
-            fpath = os.path.join(exp_output_path, "relative_" + self.f_name)
+        if dir_path == "":
+            dir_path = self.exp_configs[0]["_basic_path"]
+
+        original_yml_name = os.path.splitext(self.f_name)[0]
+
+        # List so it can be merged easily
+        slurm_config = [dict(self.slurm_config)]
+
+        readable_configs = self._readable_exp_configs(relpath)
+
+        # Save all named experiment configs in subdir
+        grouped_configs = self._group_configs_by_name(readable_configs)
+        for exp_name in grouped_configs.keys():
+            fpath = os.path.join(dir_path, exp_name, "relative_{}_{}.yml".format(
+                original_yml_name, exp_name))
+            write_yaml(fpath, slurm_config + grouped_configs[exp_name])
+
+        # Save global configs
+        fpath = os.path.join(dir_path, "relative_" + self.f_name)
 
         if self.exp_selections is not None:
-            fpath = os.path.splitext(fpath)[0] + "_" + "_".join(self.exp_selections) + ".yml"
-
-        os.makedirs(os.path.dirname(fpath), exist_ok=True)
+            fpath = os.path.splitext(
+                fpath)[0] + "_" + "_".join(self.exp_selections) + ".yml"
 
         # Merge into single list
-        data = [dict(self.slurm_config)] + self._readable_exp_configs(relpath)
-
-        with open(fpath, 'w') as f:
-            yaml.dump_all(data, f, default_flow_style=False)
+        data = slurm_config + readable_configs
+        write_yaml(fpath, data)
 
     def _readable_exp_configs(self, relpath: bool = True) -> List[dict]:
         """Internal function to get more readable objects when written as yaml
@@ -254,17 +268,32 @@ class Config:
             # Convert attrdict to dict for prettier yaml write
             c = dict(exp)
             if relpath:
-                _basic_path = c["_basic_path"]
-                c["log_path"] = os.path.join(
-                    ".", os.path.relpath(c["log_path"], _basic_path))
-                c["_rep_log_path"] = os.path.join(
-                    ".", os.path.relpath(c["_rep_log_path"], _basic_path))
-                c["path"] = os.path.join(
-                    ".", os.path.relpath(c["path"], _basic_path))
-                c["_basic_path"] = os.path.join(
-                    ".", os.path.relpath(c["_basic_path"], _basic_path))
+                c = self._make_rel_paths(c, c["_basic_path"])
             res.append(c)
         return res
+
+    def _make_rel_paths(self, config: dict, base_path: str) -> dict:
+        c = config.copy()
+        _basic_path = base_path
+        c["log_path"] = os.path.join(
+            ".", os.path.relpath(c["log_path"], _basic_path))
+        c["_rep_log_path"] = os.path.join(
+            ".", os.path.relpath(c["_rep_log_path"], _basic_path))
+        c["path"] = os.path.join(
+            ".", os.path.relpath(c["path"], _basic_path))
+        c["_basic_path"] = os.path.join(
+            ".", os.path.relpath(c["_basic_path"], _basic_path))
+        return c
+
+    def _group_configs_by_name(self, configs: List[dict]) -> dict:
+        grouped_configs = {}
+        for c in configs:
+            name = c['name']
+            if name not in grouped_configs:
+                grouped_configs[name] = [c]
+            else:
+                grouped_configs[name].append(c)
+        return grouped_configs
 
 
 def convert_param_names(_param_names, values) -> str:
@@ -286,3 +315,9 @@ def convert_param_names(_param_names, values) -> str:
     _converted_name = re.sub("[)\]]", '', _converted_name)
     _converted_name = re.sub("[,]", '_', _converted_name)
     return _converted_name
+
+
+def write_yaml(fpath, data):
+    os.makedirs(os.path.dirname(fpath), exist_ok=True)
+    with open(fpath, 'w') as f:
+        yaml.dump_all(data, f, default_flow_style=False)

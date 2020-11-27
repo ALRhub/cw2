@@ -15,7 +15,7 @@ class Loader(scheduler.AbstractScheduler):
             cw_res._load_job(j)
 
         cw_res._compile()
-        return cw_res.data()
+        return cw_res.data().set_index(['name', 'r'])
 
 
 class CWResult():
@@ -118,11 +118,17 @@ class Cw2Accessor:
 
         df = self._obj
         new_df = pd.DataFrame()
-        for _, row in df.iterrows():
+        for idx, row in df.iterrows():
             nested_df = row[pd_log_col]
 
             outer_row = row.drop(pd_log_col)
             for c, v in outer_row.iteritems():
+                if isinstance(v, dict):
+                    nested_df[c] = str(v)
+                    nested_df[c] = nested_df[c].map(eval)
+                    continue
                 nested_df[c] = v
-            new_df = new_df.append(nested_df, ignore_index = True)
-        return new_df
+            nested_df['name'] = idx[0]
+            nested_df['r'] = idx[1]
+            new_df = new_df.append(nested_df, ignore_index=True)
+        return new_df.set_index(['name', 'r', 'iter'])
