@@ -1,5 +1,5 @@
 import os
-import attrdict
+import attrdict as ad
 # import pandas as pd
 import wandb
 from cw2.cw_data import cw_logging
@@ -23,8 +23,9 @@ class WandBLogger(cw_logging.AbstractLogger):
         self.run = None
         #self.index = 0
 
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: ad.AttrDict, rep: int, rep_log_path: str) -> None:
         self.log_path = rep_log_path
+        self.config = ad.AttrDict(config.wandb)
         reset_wandb_env()
         self.run = wandb.init(project=config.wandb.project,
                               group=config.wandb.group,
@@ -36,7 +37,12 @@ class WandBLogger(cw_logging.AbstractLogger):
                               )
 
     def process(self, data: dict) -> None:
-        self.run.log(data)
+        if "histogram" in self.config:
+            for el in self.config.histogram:
+                if el in data:
+                    self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
+        filtered_data = self.filter(data)
+        self.run.log(filtered_data, step=data["iter"])
 
     def finalize(self) -> None:
         self.run.finish()
