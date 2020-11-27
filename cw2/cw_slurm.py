@@ -181,7 +181,8 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
 
-    shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
+    # Attempt to force YAML Update. Maybe better with own --flag?
+    # shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
 
     cw_options = cli_parser.Arguments().get()
     if cw_options['nocodecopy']:
@@ -191,7 +192,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
 
     if not cw_options['skipsizecheck']:
-        _check_src_size(src, sc['zip'])
+        _assert_src_size(src, sc['zip'])
 
     if sc['zip']:
         shutil.make_archive(dst, 'zip', src)
@@ -214,7 +215,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
             else:
                 shutil.copy2(s, d)
 
-def _check_src_size(src: str, zipflag: bool):
+def _assert_src_size(src: str, zipflag: bool):
     """Check if the src directory is smaller than 200MByte
 
     Args:
