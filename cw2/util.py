@@ -88,7 +88,7 @@ def get_size(start_path: str):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             total_size += os.path.getsize(fp)
-    return total_size / 1000.0
+    return total_size / 1000000.0
 
 def check_subdir(parent: str, child: str) -> bool:
     """Check if the child is a subdirectory of the parent.
