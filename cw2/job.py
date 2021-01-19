@@ -86,7 +86,7 @@ class Job():
             surrender = s
         except:
             crash = True
-            cw_logging.getLogger().exception('EXEPTION: {}'.format(rep_path))
+            cw_logging.getLogger().exception('EXCEPTION: {}'.format(rep_path))
 
         self.exp.finalize(surrender, crash)
         self.logger.finalize()
