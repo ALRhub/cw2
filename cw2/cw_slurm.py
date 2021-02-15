@@ -55,6 +55,9 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
             raise cw_error.ConfigKeyError(
                 "Could not find default sbatch template. Please specify your own 'path_to_template'.")
 
+    if isinstance(sc['time'], int):
+        sc['time'] = '{:d}:{:d}:00'.format(sc['time'] // 60, sc['time'] % 60)
+
     if "slurm_log" not in sc:
         sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
 
@@ -296,8 +299,7 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))
-        tline = tline.replace('%%time%%', '{:d}:{:d}:00'.format(
-            sc['time'] // 60, sc['time'] % 60))
+        tline = tline.replace('%%time%%', sc['time'])
 
         tline = tline.replace('%%sh_lines%%', sc["sh_lines"])
 
