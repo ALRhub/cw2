@@ -12,7 +12,6 @@
 # Cluster Settings
 #SBATCH -n %%ntasks%%         # Number of tasks
 #SBATCH -c %%cpus-per-task%%  # Number of cores per task
-#SBATCH --mem-per-cpu=%%mem-per-cpu%% # Main memory in MByte per MPI task
 #SBATCH -t %%time%%             # 1:00:00 Hours, minutes and seconds, or '#SBATCH -t 10' - only minutes
 
 %%sbatch_args%%

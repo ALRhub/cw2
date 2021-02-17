@@ -77,6 +77,11 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     else:
         sc["sh_lines"] = "\n".join(sc["sh_lines"])
 
+
+    # Make mem-per-cpu optional hack
+    if "mem-per-cpu" in sc:
+        sc["sbatch_args"]["mem-per-cpu"] = sc["mem-per-cpu"]
+
     sc["pythonpath"] = ""
 
     cw_options = cli_parser.Arguments().get()
@@ -294,8 +299,6 @@ def _create_slurm_script(sc: attrdict.AttrDict, conf: config.Config) -> str:
 
         tline = tline.replace('%%slurm_log%%', sc['slurm_log'])
 
-        tline = tline.replace(
-            '%%mem-per-cpu%%', '{:d}'.format(sc['mem-per-cpu']))
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))
