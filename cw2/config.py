@@ -49,7 +49,8 @@ class Config:
 
         with open(config_path, 'r') as f:
             for exp_conf in yaml.load_all(f, yaml.FullLoader):
-                all_configs.append(attrdict.AttrDict(exp_conf))
+                if exp_conf is not None:
+                    all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
     def __parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, List[attrdict.AttrDict]]:
