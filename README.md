@@ -23,7 +23,7 @@ A second iteration of a the software framework ClusterWork to easily deploy expe
     The `-e` option of pip makes the project editable, i.e., pip will only reference to the git directory and hence changes in the git will be directly available in your environment. If you install without the `-e` option, pip will copy the source to your python packages.
      ```bash
      cd /path/to/cw2
-     pip install -e .
+     pip install .
      ```
 
 ## Usage Guide (Iterative Experiment)
@@ -171,8 +171,7 @@ The following fields are __required__ to ensure correct execution of your job on
 # ... continued
 # Required
 partition: "dev"
-job-name: "cma"    # this will be the experiment's name in slurm
-path_to_template: "/path/to/sbatch_template.sh"   # Path to YOUR prepared sbatch script
+job-name: "yourjob"    # this will be the experiment's name in slurm
 ```
 
 The following fields are __required__ to configure your hardware requirements. These are highly cluster specific. Please refer to the [sbatch docu](https://slurm.schedmd.com/sbatch.html) for further explanations.
@@ -182,7 +181,6 @@ The following fields are __required__ to configure your hardware requirements. T
 num_parallel_jobs: 120
 ntasks: 1
 cpus-per-task: 1
-mem-per-cpu: 1000
 time: 30
 ```
 
@@ -193,9 +191,10 @@ If they are not present in this slurm configuration, a default behaviour is used
 account: ""  # Account name to which Cluster Time will be booked. Cluster dependent.
 
 experiment_copy_dst: "/path/to/code_copy/dst"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. If not set, no copy will be made.
+experiment_copy_auto_dst: /path/to/code_copy/dst"   # optional. will autoincrement and create a dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Overrules experiment_copy_dst. If not set, no copy will be made.
 experiment_copy_src: "/path/to/code_copy/src"       # optional. dir FROM which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to directory of __MAIN__ file.
 slurm_log: "/path/to/slurmlog/outputdir"            # optional. dir in which slurm output and error logs will be saved. Defaults to EXPERIMENTCONFIG.path
-venv: "/path/to/virtual_environment/bin/activate"   # optional. path to your virtual environment activate-file
+venv: "/path/to/virtual_environment"   # optional. path to your virtual environment activate-file
 ```
 
 If you have further need to configure slurm, you can use all the options offered by the [sbatch docu](https://slurm.schedmd.com/sbatch.html). Please use the following style of defining _keyword_ -> _value_ pairs:
@@ -235,6 +234,8 @@ The following args are currently supported by CW2:
 | -s    |--slurm        | Run using SLURM Workload Manager.|
 | -o    | --overwrite   | Overwrite existing results.|
 | -e name1 [...] | --experiments | Allows to specify which experiments should be run. Corresponds to the `name` field of the configuration YAML.
+|     | --zip   | Creates a ZIP archive for documentation purposes of $CWD or, if set, "experiment_copy_src".|
+|     | --skipsizecheck   | Disables a safety size check when Zipping or Code-Copying. The safety prevents unecessarily copying / archiving big files such as training data.|
 
 
 ### Logging

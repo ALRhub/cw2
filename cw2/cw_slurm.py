@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import sys
+import datetime
 
 import attrdict
 
@@ -20,6 +21,8 @@ def run_slurm(conf: config.Config, num_jobs: int) -> None:
     sc = _finalize_slurm_config(conf, num_jobs)
 
     _prepare_dir(sc, conf)
+    sc = _code_copy(sc, conf)
+
     slurm_script = _create_slurm_script(sc, conf)
 
     cmd = "sbatch " + slurm_script
@@ -77,7 +80,6 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
     else:
         sc["sh_lines"] = "\n".join(sc["sh_lines"])
 
-
     # Make mem-per-cpu optional hack
     if "mem-per-cpu" in sc:
         if "sbtach_args" not in sc:
@@ -95,7 +97,6 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
         sc["cw_args"] += " -e " + " ".join(cw_options["experiments"])
 
     sc = _build_sbatch_args(sc)
-    sc = _complete_exp_copy_config(sc, conf)
 
     return sc
 
@@ -129,10 +130,17 @@ def _prepare_dir(sc: attrdict.AttrDict, conf: config.Config) -> None:
         conf (config.Config): overall configuration object
     """
     os.makedirs(sc["slurm_log"], exist_ok=True)
-    _copy_exp_files(sc, conf)
+
+def _code_copy(sc: attrdict.AttrDict, conf: config.Config):
+    sc, do_copy = _complete_exp_copy_config(sc, conf)
+    cw_options = cli_parser.Arguments().get()
+
+    if do_copy or cw_options['zip']:
+        _copy_exp_files(sc, conf)
+    return sc
 
 
-def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> attrdict.AttrDict:
+def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config):
     """checks for and handles experiment_copy keys.
     If both keys are present, copy src to dst and execute in dst.
     If both keys are missing, set cwd() as src and config["path"] as dst. Execute in cwd().
@@ -152,29 +160,38 @@ def _complete_exp_copy_config(sc: attrdict.AttrDict, conf: config.Config) -> att
     exp_output_path = conf.exp_configs[0]["_basic_path"]
     cp_error_count = 0
     missing_arg = ""
+    do_copy = False
+
+    # Autocount for Autodst
+    if "experiment_copy_auto_dst" in sc:
+        sc['experiment_copy_dst'] = os.path.join(
+            sc["experiment_copy_auto_dst"], datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
+
+    # Check for DST
     if "experiment_copy_dst" not in sc:
         sc["experiment_copy_dst"] = os.path.join(exp_output_path, 'code')
         cp_error_count += 1
         missing_arg = "experiment_copy_dst"
 
+    # Check for SRC
     if "experiment_copy_src" not in sc:
         sc["experiment_copy_src"] = os.getcwd()
         cp_error_count += 1
         missing_arg = "experiment_copy_src"
 
+    # If SRC and DST are present, change execution path
     if cp_error_count == 0:
         sc["experiment_execution_dir"] = sc["experiment_copy_dst"]
-        sc["zip"] = False
-        sc["pythonpath"] = _build_python_path(sc)
+        sc["pythonpath"] = _build_python_path(sc)              
+        do_copy = True                                                                                                                                                                                                                                                                                              
+    # If SRC or DST are missing, throw error
     elif cp_error_count == 1:
         raise cw_error.ConfigKeyError(
             "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
+    # Default case "do nothing"
     else:
         sc["experiment_execution_dir"] = sc["experiment_copy_src"]
-        sc["zip"] = True
-        cw_logging.getLogger().info(
-            "No experiment_copy configuration found. Will zip cwd() for documentation.")
-    return sc
+    return sc, do_copy
 
 
 def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
@@ -190,6 +207,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     """
     src = sc["experiment_copy_src"]
     dst = sc["experiment_copy_dst"]
+    
 
     # Attempt to force YAML Update. Maybe better with own --flag?
     # shutil.copy2(conf.config_path, os.path.join(dst, conf.f_name))
@@ -198,13 +216,16 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
     if cw_options['nocodecopy']:
         print('Skipping Code Copy')
         return
+    zip_flag =False
+    if cw_options['zip']:
+        zip_flag = True
 
     ign = shutil.ignore_patterns('*.pyc', 'tmp*')
 
     if not cw_options['skipsizecheck']:
-        _assert_src_size(src, sc['zip'])
+        _assert_src_size(src, zip_flag)
 
-    if sc['zip']:
+    if zip_flag:
         shutil.make_archive(dst, 'zip', src)
     else:
         if util.check_subdir(src, dst):
@@ -224,6 +245,7 @@ def _copy_exp_files(sc: attrdict.AttrDict, conf: config.Config) -> None:
                 shutil.copytree(s, d, ignore=ign)
             else:
                 shutil.copy2(s, d)
+
 
 def _assert_src_size(src: str, zipflag: bool):
     """Check if the src directory is smaller than 200MByte
@@ -245,6 +267,7 @@ def _assert_src_size(src: str, zipflag: bool):
             msg = "experiment_copy_src {} is greater than 200MByte. If you are sure you want to copy this dir, use --skipsizecheck.\nElse change the experiment_copy_src configuration or use --nocodecopy option.".format(
                 src)
         raise cw_error.ConfigKeyError(msg)
+
 
 def _build_python_path(sc: attrdict.AttrDict) -> str:
     """clean the python path for the new experiment copy
