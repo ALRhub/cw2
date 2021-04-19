@@ -14,6 +14,9 @@ cpus-per-task: 1
 mem-per-cpu: 1000
 time: 30
 
+experiment_copy_auto_dst: "/home/max/autodst"
+experiment_copy_src: "."
+
 # Optional
 venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
 
@@ -31,7 +34,7 @@ reps_per_job: 4
 reps_in_parallel: 3
 
 # Required: Can also be set in DEFAULT
-path: "/home/max_li/polylog"   # location to save results in
+path: "/home/max/polylog"   # location to save results in
 repetitions: 2    # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
 
