@@ -1,4 +1,8 @@
 import os
+# To prevent conflicts between wandb and the joblib scheduler
+# see https://github.com/wandb/client/issues/1525 for reference
+os.environ["WANDB_START_METHOD"] = "thread"
+
 import attrdict as ad
 import wandb
 from cw2.cw_data import cw_logging
@@ -10,6 +14,7 @@ def reset_wandb_env():
         "WANDB_PROJECT",
         "WANDB_ENTITY",
         "WANDB_API_KEY",
+        "WANDB_START_METHOD",
     }
     for k, v in os.environ.items():
         if k.startswith("WANDB_") and k not in exclude:
