@@ -46,15 +46,17 @@ class WandBLogger(cw_logging.AbstractLogger):
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
 
     def process(self, data: dict) -> None:
-        if "histogram" in self.config:
-            for el in self.config.histogram:
-                if el in data:
-                    self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
-        filtered_data = self.filter(data)
-        self.run.log(filtered_data, step=data["iter"])
+        if self.run is not None:
+            if "histogram" in self.config:
+                for el in self.config.histogram:
+                    if el in data:
+                        self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
+            filtered_data = self.filter(data)
+            self.run.log(filtered_data, step=data["iter"])
 
     def finalize(self) -> None:
-        self.run.finish()
+        if self.run is not None:
+            self.run.finish()
 
     def load(self):
         pass
