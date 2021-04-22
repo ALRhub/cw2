@@ -82,7 +82,7 @@ def _finalize_slurm_config(conf: config.Config, num_jobs: int) -> attrdict.AttrD
 
     # Make mem-per-cpu optional hack
     if "mem-per-cpu" in sc:
-        if "sbtach_args" not in sc:
+        if "sbatch_args" not in sc:
             sc["sbatch_args"] = {}
         sc["sbatch_args"]["mem-per-cpu"] = sc["mem-per-cpu"]
 
