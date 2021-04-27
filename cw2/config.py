@@ -91,7 +91,7 @@ class Config:
         experiment_configs = []
 
         for c in all_configs:
-            name = c["name"].lower()
+            name = c["name"]
 
             if name == 'slurm':
                 slurm_config = c
