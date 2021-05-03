@@ -93,9 +93,9 @@ class Config:
         for c in all_configs:
             name = c["name"]
 
-            if name == 'slurm':
+            if name.lower() == 'slurm':
                 slurm_config = c
-            elif name == 'default':
+            elif name.lower() == 'default':
                 default_config = c
             else:
                 if experiment_selections is None or name in experiment_selections:
