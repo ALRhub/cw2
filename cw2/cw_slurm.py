@@ -119,8 +119,10 @@ class SlurmConfig:
         self._complete_cli_args()
         self._complete_sbatch_args()
 
+
 class SlurmDirectoryManager:
     MODE_COPY = "COPY"
+    MODE_MULTI = "MULTI"
     MODE_NOCOPY = "NOCOPY"
     MODE_ZIP = "ZIP"
 
@@ -153,17 +155,26 @@ class SlurmDirectoryManager:
             missing_arg = "experiment_copy_src"
 
         # MODE SWITCH
-        if cp_error_count == 0:
-            return self.MODE_COPY
-
         if cp_error_count == 1:
             raise cw_error.ConfigKeyError(
                 "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
 
+        cw_options = cli_parser.Arguments().get()
+        if cw_options['zip']:
+            return self.MODE_ZIP
+
+        if cw_options['multicopy']:
+            if cp_error_count == 0:
+                return self.MODE_MULTI
+            else:
+                raise cw_error.ConfigKeyError(
+                    "Incomplete SLURM experiment copy config. Please define SRC and DST for --multicopy")
+
+        if cp_error_count == 0:
+            return self.MODE_COPY
+
         # Default case: cp_error_count == 2:
         # Check for --zip
-        if cli_parser.Arguments().get()['zip']:
-            return self.MODE_ZIP
         return self.MODE_NOCOPY
 
     def dir_size_validation(self, src):
@@ -176,13 +187,14 @@ class SlurmDirectoryManager:
             cw_error.ConfigKeyError: if directory is greater than 200MB
         """
         cw_options = cli_parser.Arguments().get()
-        if  cw_options['skipsizecheck']:
+        if cw_options['skipsizecheck']:
             return
 
         dirsize = util.get_size(src)
         if dirsize > 200.0:
             cw_logging.getLogger().warning("SourceDir {} is greater than 200MByte".format(src))
-            msg = "Directory {} is greater than 200MByte. If you are sure you want to copy/zip this dir, use --skipsizecheck.\nElse check experiment_copy__ configuration keys".format(src)
+            msg = "Directory {} is greater than 200MByte. If you are sure you want to copy/zip this dir, use --skipsizecheck.\nElse check experiment_copy__ configuration keys".format(
+                src)
             raise cw_error.ConfigKeyError(msg)
 
     def _get_exp_src(self) -> str:
@@ -223,30 +235,52 @@ class SlurmDirectoryManager:
 
         shutil.make_archive(dst, 'zip', src)
 
-    def create_copies(self):
+    def create_single_copy(self):
         """creates a copy of the exp for slurm execution
+        """
+        src = self._get_exp_src()
+        dst = self._get_exp_dst()
+        self._copy_files(src, dst)
+
+    def create_multi_copy(self, num_jobs: int):
+        """creates multiple copies of the exp, one for each slurm job
+
+        Args:
+            num_jobs (int): number of total jobs
+        """
+        src = self._get_exp_src()
+        dst_base = self._get_exp_dst()
+
+        for i in range(num_jobs):
+            dst = os.path.join(dst_base, str(i))
+            self._copy_files(src, dst)
+        
+    def _copy_files(self, src, dst):
+        """copies files from src to dst
+
+        Args:
+            src: source directory
+            dst: destination directory
 
         Raises:
             cw_error.ConfigKeyError: if the dst is inside the source. Recursive copying!
             cw_error.ConfigKeyError: if the dst already exists and overwrite is not forced.
         """
-        src = self._get_exp_src()
-        dst = self._get_exp_dst()
         self.dir_size_validation(src)
-
 
         # Check Filesystem
         if util.check_subdir(src, dst):
             raise cw_error.ConfigKeyError(
                 "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
         try:
-            os.makedirs(dst, exist_ok=cli_parser.Arguments().get()['overwrite'])
+            os.makedirs(
+                dst, exist_ok=cli_parser.Arguments().get()['overwrite'])
         except FileExistsError:
             raise cw_error.ConfigKeyError(
                 "{} already exists. Please define a different 'experiment_copy_dst', use '-o' to overwrite or '--nocodecopy' to skip.")
 
         # Copy files
-        ign = shutil.ignore_patterns('*.pyc', 'tmp*')      
+        ign = shutil.ignore_patterns('*.pyc', 'tmp*')
         for item in os.listdir(src):
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
@@ -255,8 +289,10 @@ class SlurmDirectoryManager:
             else:
                 shutil.copy2(s, d)
 
-    def move_files(self):
+    def move_files(self, num_jobs: int):
         """moves exp files according to detected copy mode
+        Args:
+            num_jobs: number of slurm jobs for multi-copy
         """
         # Check Skip Flag
         cw_options = cli_parser.Arguments().get()
@@ -265,7 +301,10 @@ class SlurmDirectoryManager:
             return
 
         if self.m == self.MODE_COPY:
-            self.create_copies()
+            self.create_single_copy()
+
+        if self.m == self.MODE_MULTI:
+            self.create_multi_copy(num_jobs)
 
         if self.m == self.MODE_ZIP:
             self.zip_exp()
@@ -279,6 +318,10 @@ class SlurmDirectoryManager:
         """
         if self.m == self.MODE_COPY:
             return self._get_exp_dst()
+        
+        if self.m == self.MODE_MULTI:
+            return os.path.join(self._get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
+        
         return self._get_exp_src()
 
     def get_py_path(self) -> str:
@@ -287,7 +330,7 @@ class SlurmDirectoryManager:
         Returns:
             str: python path setting
         """
-        if self.m != self.MODE_COPY:
+        if self.m in [self.MODE_NOCOPY, self.MODE_ZIP]:
             return ""
 
         pypath = sys.path.copy()
@@ -295,11 +338,14 @@ class SlurmDirectoryManager:
         src = self._get_exp_src()
         dst = self._get_exp_dst()
 
-        new_path = [x.replace(os.path.abspath(src), os.path.abspath(dst)) for x in pypath]
-        #return "export PYTHONPATH=" + ":".join(new_path)
+        if self.m == self.MODE_MULTI:
+            dst = os.path.join(dst, "$SLURM_ARRAY_TASK_ID")
+
+        new_path = [x.replace(os.path.abspath(
+            src), os.path.abspath(dst)) for x in pypath]
+        # return "export PYTHONPATH=" + ":".join(new_path)
         # Maybe this is better?
         return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
-
 
 
 def run_slurm(conf: config.Config, num_jobs: int) -> None:
@@ -315,13 +361,14 @@ def run_slurm(conf: config.Config, num_jobs: int) -> None:
 
     # Create Code Copies
     dir_mgr = SlurmDirectoryManager(sc, conf)
-    dir_mgr.move_files()
+    dir_mgr.move_files(num_jobs)
 
     # Write and call slurm script
     slurm_script = write_slurm_script(sc, dir_mgr)
     cmd = "sbatch " + slurm_script
     print(cmd)
-    subprocess.check_output(cmd, shell=True) 
+    subprocess.check_output(cmd, shell=True)
+
 
 def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) -> str:
     """write the sbatch.sh script for slurm to disk
