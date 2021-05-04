@@ -197,7 +197,7 @@ class SlurmDirectoryManager:
                 src)
             raise cw_error.ConfigKeyError(msg)
 
-    def _get_exp_src(self) -> str:
+    def get_exp_src(self) -> str:
         """retrieves the code-copy src.
         Uses CWD as default unless specified
 
@@ -209,7 +209,7 @@ class SlurmDirectoryManager:
             return sc["experiment_copy_src"]
         return os.getcwd()
 
-    def _get_exp_dst(self):
+    def get_exp_dst(self):
         """retrieves the code-copy dst.
         Uses CWD as default unless specified
 
@@ -229,8 +229,8 @@ class SlurmDirectoryManager:
     def zip_exp(self):
         """procedure for creating a zip backup
         """
-        src = self._get_exp_src()
-        dst = self._get_exp_dst()
+        src = self.get_exp_src()
+        dst = self.get_exp_dst()
         self.dir_size_validation(src)
 
         shutil.make_archive(dst, 'zip', src)
@@ -238,8 +238,8 @@ class SlurmDirectoryManager:
     def create_single_copy(self):
         """creates a copy of the exp for slurm execution
         """
-        src = self._get_exp_src()
-        dst = self._get_exp_dst()
+        src = self.get_exp_src()
+        dst = self.get_exp_dst()
         self._copy_files(src, dst)
 
     def create_multi_copy(self, num_jobs: int):
@@ -248,8 +248,8 @@ class SlurmDirectoryManager:
         Args:
             num_jobs (int): number of total jobs
         """
-        src = self._get_exp_src()
-        dst_base = self._get_exp_dst()
+        src = self.get_exp_src()
+        dst_base = self.get_exp_dst()
 
         for i in range(num_jobs):
             dst = os.path.join(dst_base, str(i))
@@ -317,12 +317,12 @@ class SlurmDirectoryManager:
             str: experiment execution directory
         """
         if self.m == self.MODE_COPY:
-            return self._get_exp_dst()
+            return self.get_exp_dst()
         
         if self.m == self.MODE_MULTI:
-            return os.path.join(self._get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
+            return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
         
-        return self._get_exp_src()
+        return self.get_exp_src()
 
     def get_py_path(self) -> str:
         """computes a modified python path, depending on the experiment_copy procedure
@@ -335,8 +335,8 @@ class SlurmDirectoryManager:
 
         pypath = sys.path.copy()
 
-        src = self._get_exp_src()
-        dst = self._get_exp_dst()
+        src = self.get_exp_src()
+        dst = self.get_exp_dst()
 
         if self.m == self.MODE_MULTI:
             dst = os.path.join(dst, "$SLURM_ARRAY_TASK_ID")
