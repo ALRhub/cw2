@@ -6,6 +6,8 @@
   - [SLURM Configuration](#slurm-configuration)
   - [Example Templates](#example-templates)
 
+-  [Back to Overview](README.md)
+ 
 To configure the execution of the experiment, you need to write a YAML-file. A YAML file consists several documents which begin with `---`:
 ```yaml
 ---
@@ -251,5 +253,5 @@ sh_lines:       # List of strings
 ```
 
 ## Example Templates
-[AbstractExperiment Configuration](../templates/abstract_config.yml)
-[AbstractIterativeExperiment Configuration](../templates/iterative_config.yml)
+- [AbstractExperiment Configuration](../templates/abstract_config.yml)
+- [AbstractIterativeExperiment Configuration](../templates/iterative_config.yml)
