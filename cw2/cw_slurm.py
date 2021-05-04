@@ -385,7 +385,7 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
     template_path = sc["path_to_template"]
     output_path = sc["slurm_output"]
 
-    exp_main_file = __main__.__file__
+    exp_main_file = os.path.relpath(__main__.__file__, os.getcwd())
 
     fid_in = open(template_path, 'r')
     fid_out = open(output_path, 'w')
