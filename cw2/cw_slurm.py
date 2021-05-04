@@ -280,7 +280,7 @@ class SlurmDirectoryManager:
                 "{} already exists. Please define a different 'experiment_copy_dst', use '-o' to overwrite or '--nocodecopy' to skip.")
 
         # Copy files
-        ign = shutil.ignore_patterns('*.pyc', 'tmp*')
+        ign = shutil.ignore_patterns('*.pyc', 'tmp*', '.git*')
         for item in os.listdir(src):
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
