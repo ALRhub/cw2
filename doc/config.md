@@ -251,5 +251,5 @@ sh_lines:       # List of strings
 ```
 
 ## Example Templates
-[AbstractExperiment Configuration](templates/abstract_config.yml)
-[AbstractIterativeExperiment Configuration](templates/iterative_config.yml)
+[AbstractExperiment Configuration](../templates/abstract_config.yml)
+[AbstractIterativeExperiment Configuration](../templates/iterative_config.yml)
