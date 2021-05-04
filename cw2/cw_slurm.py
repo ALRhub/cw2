@@ -295,9 +295,10 @@ class SlurmDirectoryManager:
         src = self._get_exp_src()
         dst = self._get_exp_dst()
 
-        new_path = [x for x in pypath if x != src]
-        new_path.append(dst)
-        return "export PYTHONPATH=" + ":".join(new_path)
+        new_path = [x.replace(os.path.abspath(src), os.path.abspath(dst)) for x in pypath]
+        #return "export PYTHONPATH=" + ":".join(new_path)
+        # Maybe this is better?
+        return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
 
 
 
