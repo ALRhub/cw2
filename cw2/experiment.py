@@ -7,25 +7,36 @@ from cw2.cw_error import ExperimentSurrender
 
 class AbstractExperiment(abc.ABC):
     @abc.abstractmethod
-    def initialize(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def initialize(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
         """needs to be implemented by subclass.
         Called once at the start of each repition for initialization purposes.
 
         Arguments:
             config {dict} -- parameter configuration
             rep {int} -- repition counter
-            logger {cw_logging.AbstractLogger} -- initialized loggers for preprocessing
+            logger {cw_logging.LoggerArray} -- initialized loggers for preprocessing
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def run(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
+        """needs to be implemented by subclass.
+        Called after initialize(). Should be the main procedure of the experiment.
+
+        Args:
+            config (dict): parameter configuration
+            rep (int): [description]
+            logger (cw_logging.LoggerArray): [description]
+
+        Raises:
+            NotImplementedError: [description]
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def finalize(self, surrender: ExperimentSurrender = None, crash: bool = False):
         """needs to be implemented by subclass.
-        Called after all the iterations have finished at the end of the repitition.
+        Is guaranteed to be called after the experiment has run, even in case of exceptions during execution.
 
         Args:
             surrender (ExperimentSurrender, optional): when the experiment raises an ExperimentSurrender, this object can be accessed here. Defaults to None.
@@ -61,7 +72,7 @@ class AbstractIterativeExperiment(AbstractExperiment):
         """
         raise NotImplementedError
 
-    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def run(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
         for n in range(config["iterations"]):
             surrender = False
             try:

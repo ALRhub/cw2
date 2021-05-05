@@ -5,10 +5,10 @@ from cw2.cw_data import cw_logging
 class MyExperiment(experiment.AbstractExperiment):
     # ...
 
-    def initialize(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def initialize(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
         cw_logging.getLogger().info("Ready to start repetition {}. Resetting everything.".format(rep))
 
-    def run(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def run(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
         # Do Something non-iteratively and logging the result.
         cw_logging.getLogger().info("Doing Something.")
         logger.process("Some Result")
