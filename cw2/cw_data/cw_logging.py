@@ -12,6 +12,7 @@ import attrdict
 class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """
+
     def __init__(self, ignore_keys: list = []):
         self.ignore_keys = ignore_keys
 
@@ -106,7 +107,7 @@ class LoggerArray(AbstractLogger):
             except:
                 getLogger().exception(logger.__class__.__name__)
                 d = "Error when loading {}".format(logger.__class__.__name__)
-    
+
             if d is not None:
                 if not isinstance(d, dict):
                     d = {logger.__class__.__name__: d}
@@ -141,6 +142,7 @@ class Printer(AbstractLogger):
 class PythonLogger(AbstractLogger):
     """Logger which writes calls to logging.getLogger('cw2') on to disk
     """
+
     def __init__(self):
         self.logger = getLogger()
 
@@ -154,7 +156,7 @@ class PythonLogger(AbstractLogger):
         self.errh.setLevel(logging.ERROR)
         self.errh.setFormatter(_formatter)
         self.logger.addHandler(self.errh)
-       
+
     def process(self, data: dict) -> None:
         pass
 
@@ -163,11 +165,9 @@ class PythonLogger(AbstractLogger):
             h.flush()
             h.close()
             self.logger.removeHandler(h)
-        
+
     def load(self):
         pass
-
-
 
 
 ### logging module functionality ####
@@ -175,18 +175,22 @@ class PythonLogger(AbstractLogger):
 class _CWFormatter(logging.Formatter):
     """Taken From CW V1
     """
+
     def __init__(self):
         #self.std_formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
         self.std_formatter = logging.Formatter('[%(name)s] %(message)s')
-        self.red_formatter = logging.Formatter('[%(asctime)s]:[%(name)s] %(message)s')
-    
+        self.red_formatter = logging.Formatter(
+            '[%(asctime)s]:[%(name)s] %(message)s')
+
     def format(self, record: logging.LogRecord):
         if record.levelno < logging.ERROR:
             return self.std_formatter.format(record)
         else:
             return self.red_formatter.format(record)
 
+
 _formatter = _CWFormatter()
+
 
 def getLogger() -> logging.Logger:
     """creates a logging.getLogger('cw2') object with initialization.

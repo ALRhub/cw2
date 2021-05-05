@@ -79,5 +79,3 @@ class AbstractIterativeExperiment(AbstractExperiment):
 
             if surrender:
                 raise ExperimentSurrender()
-
-        logger.finalize()
