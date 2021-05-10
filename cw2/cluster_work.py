@@ -2,7 +2,7 @@ import logging
 import sys
 from typing import List, Type
 
-from cw2 import cli_parser, config, cw_slurm, experiment, job, scheduler
+from cw2 import cli_parser, cw_config, cw_slurm, experiment, job, scheduler
 from cw2.cw_data import cw_loading, cw_logging
 
 
@@ -11,7 +11,7 @@ class ClusterWork():
           
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
-        self.config = config.Config(self.args.config, self.args.experiments)
+        self.config = cw_config.Config(self.args.config, self.args.experiments)
 
         self.logArray = cw_logging.LoggerArray()
         self.add_logger(cw_logging.PythonLogger())

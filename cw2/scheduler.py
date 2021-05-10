@@ -3,11 +3,11 @@ from typing import List
 
 from joblib import Parallel, delayed
 
-from cw2 import config, cw_error, cw_slurm, experiment, job
+from cw2 import cw_config, cw_error, cw_slurm, experiment, job
 
 
 class AbstractScheduler(abc.ABC):
-    def __init__(self, conf: config.Config = None):
+    def __init__(self, conf: cw_config.Config = None):
         self.joblist = None
         self.config = conf
 
