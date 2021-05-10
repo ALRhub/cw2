@@ -1,14 +1,14 @@
-# 1. Configuration YAML File
-- [1. Configuration YAML File](#1-configuration-yaml-file)
-  - [1.1. Experiment Configuration](#11-experiment-configuration)
-    - [1.1.1. Experiment Header](#111-experiment-header)
-    - [1.1.2. Experiment Parameters](#112-experiment-parameters)
-    - [1.1.3. Recommended Practices: Experiment Configuration](#113-recommended-practices-experiment-configuration)
-      - [1.1.3.1. Params is your safe space](#1131-params-is-your-safe-space)
-      - [1.1.3.2. You dont want multiple DEFAULTS...](#1132-you-dont-want-multiple-defaults)
-  - [1.2. SLURM Configuration](#12-slurm-configuration)
-  - [1.3. Example Templates](#13-example-templates)
-  - [1.4. Important Keys](#14-important-keys)
+# 3. Configuration YAML File
+- [3. Configuration YAML File](#3-configuration-yaml-file)
+  - [3.1. Experiment Configuration](#31-experiment-configuration)
+    - [3.1.1. Experiment Header](#311-experiment-header)
+    - [3.1.2. Experiment Parameters](#312-experiment-parameters)
+    - [3.1.3. Recommended Practices: Experiment Configuration](#313-recommended-practices-experiment-configuration)
+      - [3.1.3.1. Params is your safe space](#3131-params-is-your-safe-space)
+      - [3.1.3.2. You dont want multiple DEFAULTS...](#3132-you-dont-want-multiple-defaults)
+  - [3.2. SLURM Configuration](#32-slurm-configuration)
+  - [3.3. Example Templates](#33-example-templates)
+  - [3.4. Important Keys](#34-important-keys)
 
 -  [Back to Overview](./)
 
@@ -20,6 +20,8 @@ To configure the execution of the experiment, you need to write a YAML-file. A Y
 
 ---
 # Second Document
+
+
 ```
 
 For **cw2** we expect each yaml document to contain a key `name`:
@@ -41,7 +43,7 @@ The name is used to identify an experiment configuration an can be chosen freely
 1. `SLURM` defines a slurm configuration. It may only exist *once* in your YAML file. This document defines the relevant settings for the execution on a computing cluster, and are specific to each cluster. It follows its own special structure.
 
 
-## 1.1. Experiment Configuration
+## 3.1. Experiment Configuration
 An experiment configuration (generic or default) has the following structure:
 
 ```yaml
@@ -54,7 +56,7 @@ name: "experiment_name"
 # ...
 ```
 
-### 1.1.1. Experiment Header
+### 3.1.1. Experiment Header
 
 ```yaml
 ---
@@ -81,7 +83,7 @@ reps_in_parallel: 1 # number of repetitions in each job that are executed in par
 
 If you want to understand the `reps_per_job` and `reps_in_parallel` settings, please read TODO: BACKGROUND KNOWLEDGE
 
-### 1.1.2. Experiment Parameters
+### 3.1.2. Experiment Parameters
 The experiment parameter section is highly specific to your code and use case. You can freely define parameter names within the `params:` key, e.g.:
 ```yaml
 ---
@@ -195,11 +197,11 @@ params:
     batch_size: 2 # no combination tryout
 ```
 
-### 1.1.3. Recommended Practices: Experiment Configuration
+### 3.1.3. Recommended Practices: Experiment Configuration
 1. `params` is your safe space!
 2. If you feel like you need multiple `DEFAULT` sections, you probably want multiple YAML files
 
-#### 1.1.3.1. Params is your safe space
+#### 3.1.3.1. Params is your safe space
 A common use case for **cw2** is the hyperparameter search for ML models. Often users only put the hyperparameters they search for into the `params` sections and keep their "constants", like training data location, outside. For example:
 
 ```yaml
@@ -233,7 +235,7 @@ params:
     speed_of_light: "c"
 ```
 
-#### 1.1.3.2. You dont want multiple DEFAULTS...
+#### 3.1.3.2. You dont want multiple DEFAULTS...
 When running the same experiments for a long time, you may try out different parameters. Especially in the beginning, it is easier to extend the YAML file by adding a new document to the bottom of the file. After a while, you might find you have two "clusters" of configurations, maybe two algorithms / models, that you compare to each other. These models might require very different parameters, and it might not even be possible to share a common `DEFAULT` setting between those two classes.
 
 In this case, I recommend you split the YAML file into two files, one for each approach. As you are most likely deploying such big experiments on a computing cluster using slurm, you do not have to wait for the results of the first set of tasks before starting the second.
@@ -248,7 +250,7 @@ u@cluster:~$ python experiment.py model_2.yml -s
 ```
 
 
-## 1.2. SLURM Configuration
+## 3.2. SLURM Configuration
 If you want to run a **cw2** experiment on a SLURM cluster, you __must__ include a document in your YAML configuration file with the `name` key set to `"SLURM"`. During local execution this document is ignored.
 
 ```yaml
@@ -308,13 +310,15 @@ sh_lines:       # List of strings
   - "line 1"
   - "line 2"
 ```
-## 1.3. Example Templates
+## 3.3. Example Templates
 This documentation gets updated less frequently than potential feature introductions.
 When in doubt, refer to the provided templates:
 - [AbstractExperiment Configuration](../templates/abstract_config.yml)
 - [AbstractIterativeExperiment Configuration](../templates/iterative_config.yml)
 
-## 1.4. Important Keys
+## 3.4. Important Keys
 These are important configuration keys you have access to in the various methods of your `AbstractExperiment` Implementation.
 - `cw_config['params']` is a dictionary containing everything under the `params` keyword, including the merged values from `DEFAULT` and `list`/`grid` keywords.
 - `cw_config['_rep_log_path']` is a `str` entry pointing to the _threadsafe_ directory of this repetition. Here all **cw2** logging artifactsof this repitition will be written. If you have any results / model checkpoints you can save them here under the guarantee that no other **cw2** run will interfere.
+
+[Back to Overview](./)
