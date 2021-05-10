@@ -254,6 +254,10 @@ class SlurmDirectoryManager:
         for i in range(num_jobs):
             dst = os.path.join(dst_base, str(i))
             self._copy_files(src, dst)
+
+        # Add MultiCopy ChangeDir to Slurmconf
+        self.slurm_config.slurm_conf['sh_lines'] += "\n cd {} \n".format(os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
+        
         
     def _copy_files(self, src, dst):
         """copies files from src to dst
@@ -316,11 +320,11 @@ class SlurmDirectoryManager:
         Returns:
             str: experiment execution directory
         """
-        if self.m == self.MODE_COPY:
+        if self.m == self.MODE_COPY or self.m == self.MODE_MULTI:
             return self.get_exp_dst()
         
-        if self.m == self.MODE_MULTI:
-            return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
+        #if self.m == self.MODE_MULTI:
+            #return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
         
         return self.get_exp_src()
 
