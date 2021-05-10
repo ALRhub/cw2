@@ -1,3 +1,17 @@
+#  Quickstart Guide
+To deploy your experiment on a computing cluster, the following highlevel steps are required:
+
+1. Implement `cw2.experiment.AbstractExperiment()`
+2. Write a small Main() function
+3. Write a simple YAML-file to configure your experiment.
+4. Execute the python programm.
+```bash
+python your_main.py your_confi.yml -s
+```
+
+You can find a barebones template in the `template` folder.
+
+
 # Main File
 
 To start using **cw2** you first need to define your `__main__` function.

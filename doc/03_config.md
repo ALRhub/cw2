@@ -8,6 +8,7 @@
       - [1.1.3.2. You dont want multiple DEFAULTS...](#1132-you-dont-want-multiple-defaults)
   - [1.2. SLURM Configuration](#12-slurm-configuration)
   - [1.3. Example Templates](#13-example-templates)
+  - [1.4. Important Keys](#14-important-keys)
 
 -  [Back to Overview](./)
 
@@ -307,9 +308,13 @@ sh_lines:       # List of strings
   - "line 1"
   - "line 2"
 ```
-
 ## 1.3. Example Templates
 This documentation gets updated less frequently than potential feature introductions.
 When in doubt, refer to the provided templates:
 - [AbstractExperiment Configuration](../templates/abstract_config.yml)
 - [AbstractIterativeExperiment Configuration](../templates/iterative_config.yml)
+
+## 1.4. Important Keys
+These are important configuration keys you have access to in the various methods of your `AbstractExperiment` Implementation.
+- `cw_config['params']` is a dictionary containing everything under the `params` keyword, including the merged values from `DEFAULT` and `list`/`grid` keywords.
+- `cw_config['_rep_log_path']` is a `str` entry pointing to the _threadsafe_ directory of this repetition. Here all **cw2** logging artifactsof this repitition will be written. If you have any results / model checkpoints you can save them here under the guarantee that no other **cw2** run will interfere.
