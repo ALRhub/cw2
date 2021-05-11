@@ -21,6 +21,11 @@ class AbstractScheduler(abc.ABC):
 
     @abc.abstractmethod
     def run(self, overwrite=False):
+        """the scheduler begins to execute all assigned jobs
+
+        Args:
+            overwrite (bool, optional): overwrite flag. can be passed to the job. Defaults to False.
+        """
         raise NotImplementedError
 
 
