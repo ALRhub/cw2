@@ -1,10 +1,11 @@
 # 1. Quickstart Guide
 To deploy an existing project using **cw2**, the following highlevel steps are required:
 
-1. Implement an [`AbstractExperiment`](../cw2/experiment.py)
-2. Write a small Main() function
-3. Write a simple YAML-file to configure your experiment.
-4. Execute the python programm.
+- [1. Quickstart Guide](#1-quickstart-guide)
+  - [1.1. Experiment Implementation](#11-experiment-implementation)
+  - [1.2. Main() Function](#12-main-function)
+  - [1.3. Config YAML](#13-config-yaml)
+  - [1.4. Program Execution](#14-program-execution)
 
 
 This quickstart guide is intended to help you quickly deploy your existing project. To develop a more robust understanding of the mechanisms behind **cw2**, please refer to the corresponding sections of the [User Guide](./).

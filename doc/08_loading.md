@@ -1,4 +1,4 @@
-# Loading Results
+# 8. Loading Results
 We provide a simple function to access the results from your runs. An example can be found in `polynom_tutorial\polynom_load.py`:
 
 ```Python

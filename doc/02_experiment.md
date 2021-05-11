@@ -1,4 +1,4 @@
-#  Creating an Iterative Experiment
+#  2. Creating an Iterative Experiment
 To run an iterative experiment on a computing cluster, the following highlevel steps are required:
 
 1. Implement `cw2.experiment.AbstractIterativeExperiment()`:

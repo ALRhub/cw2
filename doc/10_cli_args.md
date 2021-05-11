@@ -1,4 +1,4 @@
-#### CLI args
+# 10. CLI args
 The following args are currently supported by CW2:
 | Flag  |Name           | Effect|
 |-------|---------------|-------|
