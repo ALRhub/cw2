@@ -150,44 +150,69 @@ class Config:
             if '_nested_dir' not in config:
                 config['_nested_dir'] = ''
 
-            if 'grid' in config or 'list' in config:
-                if 'grid' in config:
-                    # if we want a grid then we choose the product of all parameters
-                    iter_fun = itertools.product
-                    key = 'grid'
-                else:
-                    # if we want a list then we zip the parameters together
-                    iter_fun = zip
-                    key = 'list'
+            if 'grid' in config:
+                config = self.__grid_to_list(config)
 
-                # TODO add support for both list and grid
-
-                # convert list/grid dictionary into flat dictionary, where the key is a tuple of the keys and the
-                # value is the list of values
-                tuple_dict = util.flatten_dict_to_tuple_keys(config[key])
-                _param_names = ['.'.join(t) for t in tuple_dict]
-
-                # create a new config for each parameter setting
-                for values in iter_fun(*tuple_dict.values()):
-                    _config = deepcopy(config)
-
-                    # Remove Grid/List Argument
-                    del _config[key]
-
-                    # Expand Grid/List Parameters
-                    for i, t in enumerate(tuple_dict.keys()):
-                        util.insert_deep_dictionary(
-                            _config['params'], t, values[i])
-
-                    # Rename and append
-                    _converted_name = convert_param_names(_param_names, values)
-                    _config['_experiment_name'] = _config['name'] + \
-                        '__' + _converted_name
-                    _config['_nested_dir'] = _config['name']
-                    expanded_config_list.append(_config)
+            if 'list' in config:
+                iter_func = zip
+                key = 'list'
+                expanded_config_list += self.__params_combine(
+                    config, key, iter_func)
             else:
                 expanded_config_list.append(config)
+        return self.__normalize_expanded_paths(expanded_config_list)
 
+    def __grid_to_list(self, config: attrdict.AttrDict):
+        tuple_dict = util.flatten_dict_to_tuple_keys(config['grid'])
+        _param_names = ['.'.join(t) for t in tuple_dict]
+        for values in itertools.product(*tuple_dict.values()):
+            for i, t in enumerate(tuple_dict.keys()):
+                util.append_deep_dictionary(
+                    config['list'], t, values[i]
+                )
+        del config['grid']
+        return config
+
+    def __params_combine(self, config: attrdict.AttrDict, key: str, iter_func) -> List[attrdict.AttrDict]:
+        combined_configs = []
+        # convert list/grid dictionary into flat dictionary, where the key is a tuple of the keys and the
+        # value is the list of values
+        tuple_dict = util.flatten_dict_to_tuple_keys(config[key])
+        _param_names = ['.'.join(t) for t in tuple_dict]
+
+        param_lengths = map(len, tuple_dict.values())
+        if len(set(param_lengths)) != 1:
+            cw_logging.getLogger().warning("list params of experiment \"{}\" are not of equal length.".format(config['name']))
+
+        # create a new config for each parameter setting
+        for values in iter_func(*tuple_dict.values()):
+            _config = deepcopy(config)
+
+            # Remove Grid/List Argument
+            del _config[key]
+
+            # Expand Grid/List Parameters
+            for i, t in enumerate(tuple_dict.keys()):
+                util.insert_deep_dictionary(
+                    _config['params'], t, values[i])
+
+            # Rename and append
+            _converted_name = convert_param_names(_param_names, values)
+            _config['_experiment_name'] = _config['name'] + \
+                '__' + _converted_name
+            _config['_nested_dir'] = _config['name']
+            combined_configs.append(_config)
+        return combined_configs
+
+    def __normalize_expanded_paths(self, expanded_config_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+        """normalizes path key after expansion operation
+
+        Args:
+            expanded_config_list (List[attrdict.AttrDict]): list fo expanded experiment configs
+
+        Returns:
+            List[attrdict.AttrDict]: noramlized expanded experiment configs
+        """
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
             _config['path'] = os.path.join(

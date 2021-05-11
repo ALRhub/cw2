@@ -60,6 +60,18 @@ def insert_deep_dictionary(d: collections.MutableMapping, t: tuple, value):
     else:
         d[t] = value
 
+def append_deep_dictionary(d: collections.MutableMapping, t: tuple, value):
+    if type(t) is tuple:
+        if len(t) == 1:  # tuple contains only one key
+            if t[0] not in d:
+                d[t[0]] = []
+            d[t[0]].append(value)
+        else:  # tuple contains more than one key
+            if t[0] not in d:
+                d[t[0]] = dict()
+            insert_deep_dictionary(d[t[0]], t[1:], value)
+    else:
+        d[t] = value
 
 def format_time(time_in_secs: float) -> str:
     return str(datetime.timedelta(seconds=time_in_secs))

@@ -256,7 +256,7 @@ class SlurmDirectoryManager:
             self._copy_files(src, dst)
 
         # Add MultiCopy ChangeDir to Slurmconf
-        self.slurm_config.slurm_conf['sh_lines'] += "\n cd {} \n".format(os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
+        self.slurm_config.slurm_conf['sh_lines'] += "\ncd {} \n".format(os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
         
         
     def _copy_files(self, src, dst):
