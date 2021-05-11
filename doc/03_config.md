@@ -10,8 +10,6 @@
   - [3.3. Example Templates](#33-example-templates)
   - [3.4. Important Keys](#34-important-keys)
 
--  [Back to Overview](./)
-
 To configure the execution of the experiment, you need to write a YAML-file. A YAML file consists several documents which begin with `---`:
 ```yaml
 ---

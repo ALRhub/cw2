@@ -82,3 +82,6 @@ Each logger is responsible themselves to check results and how handle them.
 **cw2** provides advanced logging functionality in form of a [Pandas Dataframe](https://pandas.pydata.org/) Logger for Excel-like table structures, and a [Weights & Biases (WandB)](https://wandb.ai/site) Logger for advanced metrics.
 ### 7.3.1. Pandas
 ### 7.3.2. WandB
+
+
+[Back to Overview](./)
