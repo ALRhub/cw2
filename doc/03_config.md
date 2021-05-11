@@ -148,9 +148,11 @@ params:
     learning_rate: 0.8
 ```
 
-The `list` keyword requires all parameter sets to be of equal length and will combine every n-th value. The `grid` keyword will generate all possible combinations 
+The `list` keyword requires all parameter sets to be of equal length and will combine every n-th value. The `grid` keyword will generate all possible combinations, i.e. in the above example 2x2 = 4 combinations:
 
-(i.e. in the above example 4 combinations: `(3, 0.4) (3, 0.8) (7, 0.4) (7, 0.8)`)
+ `(3, 0.4) (3, 0.8) (7, 0.4) (7, 0.8)`)
+
+ You can also combine `grid` and `list` in the same experiment. For every combination resulting from the grid a `list` parameter will be matched. Should the `list` be shorter than the resulting `grid` combinations, a **cw2** warning will be printed and only the first `n` (= number of elements in the `list`) parameter combinations will be run.
 
 
 The final experiment configurations combining all techniques could look like:
@@ -218,7 +220,7 @@ training_data: "/my/dataset"
 speed_of_light: "c"
 ```
 
-While this does not cause an error, I recommend you still define your constants inside the `params` sections. During runtime **cw2** will modify the internal configuration object. While it is highly unlikely, you might overwrite such an internal keyword, leading to unforeseen issues. Especially as the software evolves.
+While this does not cause an error, I recommend you still define your constants inside the `params` sections. During runtime **cw2** will modify the internal configuration object. While it is highly unlikely, you might overwrite such an internal keyword, leading to unforeseen issues, especially as the software evolves. For now, internal keywords generally begin with an underscore (`_internal_keyword`) and should be avoided.
 
 To stay on the safe side, put all your custom parameters / arguments / constants inside the `params` section. **cw2** guarantees that all the values inside this section will not be altered. For example:
 
