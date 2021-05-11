@@ -5,7 +5,7 @@ from cw2.cw_data import cw_logging
 class MyIterativeExperiment(experiment.AbstractIterativeExperiment):
     # ...
 
-    def initialize(self, config: dict, rep: int, logger: cw_logging.AbstractLogger) -> None:
+    def initialize(self, config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
         cw_logging.getLogger().info("Ready to start repetition {}. Resetting everything.".format(rep))
 
     def iterate(self, config: dict, rep: int, n: int) -> dict:

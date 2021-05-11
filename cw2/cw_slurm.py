@@ -5,12 +5,12 @@ import sys
 import datetime
 
 import __main__
-from cw2 import cli_parser, config, cw_error, util
+from cw2 import cli_parser, cw_config, cw_error, util
 from cw2.cw_data import cw_logging
 
 
 class SlurmConfig:
-    def __init__(self, conf: config.Config) -> None:
+    def __init__(self, conf: cw_config.Config) -> None:
         self.conf = conf
         self.slurm_conf = conf.slurm_config
 
@@ -126,7 +126,7 @@ class SlurmDirectoryManager:
     MODE_NOCOPY = "NOCOPY"
     MODE_ZIP = "ZIP"
 
-    def __init__(self, sc: SlurmConfig, conf: config.Config) -> None:
+    def __init__(self, sc: SlurmConfig, conf: cw_config.Config) -> None:
         self.slurm_config = sc
         self.conf = conf
         self.m = self.set_mode()
@@ -352,11 +352,11 @@ class SlurmDirectoryManager:
         return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
 
 
-def run_slurm(conf: config.Config, num_jobs: int) -> None:
+def run_slurm(conf: cw_config.Config, num_jobs: int) -> None:
     """starts slurm execution
 
     Args:
-        conf (config.Config): config object
+        conf (cw_config.Config): config object
         num_jobs (int): total number of jobs
     """
     # Finalize Configs
