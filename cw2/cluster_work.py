@@ -8,7 +8,7 @@ from cw2.cw_data import cw_loading, cw_logging
 
 class ClusterWork():
     def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
-          
+
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
         self.config = config.Config(self.args.config, self.args.experiments)
@@ -41,7 +41,7 @@ class ClusterWork():
             self.joblist = factory.create_jobs(self.config.exp_configs)
         return self.joblist
 
-    def run(self, root_dir: str = ""):
+    def run(self, root_dir: str = "", sch: scheduler.AbstractScheduler = None):
         """Run ClusterWork computations.
 
         Args:
@@ -60,7 +60,10 @@ class ClusterWork():
             s = scheduler.SlurmScheduler(self.config)
         else:
             # Do Local execution
-            s = scheduler.LocalScheduler()
+            if sch is None:
+                s = scheduler.LocalScheduler()
+            else:
+                s = sch
 
         self._run_scheduler(s, root_dir)
 
