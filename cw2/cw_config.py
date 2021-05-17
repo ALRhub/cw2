@@ -163,6 +163,9 @@ class Config:
         return self.__normalize_expanded_paths(expanded_config_list)
 
     def __grid_to_list(self, config: attrdict.AttrDict):
+        if "list" not in config:
+            config["list"] = {}
+
         tuple_dict = util.flatten_dict_to_tuple_keys(config['grid'])
         _param_names = ['.'.join(t) for t in tuple_dict]
         for values in itertools.product(*tuple_dict.values()):
