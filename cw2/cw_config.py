@@ -7,7 +7,7 @@ from typing import List, Tuple
 import attrdict
 import yaml
 
-from cw2 import util
+from cw2 import experiment, util
 from cw2.cw_data import cw_logging
 
 
@@ -33,10 +33,10 @@ class Config:
 
         self.exp_selections = experiment_selections
 
-        self.slurm_config, self.exp_configs = self.__parse_configs(
+        self.slurm_config, self.exp_configs = self._parse_configs(
             config_path, experiment_selections)
 
-    def __read_config(self, config_path: str) -> List[attrdict.AttrDict]:
+    def _read_config(self, config_path: str) -> List[attrdict.AttrDict]:
         """reads a YAML configuration file containing potentially multiple experiments
 
         Arguments:
@@ -53,7 +53,7 @@ class Config:
                     all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
-    def __parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def _parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, List[attrdict.AttrDict]]:
         """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
 
         Arguments:
@@ -63,20 +63,20 @@ class Config:
         Returns:
             Tuple[attrdict.AttrDict, attrdict.AttrDict] -- SLURM configuration, list of expanded experiment configurations
         """
-        all_configs = self.__read_config(self.config_path)
+        all_configs = self._read_config(self.config_path)
 
-        slurm_config, default_config, experiment_configs = self.__seperate_configs(
+        slurm_config, default_config, experiment_configs = self._seperate_configs(
             all_configs, experiment_selections)
 
-        experiment_configs = self.__merge_default(
+        experiment_configs = self._merge_default(
             default_config, experiment_configs)
 
-        experiment_configs = self.__expand_experiments(experiment_configs)
-        experiment_configs = self.__unroll_exp_reps(experiment_configs)
+        experiment_configs = self._expand_experiments(experiment_configs)
+        experiment_configs = self._unroll_exp_reps(experiment_configs)
 
         return slurm_config, experiment_configs
 
-    def __seperate_configs(self, all_configs: List[attrdict.AttrDict], experiment_selections: List[str]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def _seperate_configs(self, all_configs: List[attrdict.AttrDict], experiment_selections: List[str]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
         """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
         Arguments:
@@ -106,7 +106,7 @@ class Config:
 
         return slurm_config, default_config, experiment_configs
 
-    def __merge_default(self, default_config: attrdict.AttrDict, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+    def _merge_default(self, default_config: attrdict.AttrDict, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """merges each individual experiment configuration with the default parameters
 
         Arguments:
@@ -126,7 +126,7 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-    def __expand_experiments(self, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+    def _expand_experiments(self, _experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
 
         Arguments:
@@ -137,8 +137,10 @@ class Config:
         """
 
         # get all options that are iteratable and build all combinations (grid) or tuples (list)
+        experiment_configs = deepcopy(_experiment_configs)
         expanded_config_list = []
         for config in experiment_configs:
+            iter_func = None
             # Set Default Values
             # save path argument from YML for grid modification
             if '_basic_path' not in config:
@@ -150,19 +152,39 @@ class Config:
             if '_nested_dir' not in config:
                 config['_nested_dir'] = ''
 
+            # In-Between Step to solve grid AND list combinations
+            if all(k in config for k in ("grid", "list")):                
+                iter_func = zip
+                key = 'list'
+                
+                experiment_configs += self._params_combine(
+                        config, key, iter_func)
+                continue
+            
+
             if 'grid' in config:
-                config = self.__grid_to_list(config)
+                iter_func = itertools.product
+                key = 'grid'
 
             if 'list' in config:
                 iter_func = zip
                 key = 'list'
-                expanded_config_list += self.__params_combine(
-                    config, key, iter_func)
+            
+            if iter_func is not None:
+                expanded_config_list += self._params_combine(config, key, iter_func)
             else:
                 expanded_config_list.append(config)
-        return self.__normalize_expanded_paths(expanded_config_list)
+        return self._normalize_expanded_paths(expanded_config_list)
 
-    def __grid_to_list(self, config: attrdict.AttrDict):
+    def _grid_to_list(self, config: attrdict.AttrDict) -> attrdict.AttrDict:
+        """transforms a "grid" parameter search into its list equivalent
+
+        Args:
+            config (attrdict.AttrDict): single experiment config
+
+        Returns:
+            attrdict.AttrDict: transformed experiment config
+        """
         if "list" not in config:
             config["list"] = {}
 
@@ -176,7 +198,7 @@ class Config:
         del config['grid']
         return config
 
-    def __params_combine(self, config: attrdict.AttrDict, key: str, iter_func) -> List[attrdict.AttrDict]:
+    def _params_combine(self, config: attrdict.AttrDict, key: str, iter_func) -> List[attrdict.AttrDict]:
         combined_configs = []
         # convert list/grid dictionary into flat dictionary, where the key is a tuple of the keys and the
         # value is the list of values
@@ -184,7 +206,7 @@ class Config:
         _param_names = ['.'.join(t) for t in tuple_dict]
 
         param_lengths = map(len, tuple_dict.values())
-        if len(set(param_lengths)) != 1:
+        if key == "list" and len(set(param_lengths)) != 1:
             cw_logging.getLogger().warning("list params of experiment \"{}\" are not of equal length.".format(config['name']))
 
         # create a new config for each parameter setting
@@ -194,6 +216,9 @@ class Config:
             # Remove Grid/List Argument
             del _config[key]
 
+            if "params" not in _config:
+                _config["params"] = {}
+
             # Expand Grid/List Parameters
             for i, t in enumerate(tuple_dict.keys()):
                 util.insert_deep_dictionary(
@@ -201,13 +226,13 @@ class Config:
 
             # Rename and append
             _converted_name = convert_param_names(_param_names, values)
-            _config['_experiment_name'] = _config['name'] + \
+            _config['_experiment_name'] = _config['_experiment_name'] + \
                 '__' + _converted_name
             _config['_nested_dir'] = _config['name']
             combined_configs.append(_config)
         return combined_configs
 
-    def __normalize_expanded_paths(self, expanded_config_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+    def _normalize_expanded_paths(self, expanded_config_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """normalizes path key after expansion operation
 
         Args:
@@ -223,7 +248,7 @@ class Config:
             _config['log_path'] = os.path.join(_config["path"], 'log')
         return expanded_config_list
 
-    def __unroll_exp_reps(self, exp_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+    def _unroll_exp_reps(self, exp_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """unrolls experiment repetitions into their own configuration object
 
         Args:

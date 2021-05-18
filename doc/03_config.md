@@ -150,7 +150,7 @@ The `list` keyword requires all parameter sets to be of equal length and will co
 
  `(3, 0.4) (3, 0.8) (7, 0.4) (7, 0.8)`)
 
- You can also combine `grid` and `list` in the same experiment. For every combination resulting from the grid a `list` parameter will be matched. Should the `list` be shorter than the resulting `grid` combinations, a **cw2** warning will be printed and only the first `n` (= number of elements in the `list`) parameter combinations will be run.
+ You can also combine `grid` and `list` in the same experiment. For every `list` combination, the `grid` will be solved, resulting in a total number of `product('grid') * min(length('list'))` runs.
 
 
 The final experiment configurations combining all techniques could look like:
