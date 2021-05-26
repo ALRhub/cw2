@@ -14,7 +14,9 @@ class ClusterWork():
         self.config = cw_config.Config(self.args.config, self.args.experiments)
 
         self.logArray = cw_logging.LoggerArray()
-        self.add_logger(cw_logging.PythonLogger())
+
+        if not self.args.noconsolelog:
+            self.add_logger(cw_logging.PythonLogger())
         self.joblist = None
 
     def add_logger(self, logger: cw_logging.AbstractLogger) -> None:

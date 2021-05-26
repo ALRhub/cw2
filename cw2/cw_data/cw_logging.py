@@ -147,7 +147,7 @@ class PythonLogger(AbstractLogger):
         self.logger = getLogger()
 
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
-        self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'))
+        self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'), delay=True)
         self.outh.setLevel(logging.INFO)
         self.outh.setFormatter(_formatter)
         self.logger.addHandler(self.outh)
