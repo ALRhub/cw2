@@ -82,6 +82,56 @@ Each logger is responsible themselves to check results and how handle them.
 **cw2** provides advanced logging functionality in form of a [Pandas Dataframe](https://pandas.pydata.org/) Logger for Excel-like table structures, and a [Weights & Biases (WandB)](https://wandb.ai/site) Logger for advanced metrics.
 ### 7.3.1. Pandas
 ### 7.3.2. WandB
+This description is intended as a first primer, and is not tested by me.
+
+To instantiate the WandB logger, you need to add it to the LoggerArray.
+
+```Python
+if __name__ == "__main__":
+    cw = ClusterWork(YourExp)
+
+    cw.add_logger(WandBLogger())
+    cw.run()
+```
+
+Your `config.yml` find needs to be configured for wandb:
+Please refer to the official WandB documentation and the WandBLogger code to learn, what options you have and their effect.
+
+```yaml
+---
+name: some_exp
+repetitions: 5
+params:
+    ...
+
+wandb:
+    project: project_name
+    group: group_name
+```
+
+Logging data with the WandBLogger is the same as every other logger:
+
+For `AbstractIterativeExperiment` implementations, the complete result dictionary returned by your `iterate()` function will be logged, unless you used the `ignore_keys` parameters during Logger creation:
+
+```Python
+# logs everything
+wandb_l = WandBLogger()
+
+# logs everything except for the key secret
+wandb_l = WandBLogger(ignore_keys=['secret'])
+```
+
+When using an `AbstractExperiment` implementation, you have to log results manually:
+
+```Python
+def run(self, config, repetition, logger):
+    do_something()
+    results = {
+        # fill dictionary
+    }
+    logger.process(results)
+```
+
 
 
 [Back to Overview](./)
