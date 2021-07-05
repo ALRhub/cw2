@@ -59,11 +59,15 @@ name: "grid_polynom"
 repetitions: 1
 iterations: 100
 
-params:
+ablative:
   x_0: 2
+  x_3: 6
 
 # A total of 12 Runs will be created
 grid:
   x_1: [3, 4]
   x_2: [3, 4, 5]
-  x_3: [0, 1]
+
+list:
+  x_4: [2, 3]
+  x_5: [2, 3]

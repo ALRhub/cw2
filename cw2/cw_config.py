@@ -7,7 +7,7 @@ from typing import List, Tuple
 import attrdict
 import yaml
 
-from cw2 import experiment, util
+from cw2 import util
 from cw2.cw_data import cw_logging
 
 
@@ -141,6 +141,8 @@ class Config:
         expanded_config_list = []
         for config in experiment_configs:
             iter_func = None
+            key = None
+
             # Set Default Values
             # save path argument from YML for grid modification
             if '_basic_path' not in config:
@@ -153,14 +155,13 @@ class Config:
                 config['_nested_dir'] = ''
 
             # In-Between Step to solve grid AND list combinations
-            if all(k in config for k in ("grid", "list")):                
+            if all(k in config for k in ("grid", "list")):
                 iter_func = zip
                 key = 'list'
-                
+
                 experiment_configs += self._params_combine(
-                        config, key, iter_func)
+                    config, key, iter_func)
                 continue
-            
 
             if 'grid' in config:
                 iter_func = itertools.product
@@ -169,36 +170,29 @@ class Config:
             if 'list' in config:
                 iter_func = zip
                 key = 'list'
-            
-            if iter_func is not None:
-                expanded_config_list += self._params_combine(config, key, iter_func)
-            else:
-                expanded_config_list.append(config)
+
+            expansion = self._params_combine(config, key, iter_func)
+
+            if 'ablative' in config:
+                expansion += self._ablative_expand(expansion)
+
+            expanded_config_list += expansion
         return self._normalize_expanded_paths(expanded_config_list)
 
-    def _grid_to_list(self, config: attrdict.AttrDict) -> attrdict.AttrDict:
-        """transforms a "grid" parameter search into its list equivalent
+    def _params_combine(self, config: attrdict.AttrDict, key: str, iter_func) -> List[attrdict.AttrDict]:
+        """combines experiment parameter with its list/grid combinations
 
         Args:
-            config (attrdict.AttrDict): single experiment config
+            config (attrdict.AttrDict): an single experiment configuration
+            key (str): the combination key, e.g. 'list' or 'grid'
+            iter_func: itertool-like function for creating the combinations
 
         Returns:
-            attrdict.AttrDict: transformed experiment config
+            List[attrdict.AttrDict]: list of parameter-combined experiments
         """
-        if "list" not in config:
-            config["list"] = {}
+        if iter_func is None:
+            return [config]
 
-        tuple_dict = util.flatten_dict_to_tuple_keys(config['grid'])
-        _param_names = ['.'.join(t) for t in tuple_dict]
-        for values in itertools.product(*tuple_dict.values()):
-            for i, t in enumerate(tuple_dict.keys()):
-                util.append_deep_dictionary(
-                    config['list'], t, values[i]
-                )
-        del config['grid']
-        return config
-
-    def _params_combine(self, config: attrdict.AttrDict, key: str, iter_func) -> List[attrdict.AttrDict]:
         combined_configs = []
         # convert list/grid dictionary into flat dictionary, where the key is a tuple of the keys and the
         # value is the list of values
@@ -207,7 +201,8 @@ class Config:
 
         param_lengths = map(len, tuple_dict.values())
         if key == "list" and len(set(param_lengths)) != 1:
-            cw_logging.getLogger().warning("list params of experiment \"{}\" are not of equal length.".format(config['name']))
+            cw_logging.getLogger().warning(
+                "list params of experiment \"{}\" are not of equal length.".format(config['name']))
 
         # create a new config for each parameter setting
         for values in iter_func(*tuple_dict.values()):
@@ -224,13 +219,61 @@ class Config:
                 util.insert_deep_dictionary(
                     _config['params'], t, values[i])
 
-            # Rename and append
-            _converted_name = convert_param_names(_param_names, values)
-            _config['_experiment_name'] = _config['_experiment_name'] + \
-                '__' + _converted_name
-            _config['_nested_dir'] = _config['name']
+            _config = self._extend_config_name(_config, _param_names, values)
             combined_configs.append(_config)
         return combined_configs
+
+    def _ablative_expand(self, conf_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+        """expand experiment configurations according to the "ablative" design
+
+        Args:
+            conf_list (List[attrdict.AttrDict]): a list of experiment configurations
+
+        Returns:
+            List[attrdict.AttrDict]: list of experiment configurations with ablative expansion
+        """
+        combined_configs = []
+        for config in conf_list:
+            tuple_dict = util.flatten_dict(config['ablative'])
+
+            for key in tuple_dict.keys():
+                _config = deepcopy(config)
+
+                if "params" not in _config:
+                    _config["params"] = {}
+
+                util.insert_deep_dictionary(
+                    _config['params'], key, tuple_dict[key]
+                )
+
+                _config = self._extend_config_name(
+                    _config, [key], [tuple_dict[key]])
+                combined_configs.append(_config)
+        return combined_configs
+
+    def _extend_config_name(self, config: attrdict.AttrDict, param_names: list, values: list) -> attrdict.AttrDict:
+        """extend an experiment name with a shorthand derived from the parameters and their values
+
+        Args:
+            config (attrdict.AttrDict): experiment config
+            param_names (list): list of parameter names
+            values (list): list of parameter values
+
+        Returns:
+            attrdict.AttrDict: experiment config with extended name
+        """
+        # Rename and append
+        _converted_name = convert_param_names(param_names, values)
+
+        # Use __ only once as a seperator
+        sep = '__'
+        if '_experiment_name' in config and sep in config['_experiment_name']:
+            sep = '_'
+
+        config['_experiment_name'] = config['_experiment_name'] + \
+            sep + _converted_name
+        config['_nested_dir'] = config['name']
+        return config
 
     def _normalize_expanded_paths(self, expanded_config_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """normalizes path key after expansion operation
@@ -350,14 +393,14 @@ class Config:
         return grouped_configs
 
 
-def convert_param_names(_param_names, values) -> str:
+def convert_param_names(_param_names: list, values: list) -> str:
     """create new shorthand name derived from parameter and value association
     Arguments:
-        _param_names -- parameter names for the experiment
-        values -- concrete values for each parameter
+        _param_names (list): parameter names for the experiment
+        values (list): concrete values for each parameter
 
     Returns:
-        str -- shorthand name
+        str: shorthand name
     """
 
     _converted_name = '_'.join("{}{}".format(

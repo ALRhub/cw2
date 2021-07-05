@@ -3,6 +3,7 @@
   - [3.1. Experiment Configuration](#31-experiment-configuration)
     - [3.1.1. Experiment Header](#311-experiment-header)
     - [3.1.2. Experiment Parameters](#312-experiment-parameters)
+      - [3.1.2.1 Ablative Parameter Search](#3121-ablative-parameter-search)
     - [3.1.3. Recommended Practices: Experiment Configuration](#313-recommended-practices-experiment-configuration)
       - [3.1.3.1. Params is your safe space](#3131-params-is-your-safe-space)
       - [3.1.3.2. You dont want multiple DEFAULTS...](#3132-you-dont-want-multiple-defaults)
@@ -197,6 +198,49 @@ params:
     batch_size: 2 # no combination tryout
 ```
 
+#### 3.1.2.1 Ablative Parameter Search
+ A new, advanced option is the use of the `ablative` keyword. This mechanic is helpful, if you want to estimate the impact of specific hyperparameters.
+ **cw2** will only subsitute one parameter from the `ablative` section at a time. You can think of it as a shortcut to defining multiple default `params` sections quickly.
+ 
+ For example, the following experiment configuration
+
+ ```yaml
+---
+name: XYZ
+# Required settings defined in DEFAULT
+
+params:
+  pretrained: 'imagenet'
+  initialization: 'kmeans'
+
+grid:
+  learning_rate: [0.3, 0.6]
+  gamma: [1, 2, 3]
+
+ablative:
+  pretrained: False
+  initialization: 'random'
+```
+will result in a total of 18 runs: 6 `grid` kombinations with default `params` settings, 6 with `pretrained: False` and an additional 6 with `initialization: random`.
+
+As you can see, the keys under `ablative` are changed one at a time, but never multiple at once.
+
+**Attention!!**
+
+`ablative` keys are changed one at a time. You are responsible to supply "default" `params` for when the other parameters under the `ablative` keyword are exchanged.
+
+Similiar to `params` sections, a list in `ablative` is given to the experiment during runtime as a list object. It is not "multiplied" like `grid` keyword.
+
+```yaml
+ablative:
+  entry: ["I", "am", "a", "list."] # During runtime cw_config['params']['entry'] = ["I", "am", "a", "list."]
+
+grid:
+  x: [0, 1, 2] # During runtime cw_config['params']['x'] will cahnge over the runs. x==0 or x==1 or x==2
+```
+
+
+
 ### 3.1.3. Recommended Practices: Experiment Configuration
 1. `params` is your safe space!
 2. If you feel like you need multiple `DEFAULT` sections, you probably want multiple YAML files
@@ -218,9 +262,9 @@ training_data: "/my/dataset"
 speed_of_light: "c"
 ```
 
-While this does not cause an error, I recommend you still define your constants inside the `params` sections. During runtime **cw2** will modify the internal configuration object. While it is highly unlikely, you might overwrite such an internal keyword, leading to unforeseen issues, especially as the software evolves. For now, internal keywords generally begin with an underscore (`_internal_keyword`) and should be avoided.
+While this will probably not cause an error, I recommend you still define your constants inside the `params` sections. During runtime **cw2** will modify the internal configuration object. While it is highly unlikely, you might overwrite such an internal keyword, leading to unforeseen issues, especially as the software evolves. For now, internal keywords generally begin with an underscore (`_internal_keyword`) and should be avoided.
 
-To stay on the safe side, put all your custom parameters / arguments / constants inside the `params` section. **cw2** guarantees that all the values inside this section will not be altered. For example:
+To stay on the safe side, put all your custom parameters / arguments / constants inside the `params` section. **cw2** guarantees that all the values inside this section will not be altered without explicit user permission by using a combination keyword like `grid` or `list`. For example:
 
 ```yaml
 ---
