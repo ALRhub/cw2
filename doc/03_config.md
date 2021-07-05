@@ -199,7 +199,7 @@ params:
 ```
 
 #### 3.1.2.1 Ablative Parameter Search
- A new, advanced option is the use of the `ablative` keyword. This mechanic is helpful, if you want to estimate the impact of specific hyperparameters.
+ A new, advanced option is the use of the `ablative` keyword. This mechanic is helpful if you want to estimate the impact of specific hyperparameters.
  **cw2** will only subsitute one parameter from the `ablative` section at a time. You can think of it as a shortcut to defining multiple default `params` sections quickly.
  
  For example, the following experiment configuration
