@@ -142,20 +142,23 @@ class Config:
 
         resolved_configs = []
         for config in experiment_configs:
-            if "import_path" not in config:
+            if "import_path" not in config and "import_exp" not in config:
                 resolved_configs.append(config)
                 continue
 
             if abs_path is not None:
                 traversal_dict[abs_path].append(config["name"])
             
-            # Get absolute Path for import
-            import_yml = os.path.abspath(
-                os.path.join(
-                    os.path.dirname(abs_path),
-                    config["import_path"]
+            if "import_path" not in config:
+                import_yml = abs_path
+            else:
+                # Get absolute Path for import
+                import_yml = os.path.abspath(
+                    os.path.join(
+                        os.path.dirname(abs_path),
+                        config["import_path"]
+                    )
                 )
-            )
 
             all_external_configs = self._read_config(import_yml)
 
