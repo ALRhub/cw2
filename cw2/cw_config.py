@@ -129,12 +129,12 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-    def _import_external_yml(self, experiment_configs: List[attrdict.AttrDict], traversal_dict: dict = None) -> List[attrdict.AttrDict]:
+    def _import_external_yml(self, experiment_configs: List[attrdict.AttrDict], traversal_dict: dict = None, abs_path = None) -> List[attrdict.AttrDict]:
         # Create Traversal Dict Root
-        abs_path = None
-
-        if traversal_dict is None:
+        
+        if abs_path is None:
             abs_path = os.path.abspath(self.config_path)
+        if traversal_dict is None:
             traversal_dict = {
                 abs_path: []
             }
@@ -152,7 +152,7 @@ class Config:
             # Get absolute Path for import
             import_yml = os.path.abspath(
                 os.path.join(
-                    os.path.dirname(self.config_path),
+                    os.path.dirname(abs_path),
                     config["import_path"]
                 )
             )
@@ -191,7 +191,7 @@ class Config:
                 traversal_dict[import_yml].append("DEFAULT")
             
             # Recursion call
-            ext_resolved_conf = self._import_external_yml([ext_def_merge], traversal_dict)[0]
+            ext_resolved_conf = self._import_external_yml([ext_def_merge], traversal_dict, import_yml)[0]
 
             # Delete Anchor when coming back
             del traversal_dict[import_yml]
