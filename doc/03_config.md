@@ -219,27 +219,16 @@ grid:
   gamma: [1, 2, 3]
 
 ablative:
-  pretrained: False
-  initialization: 'random'
+  pretrained: [False]
+  initialization: ['random', 'softmax']
 ```
-will result in a total of 18 runs: 6 `grid` kombinations with default `params` settings, 6 with `pretrained: False` and an additional 6 with `initialization: random`.
+will result in a total of 24 runs: 6 `grid` kombinations with default `params` settings, 6 with `pretrained: False`, 6 with `initialization: random` and an additional 6 with `initialization: softmax`
 
 As you can see, the keys under `ablative` are changed one at a time, but never multiple at once.
 
 **Attention!!**
 
 `ablative` keys are changed one at a time. You are responsible to supply "default" `params` for when the other parameters under the `ablative` keyword are exchanged.
-
-Similiar to `params` sections, a list in `ablative` is given to the experiment during runtime as a list object. It is not "multiplied" like `grid` keyword.
-
-```yaml
-ablative:
-  entry: ["I", "am", "a", "list."] # During runtime cw_config['params']['entry'] = ["I", "am", "a", "list."]
-
-grid:
-  x: [0, 1, 2] # During runtime cw_config['params']['x'] will cahnge over the runs. x==0 or x==1 or x==2
-```
-
 
 
 ### 3.1.3. Recommended Practices: Experiment Configuration
