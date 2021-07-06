@@ -9,6 +9,8 @@ import __main__
 from cw2 import cli_parser, cw_error, util
 from cw2.cw_config import cw_config
 from cw2.cw_data import cw_logging
+import cw2.cw_slurm.cw_slurm_keys as SKEYS
+import cw2.cw_config.cw_conf_keys as CKEYS
 
 
 class SlurmConfig:
@@ -27,11 +29,11 @@ class SlurmConfig:
         If no costum template has been specified, the default will be used.
         """
 
-        if "path_to_template" not in self.slurm_conf:
-            self.slurm_conf['path_to_template'] = os.path.join(
-                os.path.dirname(__file__), 'default_sbatch.sh')
+        if SKEYS.TEMPLATE_PATH not in self.slurm_conf:
+            self.slurm_conf[SKEYS.TEMPLATE_PATH] = os.path.join(
+                os.path.dirname(__file__), '../default_sbatch.sh')
 
-        if not os.path.exists(self.slurm_conf['path_to_template']):
+        if not os.path.exists(self.slurm_conf[SKEYS.TEMPLATE_PATH]):
             raise cw_error.ConfigKeyError(
                 "Could not find default sbatch template. Please specify your own 'path_to_template'.")
 
@@ -41,41 +43,41 @@ class SlurmConfig:
 
         sc = self.slurm_conf
 
-        exp_output_path = self.conf.exp_configs[0]["_basic_path"]
+        exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
 
         # CREATE OPTIONAL COLLECTIONS
         # Must be done first:
-        if "sbatch_args" not in sc:
-            sc["sbatch_args"] = {}
+        if SKEYS.SBATCH_ARGS not in sc:
+            sc[SKEYS.SBATCH_ARGS] = {}
 
         # SET DEFAULT VALUES
-        if "slurm_log" not in sc:
-            sc["slurm_log"] = os.path.join(exp_output_path, "slurmlog")
+        if SKEYS.SLURM_LOG not in sc:
+            sc[SKEYS.SLURM_LOG] = os.path.join(exp_output_path, "slurmlog")
 
-        if "slurm_output" not in sc:
-            sc["slurm_output"] = os.path.join(exp_output_path, "sbatch.sh")
+        if SKEYS.SLURM_OUT not in sc:
+            sc[SKEYS.SLURM_OUT] = os.path.join(exp_output_path, "sbatch.sh")
 
-        if "account" not in sc:
-            sc["account"] = ""
+        if SKEYS.ACCOUNT not in sc:
+            sc[SKEYS.ACCOUNT] = ""
 
         # COMPLEX CONVERSIONS
-        if isinstance(sc['time'], int):
-            sc['time'] = '{:d}:{:d}:00'.format(
-                sc['time'] // 60, sc['time'] % 60)
+        if isinstance(sc[SKEYS.TIME], int):
+            sc[SKEYS.TIME] = '{:d}:{:d}:00'.format(
+                sc[SKEYS.TIME] // 60, sc[SKEYS.TIME] % 60)
 
-        if "mem-per-cpu" in sc:
-            sc["sbatch_args"]["mem-per-cpu"] = sc["mem-per-cpu"]
+        if SKEYS.CPU_MEM in sc:
+            sc[SKEYS.SBATCH_ARGS][SKEYS.CPU_MEM] = sc[SKEYS.CPU_MEM]
 
         # DEFAULT OR COMPLEX CONVERSION
-        if "venv" not in sc:
-            sc["venv"] = ""
+        if SKEYS.VENV not in sc:
+            sc[SKEYS.VENV] = ""
         else:
-            sc["venv"] = "source activate {}".format(sc["venv"])
+            sc[SKEYS.VENV] = "source activate {}".format(sc[SKEYS.VENV])
 
-        if "sh_lines" not in sc:
-            sc["sh_lines"] = ""
+        if SKEYS.SH_LINES not in sc:
+            sc[SKEYS.SH_LINES] = ""
         else:
-            sc["sh_lines"] = "\n".join(sc["sh_lines"])
+            sc[SKEYS.SH_LINES] = "\n".join(sc[SKEYS.SH_LINES])
 
     def _complete_cli_args(self):
         """identify and process the relevant CLI flags from the original call.
@@ -83,28 +85,28 @@ class SlurmConfig:
         sc = self.slurm_conf
         cw_options = cli_parser.Arguments().get()
 
-        sc["cw_args"] = ""
+        sc[SKEYS.CW_ARGS] = ""
         if cw_options.overwrite:
-            sc["cw_args"] += " -o"
+            sc[SKEYS.CW_ARGS] += " -o"
         if cw_options.experiments is not None:
-            sc["cw_args"] += " -e " + " ".join(cw_options["experiments"])
+            sc[SKEYS.CW_ARGS] += " -e " + " ".join(cw_options["experiments"])
 
     def _complete_sbatch_args(self):
         """if optional SBATCH arguments are present, build a corresponding string.
         """
         sc = self.slurm_conf
-        sbatch_args = sc['sbatch_args']
+        sbatch_args = sc[SKEYS.SBATCH_ARGS]
 
         # Check if empty
         if not sbatch_args:
-            sc["sbatch_args"] = ""
+            sc[SKEYS.SBATCH_ARGS] = ""
             return
 
         # Else build String
         args_list = []
         for k in sbatch_args:
             args_list.append("#SBATCH --{} {}".format(k, sbatch_args[k]))
-        sc['sbatch_args'] = "\n".join(args_list)
+        sc[SKEYS.SBATCH_ARGS] = "\n".join(args_list)
 
     def finalize(self, num_jobs: int):
         """enrich slurm configuration with dynamically computed values
@@ -114,7 +116,7 @@ class SlurmConfig:
         """
 
         # counting starts at 0
-        self.slurm_conf['last_job_idx'] = num_jobs - 1
+        self.slurm_conf[SKEYS.LAST_IDX] = num_jobs - 1
 
         # Order is important!
         self._complete_optionals()
@@ -132,7 +134,7 @@ class SlurmDirectoryManager:
         self.slurm_config = sc
         self.conf = conf
         self.m = self.set_mode()
-        os.makedirs(sc.slurm_conf["slurm_log"], exist_ok=True)
+        os.makedirs(sc.slurm_conf[SKEYS.SLURM_LOG], exist_ok=True)
 
     def set_mode(self):
         """find which code-copy mode is configured
@@ -148,13 +150,13 @@ class SlurmDirectoryManager:
         # COUNT MISSING ARGS
         cp_error_count = 0
         missing_arg = ""
-        if "experiment_copy_auto_dst" not in sc and "experiment_copy_dst" not in sc:
+        if SKEYS.EXP_CP_AUTO not in sc and SKEYS.EXP_CP_DST not in sc:
             cp_error_count += 1
-            missing_arg = "experiment_copy_dst"
+            missing_arg = SKEYS.EXP_CP_DST
 
-        if "experiment_copy_src" not in sc:
+        if SKEYS.EXP_CP_SRC not in sc:
             cp_error_count += 1
-            missing_arg = "experiment_copy_src"
+            missing_arg = SKEYS.EXP_CP_SRC
 
         # MODE SWITCH
         if cp_error_count == 1:
@@ -207,8 +209,8 @@ class SlurmDirectoryManager:
             src path
         """
         sc = self.slurm_config.slurm_conf
-        if "experiment_copy_src" in sc:
-            return sc["experiment_copy_src"]
+        if SKEYS.EXP_CP_SRC in sc:
+            return sc[SKEYS.EXP_CP_SRC]
         return os.getcwd()
 
     def get_exp_dst(self):
@@ -219,13 +221,13 @@ class SlurmDirectoryManager:
             src path
         """
         sc = self.slurm_config.slurm_conf
-        if "experiment_copy_auto_dst" in sc and "experiment_copy_dst" not in sc:
-            sc["experiment_copy_dst"] = os.path.join(
-                sc["experiment_copy_auto_dst"], datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
-        if "experiment_copy_dst" in sc:
-            return sc["experiment_copy_dst"]
+        if SKEYS.EXP_CP_AUTO in sc and SKEYS.EXP_CP_DST not in sc:
+            sc[SKEYS.EXP_CP_DST] = os.path.join(
+                sc[SKEYS.EXP_CP_AUTO], datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
+        if SKEYS.EXP_CP_DST in sc:
+            return sc[SKEYS.EXP_CP_DST]
 
-        exp_output_path = self.conf.exp_configs[0]["_basic_path"]
+        exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
         return os.path.join(exp_output_path, 'code')
 
     def zip_exp(self):
@@ -258,7 +260,7 @@ class SlurmDirectoryManager:
             self._copy_files(src, dst)
 
         # Add MultiCopy ChangeDir to Slurmconf
-        self.slurm_config.slurm_conf['sh_lines'] += "\ncd {} \n".format(
+        self.slurm_config.slurm_conf[SKEYS.SH_LINES] += "\ncd {} \n".format(
             os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
 
     def _copy_files(self, src, dst):
@@ -388,8 +390,8 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
     sc = slurm_conf.slurm_conf
     conf = slurm_conf.conf
 
-    template_path = sc["path_to_template"]
-    output_path = sc["slurm_output"]
+    template_path = sc[SKEYS.TEMPLATE_PATH]
+    output_path = sc[SKEYS.SLURM_OUT]
 
     exp_main_file = os.path.relpath(__main__.__file__, os.getcwd())
 
@@ -400,34 +402,34 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
 
     while tline:
         tline = tline.replace('%%partition%%', sc['partition'])
-        tline = tline.replace('%%account%%', sc['account'])
+        tline = tline.replace('%%account%%', sc[SKEYS.ACCOUNT])
         tline = tline.replace('%%job-name%%', sc['job-name'])
 
         tline = tline.replace('%%last_job_idx%%',
-                              '{:d}'.format(sc['last_job_idx']))
+                              '{:d}'.format(sc[SKEYS.LAST_IDX]))
         tline = tline.replace('%%num_parallel_jobs%%',
                               '{:d}'.format(sc['num_parallel_jobs']))
 
         tline = tline.replace('%%experiment_execution_dir%%',
                               dir_mgr.get_exp_exec_dir())
 
-        tline = tline.replace('%%slurm_log%%', sc['slurm_log'])
+        tline = tline.replace('%%slurm_log%%', sc[SKEYS.SLURM_LOG])
 
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))
-        tline = tline.replace('%%time%%', sc['time'])
+        tline = tline.replace('%%time%%', sc[SKEYS.TIME])
 
-        tline = tline.replace('%%sh_lines%%', sc["sh_lines"])
+        tline = tline.replace('%%sh_lines%%', sc[SKEYS.SH_LINES])
 
-        tline = tline.replace('%%venv%%', sc["venv"])
+        tline = tline.replace('%%venv%%', sc[SKEYS.VENV])
         tline = tline.replace('%%pythonpath%%', dir_mgr.get_py_path())
 
         tline = tline.replace('%%python_script%%', exp_main_file)
         tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
 
-        tline = tline.replace('%%cw_args%%', sc["cw_args"])
-        tline = tline.replace('%%sbatch_args%%', sc["sbatch_args"])
+        tline = tline.replace('%%cw_args%%', sc[SKEYS.CW_ARGS])
+        tline = tline.replace('%%sbatch_args%%', sc[SKEYS.SBATCH_ARGS])
 
         fid_out.write(tline)
 
