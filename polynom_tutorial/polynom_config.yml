@@ -64,8 +64,8 @@ import_path: "./external_conf.yml"
 import_exp: "ext_exp"
 
 ablative:
-  x_0: 2
-  x_3: 6
+  x_0: [2]
+  x_3: [6, 12]
 
 # A total of 12 Runs will be created
 grid:

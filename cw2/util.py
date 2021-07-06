@@ -1,6 +1,7 @@
 import collections
 import datetime
 import os
+import re
 
 
 def deep_update(base_dict: dict, update_dict: dict) -> dict:
@@ -121,3 +122,24 @@ def check_subdir(parent: str, child: str) -> bool:
     child_path = os.path.abspath(child)
 
     return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
+
+def convert_param_names(_param_names: list, values: list) -> str:
+    """create new shorthand name derived from parameter and value association
+    Arguments:
+        _param_names (list): parameter names for the experiment
+        values (list): concrete values for each parameter
+
+    Returns:
+        str: shorthand name
+    """
+
+    _converted_name = '_'.join("{}{}".format(
+        shorten_param(k), v) for k, v in zip(_param_names, values))
+    # _converted_name = re.sub("[' \[\],()]", '', _converted_name)
+    _converted_name = re.sub("[' ]", '', _converted_name)
+    _converted_name = re.sub('["]', '', _converted_name)
+    _converted_name = re.sub("[(\[]", '_', _converted_name)
+    _converted_name = re.sub("[)\]]", '', _converted_name)
+    _converted_name = re.sub("[,]", '_', _converted_name)
+    return _converted_name
