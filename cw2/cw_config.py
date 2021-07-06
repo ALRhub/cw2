@@ -9,6 +9,7 @@ import yaml
 
 from cw2 import util
 from cw2.cw_data import cw_logging
+from cw2.cw_error import ConfigKeyError, MissingConfigError
 
 
 class Config:
@@ -63,13 +64,15 @@ class Config:
         Returns:
             Tuple[attrdict.AttrDict, attrdict.AttrDict] -- SLURM configuration, list of expanded experiment configurations
         """
-        all_configs = self._read_config(self.config_path)
+        all_configs = self._read_config(config_path)
 
         slurm_config, default_config, experiment_configs = self._seperate_configs(
             all_configs, experiment_selections)
 
         experiment_configs = self._merge_default(
             default_config, experiment_configs)
+
+        experiment_configs = self._import_external_yml(experiment_configs)
 
         experiment_configs = self._expand_experiments(experiment_configs)
         experiment_configs = self._unroll_exp_reps(experiment_configs)
@@ -125,6 +128,78 @@ class Config:
             merge_c = util.deep_update(merge_c, c)
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
+
+    def _import_external_yml(self, experiment_configs: List[attrdict.AttrDict], traversal_dict: dict = None) -> List[attrdict.AttrDict]:
+        # Create Traversal Dict Root
+        abs_path = None
+
+        if traversal_dict is None:
+            abs_path = os.path.abspath(self.config_path)
+            traversal_dict = {
+                abs_path: []
+            }
+        
+
+        resolved_configs = []
+        for config in experiment_configs:
+            if "import_path" not in config:
+                resolved_configs.append(config)
+                continue
+
+            if abs_path is not None:
+                traversal_dict[abs_path].append(config["name"])
+            
+            # Get absolute Path for import
+            import_yml = os.path.abspath(
+                os.path.join(
+                    os.path.dirname(self.config_path),
+                    config["import_path"]
+                )
+            )
+
+            all_external_configs = self._read_config(import_yml)
+
+            if "import_exp" in config:
+                ext_exp = config["import_exp"]
+                
+                # Recursion Anchor:
+                if import_yml in traversal_dict and ext_exp in traversal_dict[import_yml]:
+                    raise ConfigKeyError("Cyclic YML import with {} : {}".format(import_yml, ext_exp))
+
+                # Default Merge External
+                _, ext_default, ext_selection = self._seperate_configs(
+                    all_external_configs, [ext_exp])
+
+                if len(ext_selection) == 0:
+                    raise MissingConfigError(
+                        "Could not import {} from {}".format(ext_exp, import_yml))
+                
+                ext_def_merge = self._merge_default(ext_default, ext_selection)[0]
+            else:
+                # Recursion Anchor:
+                if import_yml in traversal_dict and "DEFAULT" in traversal_dict[import_yml]:
+                    raise ConfigKeyError("Cyclic YML import with {} : {}".format(import_yml, "DEFAULT"))
+                _, ext_def_merge, _ = self._seperate_configs(all_external_configs, None)
+
+            
+            # Register new Anchor
+            if import_yml not in traversal_dict:
+                traversal_dict[import_yml] = []
+            if "import_exp" in config:
+                traversal_dict[import_yml].append(config["import_exp"])
+            else:
+                traversal_dict[import_yml].append("DEFAULT")
+            
+            # Recursion call
+            ext_resolved_conf = self._import_external_yml([ext_def_merge], traversal_dict)[0]
+
+            # Delete Anchor when coming back
+            del traversal_dict[import_yml]
+
+            resolved_configs.append(self._merge_default(ext_resolved_conf, [config])[0])
+        return resolved_configs
+
+
 
     def _expand_experiments(self, _experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations

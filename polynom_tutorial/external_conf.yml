@@ -1,0 +1,14 @@
+---
+name: DEFAULT
+repetitions: 3000
+external_key: "ahahahaha"
+
+
+---
+name: ext_exp
+import_path: "/home/max/code/cw2/polynom_tutorial/polynom_config.yml"
+import_exp: "polynomial"
+grid:
+  a: [1, 3]
+  b: [4, 6]
+  x_1: [7]

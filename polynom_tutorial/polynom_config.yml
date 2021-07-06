@@ -46,6 +46,7 @@ params:
 ---
 # Experiment 1
 name: "polynomial"
+aah: "aaah"
 
 params:
   x_0: 1
@@ -58,6 +59,9 @@ params:
 name: "grid_polynom"
 repetitions: 1
 iterations: 100
+
+import_path: "./external_conf.yml"
+import_exp: "ext_exp"
 
 ablative:
   x_0: 2
