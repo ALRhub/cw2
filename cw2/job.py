@@ -1,11 +1,10 @@
 import os
-import shutil
-from copy import deepcopy
 from typing import List, Type
 
 import attrdict
 
 from cw2 import cw_error, experiment
+from cw2.cw_config import cw_conf_keys as KEYS
 from cw2.cw_data import cw_logging
 
 
@@ -15,7 +14,9 @@ class Job():
     A task is an experiment configuration with unique repetition idx.
     """
 
-    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__, logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
+    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__,
+                 logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "",
+                 read_only: bool = False):
         self.tasks = tasks
 
         if exp_cls is not None:
@@ -23,8 +24,8 @@ class Job():
         self.logger = logger
 
         self.n_parallel = 1
-        if "reps_in_parallel" in tasks[0]:
-            self.n_parallel = tasks[0]['reps_in_parallel']
+        if KEYS.REPS_PARALL in tasks[0]:
+            self.n_parallel = tasks[0][KEYS.REPS_PARALL]
 
         self._root_dir = root_dir
 
@@ -42,15 +43,15 @@ class Job():
         """
         for conf in tasks:
             # create experiment path and subdir
-            os.makedirs(os.path.join(root_dir, conf["path"]), exist_ok=True)
+            os.makedirs(os.path.join(root_dir, conf[KEYS.PATH]), exist_ok=True)
 
             # create a directory for the log path
             os.makedirs(os.path.join(
-                root_dir, conf["log_path"]), exist_ok=True)
+                root_dir, conf[KEYS.LOG_PATH]), exist_ok=True)
 
             # create log path for each repetition
             rep_path = os.path.join(
-                root_dir, conf['_rep_log_path'])
+                root_dir, conf[KEYS.i_REP_LOG_PATH])
 
             # XXX: Disable Delete for now
             """
@@ -65,8 +66,8 @@ class Job():
         Args:
             c (attrdict.AttrDict): task configuration
         """
-        rep_path = c['_rep_log_path']
-        r = c['_rep_idx']
+        rep_path = c[KEYS.i_REP_LOG_PATH]
+        r = c[KEYS.i_REP_IDX]
         print(rep_path)
 
         if not overwrite and self._check_task_exists(c, r):
@@ -100,8 +101,8 @@ class Job():
         Returns:
             dict: the loaded data
         """
-        rep_path = os.path.join(self._root_dir, c['_rep_log_path'])
-        r = c['_rep_idx']
+        rep_path = os.path.join(self._root_dir, c[KEYS.i_REP_LOG_PATH])
+        r = c[KEYS.i_REP_IDX]
         self.logger.initialize(c, r, rep_path)
         return self.logger.load()
 
@@ -114,7 +115,7 @@ class Job():
         Returns:
             bool: True if the repetition was already run
         """
-        rep_path = c['_rep_log_path']
+        rep_path = c[KEYS.i_REP_LOG_PATH]
         return len(os.listdir(rep_path)) != 0
 
 
@@ -123,7 +124,8 @@ class JobFactory():
     Specifially used to map experiment repetitions to Jobs.
     """
 
-    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
+    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger,
+                 delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
         self.exp_cls = exp_cls
         self.logger = logger
         self.delete_old_files = delete_old_files
@@ -141,7 +143,7 @@ class JobFactory():
         """
         grouped_exps = {}
         for t in task_confs:
-            name = t['name']
+            name = t[KEYS.NAME]
             if name not in grouped_exps:
                 grouped_exps[name] = []
             grouped_exps[name].append(t)
@@ -167,8 +169,8 @@ class JobFactory():
 
             # Use 1 Repetition per job if not defined otherwise
             rep_portion = 1
-            if "reps_per_job" in exp_group[0]:
-                rep_portion = exp_group[0]["reps_per_job"]
+            if KEYS.REPS_P_JOB in exp_group[0]:
+                rep_portion = exp_group[0][KEYS.REPS_P_JOB]
 
             for start_rep in range(0, max_rep, rep_portion):
                 tasks.append(exp_group[start_rep:start_rep + rep_portion])

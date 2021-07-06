@@ -7,6 +7,7 @@ from typing import List, Tuple
 import attrdict
 import yaml
 
+import cw2.cw_config.cw_conf_keys as KEY
 from cw2 import util
 from cw2.cw_data import cw_logging
 from cw2.cw_error import ConfigKeyError, MissingConfigError
@@ -54,7 +55,8 @@ class Config:
                     all_configs.append(attrdict.AttrDict(exp_conf))
         return all_configs
 
-    def _parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def _parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[
+        attrdict.AttrDict, List[attrdict.AttrDict]]:
         """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
 
         Arguments:
@@ -79,7 +81,8 @@ class Config:
 
         return slurm_config, experiment_configs
 
-    def _seperate_configs(self, all_configs: List[attrdict.AttrDict], experiment_selections: List[str]) -> Tuple[attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
+    def _seperate_configs(self, all_configs: List[attrdict.AttrDict], experiment_selections: List[str]) -> Tuple[
+        attrdict.AttrDict, attrdict.AttrDict, List[attrdict.AttrDict]]:
         """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
         Arguments:
@@ -94,11 +97,11 @@ class Config:
         experiment_configs = []
 
         for c in all_configs:
-            name = c["name"]
+            name = c[KEY.NAME]
 
-            if name.lower() == 'slurm':
+            if name.lower() == KEY.SLURM:
                 slurm_config = c
-            elif name.lower() == 'default':
+            elif name.lower() == KEY.DEFAULT:
                 default_config = c
             else:
                 if experiment_selections is None or name in experiment_selections:
@@ -109,7 +112,8 @@ class Config:
 
         return slurm_config, default_config, experiment_configs
 
-    def _merge_default(self, default_config: attrdict.AttrDict, experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
+    def _merge_default(self, default_config: attrdict.AttrDict, experiment_configs: List[attrdict.AttrDict]) -> List[
+        attrdict.AttrDict]:
         """merges each individual experiment configuration with the default parameters
 
         Arguments:
@@ -129,45 +133,46 @@ class Config:
             expanded_exp_configs.append(merge_c)
         return expanded_exp_configs
 
-    def _import_external_yml(self, experiment_configs: List[attrdict.AttrDict], traversal_dict: dict = None, abs_path = None) -> List[attrdict.AttrDict]:
+    def _import_external_yml(self, experiment_configs: List[attrdict.AttrDict], traversal_dict: dict = None,
+                             abs_path=None) -> List[attrdict.AttrDict]:
         # Create Traversal Dict Root
-        
+
         if abs_path is None:
             abs_path = os.path.abspath(self.config_path)
         if traversal_dict is None:
             traversal_dict = {
                 abs_path: []
             }
-        
 
         resolved_configs = []
         for config in experiment_configs:
-            if "import_path" not in config and "import_exp" not in config:
+            if KEY.IMPORT_PATH not in config and KEY.IMPORT_EXP not in config:
                 resolved_configs.append(config)
                 continue
 
             if abs_path is not None:
-                traversal_dict[abs_path].append(config["name"])
-            
-            if "import_path" not in config:
+                traversal_dict[abs_path].append(config[KEY.NAME])
+
+            if KEY.IMPORT_PATH not in config:
                 import_yml = abs_path
             else:
                 # Get absolute Path for import
                 import_yml = os.path.abspath(
                     os.path.join(
                         os.path.dirname(abs_path),
-                        config["import_path"]
+                        config[KEY.IMPORT_PATH]
                     )
                 )
 
             all_external_configs = self._read_config(import_yml)
 
-            if "import_exp" in config:
-                ext_exp = config["import_exp"]
-                
+            if KEY.IMPORT_EXP in config:
+                ext_exp = config[KEY.IMPORT_EXP]
+
                 # Recursion Anchor:
                 if import_yml in traversal_dict and ext_exp in traversal_dict[import_yml]:
-                    raise ConfigKeyError("Cyclic YML import with {} : {}".format(import_yml, ext_exp))
+                    raise ConfigKeyError(
+                        "Cyclic YML import with {} : {}".format(import_yml, ext_exp))
 
                 # Default Merge External
                 _, ext_default, ext_selection = self._seperate_configs(
@@ -176,33 +181,35 @@ class Config:
                 if len(ext_selection) == 0:
                     raise MissingConfigError(
                         "Could not import {} from {}".format(ext_exp, import_yml))
-                
-                ext_def_merge = self._merge_default(ext_default, ext_selection)[0]
+
+                ext_def_merge = self._merge_default(
+                    ext_default, ext_selection)[0]
             else:
                 # Recursion Anchor:
-                if import_yml in traversal_dict and "DEFAULT" in traversal_dict[import_yml]:
-                    raise ConfigKeyError("Cyclic YML import with {} : {}".format(import_yml, "DEFAULT"))
-                _, ext_def_merge, _ = self._seperate_configs(all_external_configs, None)
+                if import_yml in traversal_dict and KEY.DEFAULT in traversal_dict[import_yml]:
+                    raise ConfigKeyError(
+                        "Cyclic YML import with {} : {}".format(import_yml, KEY.DEFAULT))
+                _, ext_def_merge, _ = self._seperate_configs(
+                    all_external_configs, None)
 
-            
             # Register new Anchor
             if import_yml not in traversal_dict:
                 traversal_dict[import_yml] = []
-            if "import_exp" in config:
-                traversal_dict[import_yml].append(config["import_exp"])
+            if KEY.IMPORT_EXP in config:
+                traversal_dict[import_yml].append(config[KEY.IMPORT_EXP])
             else:
-                traversal_dict[import_yml].append("DEFAULT")
-            
+                traversal_dict[import_yml].append(KEY.DEFAULT)
+
             # Recursion call
-            ext_resolved_conf = self._import_external_yml([ext_def_merge], traversal_dict, import_yml)[0]
+            ext_resolved_conf = self._import_external_yml(
+                [ext_def_merge], traversal_dict, import_yml)[0]
 
             # Delete Anchor when coming back
             del traversal_dict[import_yml]
 
-            resolved_configs.append(self._merge_default(ext_resolved_conf, [config])[0])
+            resolved_configs.append(self._merge_default(
+                ext_resolved_conf, [config])[0])
         return resolved_configs
-
-
 
     def _expand_experiments(self, _experiment_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
         """Expand the experiment configuration with concrete parameter instantiations
@@ -223,35 +230,35 @@ class Config:
 
             # Set Default Values
             # save path argument from YML for grid modification
-            if '_basic_path' not in config:
-                config['_basic_path'] = config["path"]
+            if KEY.i_BASIC_PATH not in config:
+                config[KEY.i_BASIC_PATH] = config[KEY.PATH]
             # save name argument from YML for grid modification
-            if '_experiment_name' not in config:
-                config['_experiment_name'] = config["name"]
+            if KEY.i_EXP_NAME not in config:
+                config[KEY.i_EXP_NAME] = config[KEY.NAME]
             # add empty string for parent DIR in case of grid
-            if '_nested_dir' not in config:
-                config['_nested_dir'] = ''
+            if KEY.i_NEST_DIR not in config:
+                config[KEY.i_NEST_DIR] = ''
 
             # In-Between Step to solve grid AND list combinations
-            if all(k in config for k in ("grid", "list")):
+            if all(k in config for k in (KEY.GRID, KEY.LIST)):
                 iter_func = zip
-                key = 'list'
+                key = KEY.LIST
 
                 experiment_configs += self._params_combine(
                     config, key, iter_func)
                 continue
 
-            if 'grid' in config:
+            if KEY.GRID in config:
                 iter_func = itertools.product
-                key = 'grid'
+                key = KEY.GRID
 
-            if 'list' in config:
+            if KEY.LIST in config:
                 iter_func = zip
-                key = 'list'
+                key = KEY.LIST
 
             expansion = self._params_combine(config, key, iter_func)
 
-            if 'ablative' in config:
+            if KEY.ABLATIVE in config:
                 expansion += self._ablative_expand(expansion)
 
             expanded_config_list += expansion
@@ -278,9 +285,9 @@ class Config:
         _param_names = ['.'.join(t) for t in tuple_dict]
 
         param_lengths = map(len, tuple_dict.values())
-        if key == "list" and len(set(param_lengths)) != 1:
+        if key == KEY.LIST and len(set(param_lengths)) != 1:
             cw_logging.getLogger().warning(
-                "list params of experiment \"{}\" are not of equal length.".format(config['name']))
+                "list params of experiment \"{}\" are not of equal length.".format(config[KEY.NAME]))
 
         # create a new config for each parameter setting
         for values in iter_func(*tuple_dict.values()):
@@ -289,13 +296,13 @@ class Config:
             # Remove Grid/List Argument
             del _config[key]
 
-            if "params" not in _config:
-                _config["params"] = {}
+            if KEY.PARAMS not in _config:
+                _config[KEY.PARAMS] = {}
 
             # Expand Grid/List Parameters
             for i, t in enumerate(tuple_dict.keys()):
                 util.insert_deep_dictionary(
-                    _config['params'], t, values[i])
+                    _config[KEY.PARAMS], t, values[i])
 
             _config = self._extend_config_name(_config, _param_names, values)
             combined_configs.append(_config)
@@ -312,16 +319,16 @@ class Config:
         """
         combined_configs = []
         for config in conf_list:
-            tuple_dict = util.flatten_dict(config['ablative'])
+            tuple_dict = util.flatten_dict(config[KEY.ABLATIVE])
 
             for key in tuple_dict.keys():
                 _config = deepcopy(config)
 
-                if "params" not in _config:
-                    _config["params"] = {}
+                if KEY.PARAMS not in _config:
+                    _config[KEY.PARAMS] = {}
 
                 util.insert_deep_dictionary(
-                    _config['params'], key, tuple_dict[key]
+                    _config[KEY.PARAMS], key, tuple_dict[key]
                 )
 
                 _config = self._extend_config_name(
@@ -345,12 +352,12 @@ class Config:
 
         # Use __ only once as a seperator
         sep = '__'
-        if '_experiment_name' in config and sep in config['_experiment_name']:
+        if KEY.i_EXP_NAME in config and sep in config[KEY.i_EXP_NAME]:
             sep = '_'
 
-        config['_experiment_name'] = config['_experiment_name'] + \
-            sep + _converted_name
-        config['_nested_dir'] = config['name']
+        config[KEY.i_EXP_NAME] = config[KEY.i_EXP_NAME] + \
+                                 sep + _converted_name
+        config[KEY.i_NEST_DIR] = config[KEY.NAME]
         return config
 
     def _normalize_expanded_paths(self, expanded_config_list: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
@@ -364,9 +371,9 @@ class Config:
         """
         # Set Path and LogPath Args depending on the name
         for _config in expanded_config_list:
-            _config['path'] = os.path.join(
-                _config["_basic_path"], _config['_nested_dir'], _config["_experiment_name"])
-            _config['log_path'] = os.path.join(_config["path"], 'log')
+            _config[KEY.PATH] = os.path.join(
+                _config[KEY.i_BASIC_PATH], _config[KEY.i_NEST_DIR], _config[KEY.i_EXP_NAME])
+            _config[KEY.LOG_PATH] = os.path.join(_config[KEY.PATH], 'log')
         return expanded_config_list
 
     def _unroll_exp_reps(self, exp_configs: List[attrdict.AttrDict]) -> List[attrdict.AttrDict]:
@@ -381,15 +388,15 @@ class Config:
         unrolled_exps = []
 
         for config in exp_configs:
-            if '_rep_idx' in config:
+            if KEY.i_REP_IDX in config:
                 unrolled_exps.append(config)
                 continue
 
-            for r in range(config['repetitions']):
+            for r in range(config[KEY.REPS]):
                 c = deepcopy(config)
-                c['_rep_idx'] = r
-                c['_rep_log_path'] = os.path.join(
-                    c["log_path"], 'rep_{:02d}'.format(r))
+                c[KEY.i_REP_IDX] = r
+                c[KEY.i_REP_LOG_PATH] = os.path.join(
+                    c[KEY.LOG_PATH], 'rep_{:02d}'.format(r))
                 unrolled_exps.append(c)
         return unrolled_exps
 
@@ -402,7 +409,7 @@ class Config:
         """
 
         if dir_path == "":
-            dir_path = self.exp_configs[0]["_basic_path"]
+            dir_path = self.exp_configs[0][KEY.i_BASIC_PATH]
 
         original_yml_name = os.path.splitext(self.f_name)[0]
 
@@ -443,27 +450,27 @@ class Config:
             # Convert attrdict to dict for prettier yaml write
             c = dict(exp)
             if relpath:
-                c = self._make_rel_paths(c, c["_basic_path"])
+                c = self._make_rel_paths(c, c[KEY.i_BASIC_PATH])
             res.append(c)
         return res
 
     def _make_rel_paths(self, config: dict, base_path: str) -> dict:
         c = config.copy()
         _basic_path = base_path
-        c["log_path"] = os.path.join(
-            ".", os.path.relpath(c["log_path"], _basic_path))
-        c["_rep_log_path"] = os.path.join(
-            ".", os.path.relpath(c["_rep_log_path"], _basic_path))
-        c["path"] = os.path.join(
-            ".", os.path.relpath(c["path"], _basic_path))
-        c["_basic_path"] = os.path.join(
-            ".", os.path.relpath(c["_basic_path"], _basic_path))
+        c[KEY.LOG_PATH] = os.path.join(
+            ".", os.path.relpath(c[KEY.LOG_PATH], _basic_path))
+        c[KEY.i_REP_LOG_PATH] = os.path.join(
+            ".", os.path.relpath(c[KEY.i_REP_LOG_PATH], _basic_path))
+        c[KEY.PATH] = os.path.join(
+            ".", os.path.relpath(c[KEY.PATH], _basic_path))
+        c[KEY.i_BASIC_PATH] = os.path.join(
+            ".", os.path.relpath(c[KEY.i_BASIC_PATH], _basic_path))
         return c
 
     def _group_configs_by_name(self, configs: List[dict]) -> dict:
         grouped_configs = {}
         for c in configs:
-            name = c['name']
+            name = c[KEY.NAME]
             if name not in grouped_configs:
                 grouped_configs[name] = [c]
             else:

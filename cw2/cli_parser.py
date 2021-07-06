@@ -1,4 +1,5 @@
 import argparse
+
 import attrdict
 
 
@@ -12,13 +13,13 @@ class Arguments():
         # XXX: Disable delete for now
         # p.add_argument('-d', '--delete', action='store_true',
         #                help='CAUTION deletes results of previous runs.')
-        
+
         p.add_argument('-e', '--experiments', nargs='+', default=None,
-                        help='Allows to specify which experiments should be run.')
+                       help='Allows to specify which experiments should be run.')
         p.add_argument('-s', '--slurm', action='store_true',
-                        help='Run using SLURM Workload Manager.')
+                       help='Run using SLURM Workload Manager.')
         p.add_argument('-o', '--overwrite', action='store_true',
-                        help='Overwrite existing results.')
+                       help='Overwrite existing results.')
         p.add_argument('--nocodecopy', action='store_true', help='Skip code copy.')
         p.add_argument('--zip', action='store_true', help='Make a Zip Copy of the Code.')
         p.add_argument('--skipsizecheck', action='store_true', help='Skip check if code copy src < 200MByte')
@@ -26,6 +27,6 @@ class Arguments():
         p.add_argument('--noconsolelog', action='store_true', help='Disables writing internal console log files')
 
         self.args = p.parse_args(namespace=self)
-    
+
     def get(self) -> dict:
         return attrdict.AttrDict(vars(self.args))

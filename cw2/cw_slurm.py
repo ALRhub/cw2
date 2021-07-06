@@ -1,11 +1,13 @@
+import datetime
 import os
 import shutil
 import subprocess
 import sys
-import datetime
 
 import __main__
-from cw2 import cli_parser, cw_config, cw_error, util
+
+from cw2 import cli_parser, cw_error, util
+from cw2.cw_config import cw_config
 from cw2.cw_data import cw_logging
 
 
@@ -256,9 +258,9 @@ class SlurmDirectoryManager:
             self._copy_files(src, dst)
 
         # Add MultiCopy ChangeDir to Slurmconf
-        self.slurm_config.slurm_conf['sh_lines'] += "\ncd {} \n".format(os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
-        
-        
+        self.slurm_config.slurm_conf['sh_lines'] += "\ncd {} \n".format(
+            os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
+
     def _copy_files(self, src, dst):
         """copies files from src to dst
 
@@ -322,10 +324,10 @@ class SlurmDirectoryManager:
         """
         if self.m == self.MODE_COPY or self.m == self.MODE_MULTI:
             return self.get_exp_dst()
-        
-        #if self.m == self.MODE_MULTI:
-            #return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
-        
+
+        # if self.m == self.MODE_MULTI:
+        # return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
+
         return self.get_exp_src()
 
     def get_py_path(self) -> str:

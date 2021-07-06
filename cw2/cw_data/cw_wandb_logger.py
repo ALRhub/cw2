@@ -1,12 +1,14 @@
 import os
+import warnings
+
 # To prevent conflicts between wandb and the joblib scheduler
 # see https://github.com/wandb/client/issues/1525 for reference
 os.environ["WANDB_START_METHOD"] = "thread"
 
 import attrdict as ad
 import wandb
+
 from cw2.cw_data import cw_logging
-import warnings
 
 
 def reset_wandb_env():

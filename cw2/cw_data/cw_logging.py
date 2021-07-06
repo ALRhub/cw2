@@ -1,5 +1,4 @@
 import abc
-import datetime as dt
 import logging
 import os
 import pprint
@@ -177,7 +176,7 @@ class _CWFormatter(logging.Formatter):
     """
 
     def __init__(self):
-        #self.std_formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
+        # self.std_formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
         self.std_formatter = logging.Formatter('[%(name)s] %(message)s')
         self.red_formatter = logging.Formatter(
             '[%(asctime)s]:[%(name)s] %(message)s')

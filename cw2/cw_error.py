@@ -9,5 +9,7 @@ class MissingConfigError(Exception):
 
 
 class ExperimentSurrender(Exception):
-    def __init__(self, payload: dict = {}):
+    def __init__(self, payload: dict = None):
+        if payload is None:
+            payload = {}
         self.payload = payload

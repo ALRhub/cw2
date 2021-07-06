@@ -2,6 +2,7 @@ import os
 
 import attrdict
 import pandas as pd
+
 from cw2.cw_data import cw_logging
 
 
@@ -16,7 +17,7 @@ class PandasLogger(cw_logging.AbstractLogger):
         self.pkl_name = "rep.pkl"
         self.df = pd.DataFrame()
         self.ignore_keys = ignore_keys
-        #self.index = 0
+        # self.index = 0
 
     def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
@@ -45,7 +46,7 @@ class PandasLogger(cw_logging.AbstractLogger):
     def load(self):
         payload = {}
         df: pd.DataFrame = None
-        
+
         # Check if file exists
         try:
             df = pd.read_pickle(self.pkl_name)

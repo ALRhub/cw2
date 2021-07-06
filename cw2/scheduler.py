@@ -3,7 +3,8 @@ from typing import List
 
 from joblib import Parallel, delayed
 
-from cw2 import cw_config, cw_error, cw_slurm, experiment, job
+from cw2 import cw_error, cw_slurm, job
+from cw2.cw_config import cw_config
 
 
 class AbstractScheduler(abc.ABC):

@@ -1,8 +1,7 @@
-import logging
-import sys
 from typing import List, Type
 
-from cw2 import cli_parser, cw_config, cw_slurm, experiment, job, scheduler
+from cw2 import cli_parser, experiment, job, scheduler
+from cw2.cw_config import cw_config
 from cw2.cw_data import cw_loading, cw_logging
 
 

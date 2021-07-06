@@ -1,5 +1,4 @@
-from copy import deepcopy
-from typing import List, Type
+from typing import Type
 
 import pandas as pd
 
@@ -28,12 +27,11 @@ class CWResult():
         self.data_list = None
 
     def _load_job(self, j: job.Job) -> None:
-
         for c in j.tasks:
             rep_data = j.load_task(c)
             rep_data.update({
                 'name': c['name'],
-                'r': c['_rep_idx'], 
+                'r': c['_rep_idx'],
                 'rep_path': c['_rep_log_path'],
                 'params': c['params']
             })
@@ -90,7 +88,8 @@ class Cw2Accessor:
         df = self._obj
         return df[df['name'] == name]
 
-    def logger(self, l_name: str = "", l_obj: cw_logging.AbstractLogger = None, l_cls: Type[cw_logging.AbstractLogger] = None):
+    def logger(self, l_name: str = "", l_obj: cw_logging.AbstractLogger = None,
+               l_cls: Type[cw_logging.AbstractLogger] = None):
         """select the column containg the results from a specific logger
 
         Args:
@@ -110,10 +109,9 @@ class Cw2Accessor:
         df = self._obj
         return df[l_name]
 
-
     def flatten_pd_log(self):
         pd_log_col = cw_pd_logger.PandasLogger.__name__
-        if pd_log_col  not in self._obj.columns:
+        if pd_log_col not in self._obj.columns:
             return self._obj
 
         df = self._obj

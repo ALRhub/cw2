@@ -2,6 +2,7 @@ import collections
 import datetime
 import os
 
+
 def deep_update(base_dict: dict, update_dict: dict) -> dict:
     """Updates the base dictionary with corresponding values from the update dictionary, including nested collections. Not updated values are kept as is.
 
@@ -60,6 +61,7 @@ def insert_deep_dictionary(d: collections.MutableMapping, t: tuple, value):
     else:
         d[t] = value
 
+
 def append_deep_dictionary(d: collections.MutableMapping, t: tuple, value):
     if type(t) is tuple:
         if len(t) == 1:  # tuple contains only one key
@@ -73,6 +75,7 @@ def append_deep_dictionary(d: collections.MutableMapping, t: tuple, value):
     else:
         d[t] = value
 
+
 def format_time(time_in_secs: float) -> str:
     return str(datetime.timedelta(seconds=time_in_secs))
 
@@ -85,6 +88,7 @@ def shorten_param(_param_name):
         return shortened_parts + '.' + shortened_leaf
     else:
         return shortened_leaf
+
 
 def get_size(start_path: str):
     """recursively compute size of a directory
@@ -101,6 +105,7 @@ def get_size(start_path: str):
             fp = os.path.join(dirpath, f)
             total_size += os.path.getsize(fp)
     return total_size / 1000000.0
+
 
 def check_subdir(parent: str, child: str) -> bool:
     """Check if the child is a subdirectory of the parent.
