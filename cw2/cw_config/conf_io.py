@@ -44,7 +44,7 @@ def read_yaml(config_path: str) -> List[dict]:
     return all_configs
 
 
-def seperate_configs(all_configs: List[dict], experiment_selections: List[str]) -> Tuple[
+def seperate_configs(all_configs: List[dict], experiment_selections: List[str], supress: bool=False) -> Tuple[
     dict, dict, List[dict]]:
     """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
@@ -70,7 +70,7 @@ def seperate_configs(all_configs: List[dict], experiment_selections: List[str]) 
             if experiment_selections is None or name in experiment_selections:
                 experiment_configs.append(c)
 
-    if len(experiment_configs) == 0:
+    if not supress and len(experiment_configs) == 0:
         cw_logging.getLogger().warning("No experiment found in config file.")
 
     return slurm_config, default_config, experiment_configs
