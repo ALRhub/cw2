@@ -2,7 +2,7 @@
 from codecs import open
 from os import path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -16,7 +16,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2-beta',
+    version='1.2.1-beta',
 
     description='A reengineered framework to run experiments on an computing cluster.',
     long_description=long_description,
@@ -64,7 +64,7 @@ setup(
     keywords=['scientific', 'experiments',
               'distributed computing', 'mpi', 'research'],
 
-    packages=['cw2', 'cw2.cw_data'],
+    packages=find_packages(),
     package_data={'cw2': ['default_sbatch.sh']},
 
     install_requires=['PyYAML', 'numpy', 'pandas', 'attrdict', 'joblib'],
