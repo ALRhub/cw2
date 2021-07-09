@@ -11,7 +11,7 @@
 ### [6. Code Copy](06_code_copy.md)
 ### [7. Logging Results](07_logging.md)
 ### [8. Loading Results](08_loading.md)
-### [9. Advanced Program Flow & Parallelization](09_program_flow.md)
+### [9. Advanced Features & Parallelization](09_advanced.md)
 ---
 ## [10. CLI options at a Glance](10_cli_args.md)
 ---

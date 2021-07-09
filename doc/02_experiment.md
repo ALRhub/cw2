@@ -153,7 +153,7 @@ def finalize(self, surrender: ExperimentSurrender = None, crash: bool = False):
     ...
 ```
 
-If the `run()` function wants to abort early for whatever reason, e.g. converged loss function or any other kind of reason, the `run()` function can raise an [`ExperimentSurrender`](../cw2/cw_error.py) error. This custom error can take a `dict` as payload, which can then be accessed by the finalize. If you have different scenarios in which you want to abort an experimental run, this payload can be accessed through this `surrender` object by the `finalize()` function to react accordingly. See [Advanced Program Flow & Parallelization](09_program_flow.md) for more information.
+If the `run()` function wants to abort early for whatever reason, e.g. converged loss function or any other kind of reason, the `run()` function can raise an [`ExperimentSurrender`](../cw2/cw_error.py) error. This custom error can take a `dict` as payload, which can then be accessed by the finalize. If you have different scenarios in which you want to abort an experimental run, this payload can be accessed through this `surrender` object by the `finalize()` function to react accordingly. See [Advanced Features & Parallelization](09_advanced.md) for more information.
 
 `crash` is a boolean indication if `initialize()` or `run()` encountered any error, which you did not catch in your implementation. **cw2** ensures that even if a critical error occurs in those two functions, `finalize()` still gets called to perform its shutdown procedure. Following repetitions / runs in the same process should therefore not be impacted by earlier errors.
 

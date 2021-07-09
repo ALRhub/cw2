@@ -7,7 +7,6 @@
     - [3.1.3. Recommended Practices: Experiment Configuration](#313-recommended-practices-experiment-configuration)
       - [3.1.3.1. Params is your safe space](#3131-params-is-your-safe-space)
       - [3.1.3.2. You dont want multiple DEFAULTS...](#3132-you-dont-want-multiple-defaults)
-    - [3.1.4 Importing External YAML Files](#314-importing-external-yaml-files)
   - [3.2. SLURM Configuration](#32-slurm-configuration)
   - [3.3. Example Templates](#33-example-templates)
   - [3.4. Important Keys](#34-important-keys)
@@ -283,25 +282,7 @@ u@cluster:~$ python experiment.py model_1.yml -s
 u@cluster:~$ python experiment.py model_2.yml -s
 ```
 
-A new feature to help alleviate this problem, is the linking / import of external yaml files.
-
-### 3.1.4 Importing External YAML Files
-It might be helpful to you, to organize your experiment configs into different yaml files which refer to each other.
-Similiar to the merging behaviour with a `DEFAULT` configuration, you can now define a "parent" configuration with two new keywords:
-
-```yaml
----
-name: "child"
-import_path: "some_path" # optional. can be an absolute path, or relative to this yaml file.
-                         # if only import_exp is present, defaults to THIS file.
-import_exp: "external_experiment_name" # optional. basically -e option which external experiment should be the basis.
-                                       # The external experiment will be merged with its own default before importing.
-                                       # Case Sensitive. Defaults to "DEFAULT".
-```
-
-Imported yaml files can be children with imports themselves. A child will always overwrite its parent. Relative paths will always be relative to the file they are written in, NOT to the root or main.py
-
-Unless I made a mistake, cyclic imports will be catched and throw an error.
+A new feature to help alleviate this problem, is the linking / import of external yaml files, see [Linking External YAML Files](09_advanced.md).
 
 
 ## 3.2. SLURM Configuration
