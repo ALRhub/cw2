@@ -30,7 +30,8 @@ Create a new file to implement the `AbstractExperiment` interface, e.g. `MY_CW_M
 
 ```python
 # MY_CW_MAIN.py
-from cw2 import experiment
+from cw2 import experiment, cw_error
+from cw2.cw_data import cw_logging
 
 import existing_project
 
