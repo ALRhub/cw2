@@ -3,7 +3,7 @@ import logging
 import os
 import pprint
 import sys
-from typing import List, Optional, Dict
+from typing import Iterable, Optional, Dict
 
 import attrdict
 
@@ -12,7 +12,7 @@ class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """
 
-    def __init__(self, ignore_keys: Optional[List] = None, allow_keys: Optional[List] = None):
+    def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
         """
         Initialize a logger that records based on (a subset of) the provided keys
         :param ignore_keys: A list of keys

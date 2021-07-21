@@ -4,7 +4,7 @@ import attrdict
 import pandas as pd
 
 from cw2.cw_data import cw_logging
-from typing import Optional, List
+from typing import Optional, Iterable
 
 
 class PandasLogger(cw_logging.AbstractLogger):
@@ -12,7 +12,7 @@ class PandasLogger(cw_logging.AbstractLogger):
     Each repetition is saved in its own directory. Write occurs after every iteration.
     """
 
-    def __init__(self, ignore_keys: Optional[List] = None, allow_keys: Optional[List] = None):
+    def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
         super().__init__(ignore_keys=ignore_keys, allow_keys=allow_keys)
         self.log_path = ""
         self.csv_name = "rep.csv"
