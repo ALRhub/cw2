@@ -5,7 +5,7 @@ from cw2.cw_config import cw_config
 from cw2.cw_data import cw_loading, cw_logging
 
 
-class ClusterWork():
+class ClusterWork:
     def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
 
         self.args = cli_parser.Arguments().get()

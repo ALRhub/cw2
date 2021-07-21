@@ -7,6 +7,7 @@ os.environ["WANDB_START_METHOD"] = "thread"
 
 import attrdict as ad
 import wandb
+from typing import Optional, List
 
 from cw2.cw_data import cw_logging
 
@@ -25,8 +26,8 @@ def reset_wandb_env():
 
 class WandBLogger(cw_logging.AbstractLogger):
 
-    def __init__(self, ignore_keys: list = []):
-        super(WandBLogger, self).__init__(ignore_keys=ignore_keys)
+    def __init__(self, ignore_keys: Optional[List] = None, allow_keys: Optional[List] = None):
+        super(WandBLogger, self).__init__(ignore_keys=ignore_keys, allow_keys=allow_keys)
         self.log_path = ""
         self.run = None
 

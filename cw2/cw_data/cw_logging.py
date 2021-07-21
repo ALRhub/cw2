@@ -3,7 +3,7 @@ import logging
 import os
 import pprint
 import sys
-from typing import List
+from typing import List, Optional, Dict
 
 import attrdict
 
@@ -12,23 +12,34 @@ class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
     """
 
-    def __init__(self, ignore_keys: list = []):
+    def __init__(self, ignore_keys: Optional[List] = None, allow_keys: Optional[List] = None):
+        """
+        Initialize a logger that records based on (a subset of) the provided keys
+        :param ignore_keys: A list of keys
+        :param allow_keys:
+        """
+        assert ignore_keys is None or allow_keys is None, \
+            "Logging keys can either be whitelisted ('ignore_keys') or blacklisted ('allow_keys'), but not both"
         self.ignore_keys = ignore_keys
+        self.allow_keys = allow_keys
 
-    def filter(self, data: dict):
-        """Base Function. Filters out ingored keys
+    def filter(self, data: Dict) -> Dict:
+        """
+        Base Function. Either filters out ignored keys or looks for allowed ones
 
         Args:
-            data (dict): data payload dict
+            data: data payload dict
         """
-        tmp_data = {}
-        for key in data.keys():
-            if key not in self.ignore_keys:
-                tmp_data[key] = data[key]
-        return tmp_data
+        if self.ignore_keys is not None:  # blacklist ignored keys
+            return {key: value for key, value in data.items() if key not in self.ignore_keys}
+        elif self.allow_keys is not None:  # whitelist allowed keys
+            return {key: value for key, value in data.items() if key in self.allow_keys}
+        else:  # use all keys
+            return data
 
     def preprocess(self, *args):
-        """intended to be called during Experiment.initialize()
+        """
+        intended to be called during Experiment.initialize()
         """
         pass
 
@@ -139,7 +150,8 @@ class Printer(AbstractLogger):
 
 
 class PythonLogger(AbstractLogger):
-    """Logger which writes calls to logging.getLogger('cw2') on to disk
+    """
+    Logger which writes calls to logging.getLogger('cw2') on to disk
     """
 
     def __init__(self):
