@@ -119,7 +119,7 @@ class Job():
         return len(os.listdir(rep_path)) != 0
 
 
-class JobFactory():
+class JobFactory:
     """Facotry class to create single jobs from experiment configuration.
     Specifially used to map experiment repetitions to Jobs.
     """

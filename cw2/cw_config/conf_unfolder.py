@@ -44,10 +44,10 @@ def expand_experiments(_experiment_configs: List[dict]) -> List[dict]:
         # Set Default Values
         # save path argument from YML for grid modification
         if KEY.i_BASIC_PATH not in config:
-            config[KEY.i_BASIC_PATH] = config[KEY.PATH]
+            config[KEY.i_BASIC_PATH] = config.get(KEY.PATH)
         # save name argument from YML for grid modification
         if KEY.i_EXP_NAME not in config:
-            config[KEY.i_EXP_NAME] = config[KEY.NAME]
+            config[KEY.i_EXP_NAME] = config.get(KEY.NAME)
         # add empty string for parent DIR in case of grid
         if KEY.i_NEST_DIR not in config:
             config[KEY.i_NEST_DIR] = ''
@@ -115,8 +115,7 @@ def params_combine(config: dict, key: str, iter_func) -> List[dict]:
 
         # Expand Grid/List Parameters
         for i, t in enumerate(tuple_dict.keys()):
-            util.insert_deep_dictionary(
-                _config[KEY.PARAMS], t, values[i])
+            util.insert_deep_dictionary(d=_config.get(KEY.PARAMS), t=t, value=values[i])
 
         _config = extend_config_name(_config, _param_names, values)
         combined_configs.append(_config)
@@ -169,11 +168,11 @@ def extend_config_name(config: dict, param_names: list, values: list) -> dict:
 
     # Use __ only once as a seperator
     sep = '__'
-    if KEY.i_EXP_NAME in config and sep in config[KEY.i_EXP_NAME]:
+    if KEY.i_EXP_NAME in config and sep in config.get(KEY.i_EXP_NAME):
         sep = '_'
 
-    config[KEY.i_EXP_NAME] = config[KEY.i_EXP_NAME] + sep + _converted_name
-    config[KEY.i_NEST_DIR] = config[KEY.NAME]
+    config[KEY.i_EXP_NAME] = config.get(KEY.i_EXP_NAME) + sep + _converted_name
+    config[KEY.i_NEST_DIR] = config.get(KEY.NAME)
     return config
 
 
@@ -196,7 +195,6 @@ def unroll_exp_reps(exp_configs: List[dict]) -> List[dict]:
         for r in range(config[KEY.REPS]):
             c = deepcopy(config)
             c[KEY.i_REP_IDX] = r
-            c[KEY.i_REP_LOG_PATH] = os.path.join(
-                c[KEY.LOG_PATH], 'rep_{:02d}'.format(r))
+            c[KEY.i_REP_LOG_PATH] = os.path.join(c.get(KEY.LOG_PATH), 'rep_{:02d}'.format(r))
             unrolled_exps.append(c)
     return unrolled_exps

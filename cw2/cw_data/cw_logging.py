@@ -3,7 +3,7 @@ import logging
 import os
 import pprint
 import sys
-from typing import Iterable, Optional, Dict
+from typing import Iterable, Optional, Dict, List
 
 import attrdict
 

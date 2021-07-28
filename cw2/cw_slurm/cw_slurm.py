@@ -197,7 +197,9 @@ class SlurmDirectoryManager:
         dirsize = util.get_size(src)
         if dirsize > 200.0:
             cw_logging.getLogger().warning("SourceDir {} is greater than 200MByte".format(src))
-            msg = "Directory {} is greater than 200MByte. If you are sure you want to copy/zip this dir, use --skipsizecheck.\nElse check experiment_copy__ configuration keys".format(
+            msg = "Directory {} is greater than 200MByte." \
+                  " If you are sure you want to copy/zip this dir, use --skipsizecheck." \
+                  "\nElse check experiment_copy__ configuration keys".format(
                 src)
             raise cw_error.ConfigKeyError(msg)
 
@@ -304,7 +306,7 @@ class SlurmDirectoryManager:
         """
         # Check Skip Flag
         cw_options = cli_parser.Arguments().get()
-        if cw_options['nocodecopy']:
+        if cw_options.get('nocodecopy'):
             print('Skipping Code Copy')
             return
 
@@ -326,9 +328,6 @@ class SlurmDirectoryManager:
         """
         if self.m == self.MODE_COPY or self.m == self.MODE_MULTI:
             return self.get_exp_dst()
-
-        # if self.m == self.MODE_MULTI:
-        # return os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
 
         return self.get_exp_src()
 

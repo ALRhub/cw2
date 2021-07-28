@@ -44,8 +44,8 @@ def read_yaml(config_path: str) -> List[dict]:
     return all_configs
 
 
-def seperate_configs(all_configs: List[dict], experiment_selections: List[str], suppress: bool=False) -> Tuple[
-    dict, dict, List[dict]]:
+def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
+                     suppress: bool=False) -> Tuple[dict, dict, List[dict]]:
     """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:
