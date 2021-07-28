@@ -3,7 +3,7 @@ import argparse
 import attrdict
 
 
-class Arguments():
+class Arguments:
     def __init__(self):
         p = argparse.ArgumentParser()
         p.add_argument('config', metavar='CONFIG.yml')

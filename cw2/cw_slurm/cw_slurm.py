@@ -41,24 +41,18 @@ class SlurmConfig:
         """Fill in any optional values.
         """
 
-        sc = self.slurm_conf
+        sc: dict = self.slurm_conf
 
         exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
 
         # CREATE OPTIONAL COLLECTIONS
         # Must be done first:
-        if SKEYS.SBATCH_ARGS not in sc:
-            sc[SKEYS.SBATCH_ARGS] = {}
+        sc.setdefault(SKEYS.SBATCH_ARGS, {})
 
         # SET DEFAULT VALUES
-        if SKEYS.SLURM_LOG not in sc:
-            sc[SKEYS.SLURM_LOG] = os.path.join(exp_output_path, "slurmlog")
-
-        if SKEYS.SLURM_OUT not in sc:
-            sc[SKEYS.SLURM_OUT] = os.path.join(exp_output_path, "sbatch.sh")
-
-        if SKEYS.ACCOUNT not in sc:
-            sc[SKEYS.ACCOUNT] = ""
+        sc.setdefault(SKEYS.SLURM_LOG, os.path.join(exp_output_path, "slurmlog"))
+        sc.setdefault(SKEYS.SLURM_OUT, os.path.join(exp_output_path, "sbatch.sh"))
+        sc.setdefault(SKEYS.ACCOUNT, "")
 
         # COMPLEX CONVERSIONS
         if isinstance(sc[SKEYS.TIME], int):
@@ -66,18 +60,18 @@ class SlurmConfig:
                 sc[SKEYS.TIME] // 60, sc[SKEYS.TIME] % 60)
 
         if SKEYS.CPU_MEM in sc:
-            sc[SKEYS.SBATCH_ARGS][SKEYS.CPU_MEM] = sc[SKEYS.CPU_MEM]
+            sc[SKEYS.SBATCH_ARGS][SKEYS.CPU_MEM] = sc.get(SKEYS.CPU_MEM)
 
         # DEFAULT OR COMPLEX CONVERSION
-        if SKEYS.VENV not in sc:
-            sc[SKEYS.VENV] = ""
-        else:
+        if SKEYS.VENV in sc:
             sc[SKEYS.VENV] = "source activate {}".format(sc[SKEYS.VENV])
-
-        if SKEYS.SH_LINES not in sc:
-            sc[SKEYS.SH_LINES] = ""
         else:
+            sc[SKEYS.VENV] = ""
+
+        if SKEYS.SH_LINES in sc:
             sc[SKEYS.SH_LINES] = "\n".join(sc[SKEYS.SH_LINES])
+        else:
+            sc[SKEYS.SH_LINES] = ""
 
     def _complete_cli_args(self):
         """identify and process the relevant CLI flags from the original call.
@@ -95,18 +89,16 @@ class SlurmConfig:
         """if optional SBATCH arguments are present, build a corresponding string.
         """
         sc = self.slurm_conf
-        sbatch_args = sc[SKEYS.SBATCH_ARGS]
 
-        # Check if empty
-        if not sbatch_args:
+        if SKEYS.SBATCH_ARGS not in sc:  # Check if empty
             sc[SKEYS.SBATCH_ARGS] = ""
             return
+        else:  # Else build String
+            sbatch_args = sc.get(SKEYS.SBATCH_ARGS)
 
-        # Else build String
-        args_list = []
-        for k in sbatch_args:
-            args_list.append("#SBATCH --{} {}".format(k, sbatch_args[k]))
-        sc[SKEYS.SBATCH_ARGS] = "\n".join(args_list)
+            args_list = ["#SBATCH --{} {}".format(k, v)
+                         for k, v in sbatch_args.items()]
+            sc[SKEYS.SBATCH_ARGS] = "\n".join(args_list)
 
     def finalize(self, num_jobs: int):
         """enrich slurm configuration with dynamically computed values
@@ -164,10 +156,10 @@ class SlurmDirectoryManager:
                 "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
 
         cw_options = cli_parser.Arguments().get()
-        if cw_options['zip']:
+        if cw_options.get('zip'):
             return self.MODE_ZIP
 
-        if cw_options['multicopy']:
+        if cw_options.get('multicopy'):
             if cp_error_count == 0:
                 return self.MODE_MULTI
             else:
@@ -176,9 +168,6 @@ class SlurmDirectoryManager:
 
         if cp_error_count == 0:
             return self.MODE_COPY
-
-        # Default case: cp_error_count == 2:
-        # Check for --zip
         return self.MODE_NOCOPY
 
     def dir_size_validation(self, src):
@@ -191,7 +180,7 @@ class SlurmDirectoryManager:
             cw_error.ConfigKeyError: if directory is greater than 200MB
         """
         cw_options = cli_parser.Arguments().get()
-        if cw_options['skipsizecheck']:
+        if cw_options.get('skipsizecheck'):
             return
 
         dirsize = util.get_size(src)
@@ -199,8 +188,7 @@ class SlurmDirectoryManager:
             cw_logging.getLogger().warning("SourceDir {} is greater than 200MByte".format(src))
             msg = "Directory {} is greater than 200MByte." \
                   " If you are sure you want to copy/zip this dir, use --skipsizecheck." \
-                  "\nElse check experiment_copy__ configuration keys".format(
-                src)
+                  "\nElse check experiment_copy__ configuration keys".format(src)
             raise cw_error.ConfigKeyError(msg)
 
     def get_exp_src(self) -> str:
@@ -211,9 +199,7 @@ class SlurmDirectoryManager:
             src path
         """
         sc = self.slurm_config.slurm_conf
-        if SKEYS.EXP_CP_SRC in sc:
-            return sc[SKEYS.EXP_CP_SRC]
-        return os.getcwd()
+        return sc.get(SKEYS.EXP_CP_SRC, os.getcwd())
 
     def get_exp_dst(self):
         """retrieves the code-copy dst.
@@ -224,13 +210,13 @@ class SlurmDirectoryManager:
         """
         sc = self.slurm_config.slurm_conf
         if SKEYS.EXP_CP_AUTO in sc and SKEYS.EXP_CP_DST not in sc:
-            sc[SKEYS.EXP_CP_DST] = os.path.join(
-                sc[SKEYS.EXP_CP_AUTO], datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
+            sc[SKEYS.EXP_CP_DST] = os.path.join(sc.get(SKEYS.EXP_CP_AUTO),
+                                                datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
         if SKEYS.EXP_CP_DST in sc:
             return sc[SKEYS.EXP_CP_DST]
-
-        exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
-        return os.path.join(exp_output_path, 'code')
+        else:
+            exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
+            return os.path.join(exp_output_path, 'code')
 
     def zip_exp(self):
         """procedure for creating a zip backup
@@ -262,8 +248,8 @@ class SlurmDirectoryManager:
             self._copy_files(src, dst)
 
         # Add MultiCopy ChangeDir to Slurmconf
-        self.slurm_config.slurm_conf[SKEYS.SH_LINES] += "\ncd {} \n".format(
-            os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID"))
+        self.slurm_config.slurm_conf[SKEYS.SH_LINES] += "\ncd {} \n".format(os.path.join(self.get_exp_dst(),
+                                                                                         "$SLURM_ARRAY_TASK_ID"))
 
     def _copy_files(self, src, dst):
         """copies files from src to dst
@@ -348,8 +334,8 @@ class SlurmDirectoryManager:
         if self.m == self.MODE_MULTI:
             dst = os.path.join(dst, "$SLURM_ARRAY_TASK_ID")
 
-        new_path = [x.replace(os.path.abspath(
-            src), os.path.abspath(dst)) for x in pypath]
+        new_path = [x.replace(os.path.abspath(src), os.path.abspath(dst))
+                    for x in pypath]
         # return "export PYTHONPATH=" + ":".join(new_path)
         # Maybe this is better?
         return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
