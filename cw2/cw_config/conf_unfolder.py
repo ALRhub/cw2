@@ -147,7 +147,7 @@ def ablative_expand(conf_list: List[dict]) -> List[dict]:
                     _config[KEY.PARAMS], key, val
                 )
 
-                _config = extend_config_name(_config, _param_names[i], [val])
+                _config = extend_config_name(_config, [_param_names[i]], [val])
                 combined_configs.append(_config)
     return combined_configs
 
