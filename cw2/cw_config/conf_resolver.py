@@ -92,7 +92,7 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         all_external_configs = conf_io.read_yaml(import_yml)
 
         ext_exp_name = KEY.DEFAULT
-        if KEY.IMPORT_EXP in config:
+        if custom_import_exp(config):
             ext_exp_name = config[KEY.IMPORT_EXP]
 
         # Recursion Anchor:
@@ -103,7 +103,7 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         # Default Merge External
         _, external, ext_selection = conf_io.seperate_configs(all_external_configs, [ext_exp_name], suppress=True)
 
-        if KEY.IMPORT_EXP in config:
+        if custom_import_exp(config):
             if len(ext_selection) == 0:
                 raise MissingConfigError(
                     "Could not import {} from {}".format(ext_exp_name, import_yml))
@@ -123,3 +123,18 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
 
         resolved_configs.append(merge_default(ext_resolved_conf, [config])[0])
     return resolved_configs
+
+def custom_import_exp(config: dict) -> bool:
+    """check if the config uses a custom import_exp
+
+    Args:
+        config (dict): experiment configuration
+
+    Returns:
+        bool: True if a custom import_exp key is defined
+    """
+    if KEY.IMPORT_EXP not in config:
+        return False
+    if config[KEY.IMPORT_EXP].lower() == KEY.DEFAULT:
+        return False
+    return True
