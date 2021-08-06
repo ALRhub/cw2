@@ -6,7 +6,7 @@ import yaml
 
 from cw2.cw_config import cw_conf_keys as KEY
 from cw2.cw_data import cw_logging
-from cw2.cw_error import MissingConfigError
+from cw2.cw_error import MissingConfigError, ExperimentNotFoundError
 
 
 def get_configs(config_path: str, experiment_selections: List[str]) -> Tuple[dict, dict, List[dict]]:
@@ -45,7 +45,7 @@ def read_yaml(config_path: str) -> List[dict]:
 
 
 def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
-                     suppress: bool=False) -> Tuple[dict, dict, List[dict]]:
+                     suppress: bool = False) -> Tuple[dict, dict, List[dict]]:
     """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:
@@ -71,7 +71,7 @@ def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
                 experiment_configs.append(c)
 
     if not suppress and len(experiment_configs) == 0:
-        cw_logging.getLogger().warning("No experiment found in config file.")
+        raise ExperimentNotFoundError("No selected experiment found in config file.")
 
     return slurm_config, default_config, experiment_configs
 
