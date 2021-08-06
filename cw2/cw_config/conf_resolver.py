@@ -121,7 +121,10 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         # Delete Anchor when coming back
         del traversal_dict[import_yml]
 
-        resolved_configs.append(merge_default(ext_resolved_conf, [config])[0])
+
+        resolved_conf = merge_default(ext_resolved_conf, [config])[0]
+        resolved_conf = archive_import_keys(resolved_conf)
+        resolved_configs.append(resolved_conf)
     return resolved_configs
 
 def custom_import_exp(config: dict) -> bool:
@@ -138,3 +141,21 @@ def custom_import_exp(config: dict) -> bool:
     if config[KEY.IMPORT_EXP].lower() == KEY.DEFAULT:
         return False
     return True
+
+def archive_import_keys(config: dict) -> dict:
+    """
+    Args:
+        config (dict): experiment configuration
+
+
+    Returns:
+        dict: experiment configuration with archived import keys
+    """
+    removal_keys = [KEY.IMPORT_PATH, KEY.IMPORT_EXP]
+    replacement_keys = [KEY.i_IMPORT_PATH_ARCHIVE, KEY.i_IMPORT_EXP_ARCHIVE]
+
+    for removal, replacement in zip(removal_keys, replacement_keys):
+        if removal in config:
+            config[replacement] = config[removal]
+            del config[removal]
+    return config

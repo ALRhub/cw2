@@ -29,3 +29,7 @@ i_NEST_DIR = "_nested_dir"
 # INTERNAL REP
 i_REP_IDX = "_rep_idx"
 i_REP_LOG_PATH = "_rep_log_path"
+
+# INTERNAL IMPORT ARCHIVE
+i_IMPORT_PATH_ARCHIVE = "_import_path_archive"
+i_IMPORT_EXP_ARCHIVE = "_import_exp_archive"
