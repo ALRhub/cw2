@@ -25,8 +25,8 @@ setup(
     url='https://github.com/ALRhub/cw2',
 
     # Author details
-    author='Maixmilian Li',
-    author_email='maixmilian.xiling.li@gmail.com',
+    author='Maximilian Li',
+    author_email='maximilian.xiling.li@gmail.com',
 
     # Choose your license
     # license='BSD-3',
