@@ -37,10 +37,11 @@ class WandBLogger(cw_logging.AbstractLogger):
             self.config = ad.AttrDict(config.wandb)
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
+            runname = job_name + "_rep_{:02d}".format(rep)
             self.run = wandb.init(project=config.wandb.project,
                                   group=config.wandb.group,
-                                  job_type=job_name,
-                                  name=job_name + "_rep_{:02d}".format(rep),
+                                  job_type=job_name[:127],
+                                  name=runname[:127],
                                   config=config.params,
                                   dir=rep_log_path,
                                   settings=wandb.Settings(_disable_stats=config.wandb.get("disable_stats", False))
