@@ -62,7 +62,13 @@ class ClusterWork:
         else:
             # Do Local execution
             if sch is None:
-                s = scheduler.LocalScheduler()
+
+                if "gres" in self.config.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
+                   "gpus_per_job" in self.config.slurm_config and \
+                   (int(self.config.slurm_config.sbatch_args["gres"][4:]) != self.config.slurm_config.gpus_per_job):
+                    s = scheduler.GPUDistributingLocalScheduler(self.config)
+                else:
+                    s = scheduler.LocalScheduler()
             else:
                 s = sch
 
