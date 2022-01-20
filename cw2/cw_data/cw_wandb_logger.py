@@ -39,9 +39,10 @@ class WandBLogger(cw_logging.AbstractLogger):
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
             runname = job_name + "_rep_{:02d}".format(rep)
-
+            last_error = None
+            
             for i in range(10):
-                last_error = None
+                
                 try:
                     self.run = wandb.init(project=config.wandb.project,
                                           group=config.wandb.group,
