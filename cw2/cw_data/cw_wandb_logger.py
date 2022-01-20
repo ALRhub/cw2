@@ -11,7 +11,6 @@ from typing import Optional, Iterable
 
 from cw2.cw_data import cw_logging
 
-
 def reset_wandb_env():
     exclude = {
         "WANDB_PROJECT",
@@ -38,14 +37,29 @@ class WandBLogger(cw_logging.AbstractLogger):
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
             runname = job_name + "_rep_{:02d}".format(rep)
-            self.run = wandb.init(project=config.wandb.project,
-                                  group=config.wandb.group,
-                                  job_type=job_name[:127],
-                                  name=runname[:127],
-                                  config=config.params,
-                                  dir=rep_log_path,
-                                  settings=wandb.Settings(_disable_stats=config.wandb.get("disable_stats", False))
-                                  )
+
+            for i in range(10):
+                try:
+                    self.run = wandb.init(project=config.wandb.project,
+                                          group=config.wandb.group,
+                                          job_type=job_name[:127],
+                                          name=runname[:127],
+                                          config=config.params,
+                                          dir=rep_log_path,
+                                          settings=wandb.Settings(_disable_stats=config.wandb.get("disable_stats",
+                                                                                                  False))
+                                          )
+                    return  # if starting the run is successful, exit the loop (and in this case the function)
+                except Exception as e:
+                    # implement a simple randomized exponential backoff if starting a run fails
+                    from time import sleep
+                    from random import random
+                    waiting_time = ((random()/50)+0.01)*(2**i)
+                    # wait between 0.01 and 10.24 seconds depending on the random seed and the iteration of the exponent
+
+                    warnings.warn("Problem with starting wandb: {}. Trying again in {} seconds".format(e, waiting_time))
+                    sleep(waiting_time)
+
         else:
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
 
