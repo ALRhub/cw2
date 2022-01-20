@@ -1,5 +1,7 @@
 import os
 import warnings
+from time import sleep
+from random import random
 
 # To prevent conflicts between wandb and the joblib scheduler
 # see https://github.com/wandb/client/issues/1525 for reference
@@ -39,6 +41,7 @@ class WandBLogger(cw_logging.AbstractLogger):
             runname = job_name + "_rep_{:02d}".format(rep)
 
             for i in range(10):
+                last_error = None
                 try:
                     self.run = wandb.init(project=config.wandb.project,
                                           group=config.wandb.group,
@@ -51,14 +54,15 @@ class WandBLogger(cw_logging.AbstractLogger):
                                           )
                     return  # if starting the run is successful, exit the loop (and in this case the function)
                 except Exception as e:
+                    last_error = e
                     # implement a simple randomized exponential backoff if starting a run fails
-                    from time import sleep
-                    from random import random
                     waiting_time = ((random()/50)+0.01)*(2**i)
                     # wait between 0.01 and 10.24 seconds depending on the random seed and the iteration of the exponent
 
                     warnings.warn("Problem with starting wandb: {}. Trying again in {} seconds".format(e, waiting_time))
                     sleep(waiting_time)
+            warnings.warn("wandb init failed several times.")
+            raise last_error
 
         else:
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
