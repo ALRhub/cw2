@@ -1,27 +1,22 @@
 ---
 # Slurm config
 name: "SLURM"
-partition: "gpu"
-account: ""  # important for HHLR cluster
-job-name: "horeka"  # this will be the experiment's name in slurm
-#experiment_copy_dst: "/home/max_li/exp_code"
-path_to_template: "/home/max_li/code/cw2/cma_tutorial/sbatch_template.sh"  # TODO: get absolute path from current pwd or so
+partition: "accelerated"
+job-name: "horeka_test_job"
 num_parallel_jobs: 120
-ntasks: 1
-cpus-per-task: 1
-mem-per-cpu: 1000
-time: 30
-gpus_per_job: 2
+time: 2
+gpus_per_rep: 1
 sbatch_args:
   gres: "gpu:4"
 
 ---
 # DEFAULT
 name: "test"
-repetitions: 4
-path: "/tmp/hs_test"
+repetitions: 20
+path: "./hs_test_log"
 reps_per_job: 4
-reps_in_parallel : 2
+reps_in_parallel : 4
 params:
   dummy: 5
+
 

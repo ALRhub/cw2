@@ -39,8 +39,8 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
 
         super(GPUDistributingLocalScheduler, self).__init__(conf=conf)
         self._total_num_gpus = int(conf.slurm_config.sbatch_args["gres"][4:])
-        self._gpus_per_job = conf.slurm_config.gpus_per_job
-        self._queue_elements = self._total_num_gpus // self._gpus_per_job
+        self._gpus_per_rep = conf.slurm_config.gpus_per_rep
+        self._queue_elements = self._total_num_gpus // self._gpus_per_rep
 
     def run(self, overwrite: bool = False):
 
@@ -60,7 +60,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
             for j in self.joblist:
                 for c in j.tasks:
                     pool.apply_async(GPUDistributingLocalScheduler._execute_task, (j, c, gpu_queue,
-                                                                                   self._gpus_per_job,
+                                                                                   self._gpus_per_rep,
                                                                                    overwrite))
 
             pool.close()
