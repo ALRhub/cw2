@@ -16,7 +16,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.3',
+    version='1.2.4',
 
     description='A reengineered framework to run experiments on an computing cluster.',
     long_description=long_description,
@@ -25,8 +25,8 @@ setup(
     url='https://github.com/ALRhub/cw2',
 
     # Author details
-    author='Maixmilian Li',
-    author_email='maixmilian.xiling.li@gmail.com',
+    author='Maximilian Li',
+    author_email='maximilian.xiling.li@gmail.com',
 
     # Choose your license
     # license='BSD-3',
