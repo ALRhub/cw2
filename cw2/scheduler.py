@@ -82,6 +82,16 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         finally:
             q.put(gpu_idx)
 
+    @staticmethod
+    def use_distributed_gpu_scheduling(conf: cw_config.Config) -> bool:
+        # Use if
+        # 1.) GPUs Requested
+        # 2.) Number of GPUs per rep specified
+        # 3.) Number of GPUs per rep != total number of gpus requested
+        return "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
+                "gpus_per_rep" in conf.slurm_config and \
+               (int(conf.slurm_config.sbatch_args["gres"][4:]) != conf.slurm_config.gpus_per_rep)
+
 
 class LocalScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
