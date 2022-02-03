@@ -62,7 +62,10 @@ class ClusterWork:
         else:
             # Do Local execution
             if sch is None:
-                s = scheduler.LocalScheduler()
+                if GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
+                    s = scheduler.GPUDistributingLocalScheduler(self.config)
+                else:
+                    s = scheduler.LocalScheduler()
             else:
                 s = sch
 

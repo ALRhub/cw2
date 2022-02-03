@@ -1,0 +1,22 @@
+---
+# Slurm config
+name: "SLURM"
+partition: "accelerated"
+job-name: "horeka_test_job"
+num_parallel_jobs: 120
+time: 2
+gpus_per_rep: 1
+sbatch_args:
+  gres: "gpu:4"
+
+---
+# DEFAULT
+name: "test"
+repetitions: 20
+path: "./hs_test_log"
+reps_per_job: 4
+reps_in_parallel : 4
+params:
+  dummy: 5
+
+
