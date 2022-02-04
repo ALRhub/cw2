@@ -5,6 +5,7 @@ from cw2.cw_config import cw_config
 from cw2.cw_data import cw_loading, cw_logging
 
 
+
 class ClusterWork:
     def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
 
@@ -62,7 +63,7 @@ class ClusterWork:
         else:
             # Do Local execution
             if sch is None:
-                if GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
+                if scheduler.GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
                     s = scheduler.GPUDistributingLocalScheduler(self.config)
                 else:
                     s = scheduler.LocalScheduler()
