@@ -45,6 +45,7 @@ class WandBLogger(cw_logging.AbstractLogger):
                 
                 try:
                     self.run = wandb.init(project=config.wandb.project,
+                                          entity=config.wandb.entity,
                                           group=config.wandb.group,
                                           job_type=job_name[:127],
                                           name=runname[:127],
