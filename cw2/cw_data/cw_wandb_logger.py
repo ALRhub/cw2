@@ -9,7 +9,8 @@ os.environ["WANDB_START_METHOD"] = "thread"
 
 import attrdict as ad
 import wandb
-from typing import Optional, Iterable
+from typing import Optional, Iterable, List
+from itertools import groupby
 
 from cw2.cw_data import cw_logging
 
@@ -25,6 +26,38 @@ def reset_wandb_env():
             del os.environ[k]
 
 
+def group_parameters(list_of_strings: List[str]):
+    """ groups different strings that start with a common substring (using "." as delimiter)
+        and outputs a single, more concise string.
+    Example:
+        outstring = group_parameters['local', 'mod.enc.tidentity', 'mod.hea.nhl5', 'mod.hea.ioFalse', 'mod.enc.hd64']
+        % outstring will be 'local,mod_[enc_[nhl0,tidentity],hea_[ioFalse,nhl5]]'
+    """
+    groups = []
+    uniquekeys = []
+    num_subgroups = 0
+    substring = ""
+
+    for k, g in groupby(sorted(list_of_strings), lambda string: string.split(".")[0]):
+        groups.append((list(g)))
+        uniquekeys.append(k)
+
+        if len(groups[-1]) == 1:
+            substring += groups[-1][0] + ","
+            num_subgroups += 1
+        else:
+            remainder = [s.replace(k, "", 1) for s in groups[-1]]
+            remainder = [s.replace(".", "", 1) for s in remainder]
+            if len(remainder) > 0:
+                subgroups, num_subs = group_parameters(remainder)
+                substring += k + "_[" + subgroups + "],"
+                num_subgroups += num_subs
+    if num_subgroups > 1:
+        return substring[:-1], num_subgroups
+
+    return substring[:-1], num_subgroups
+
+
 class WandBLogger(cw_logging.AbstractLogger):
 
     def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
@@ -38,6 +71,7 @@ class WandBLogger(cw_logging.AbstractLogger):
             self.config = ad.AttrDict(config.wandb)
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
+            job_name = group_parameters(job_name.split("_"))[0]
             runname = job_name + "_rep_{:02d}".format(rep)
             last_error = None
             
