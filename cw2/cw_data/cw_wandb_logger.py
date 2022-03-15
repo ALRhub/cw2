@@ -31,7 +31,7 @@ def group_parameters(list_of_strings: List[str]):
         and outputs a single, more concise string.
     Example:
         outstring = group_parameters['local', 'mod.enc.tidentity', 'mod.hea.nhl5', 'mod.hea.ioFalse', 'mod.enc.hd64']
-        % outstring will be 'local,mod_[enc_[nhl0,tidentity],hea_[ioFalse,nhl5]]'
+        % outstring will be 'local,mod_[enc_[hd64,tidentity],hea_[ioFalse,nhl5]]'
     """
     groups = []
     uniquekeys = []
@@ -39,7 +39,7 @@ def group_parameters(list_of_strings: List[str]):
     substring = ""
 
     for k, g in groupby(sorted(list_of_strings), lambda string: string.split(".")[0]):
-        groups.append((list(g)))
+        groups.append(list(g))
         uniquekeys.append(k)
 
         if len(groups[-1]) == 1:
@@ -50,12 +50,12 @@ def group_parameters(list_of_strings: List[str]):
             remainder = [s.replace(".", "", 1) for s in remainder]
             if len(remainder) > 0:
                 subgroups, num_subs = group_parameters(remainder)
-                substring += k + "_[" + subgroups + "],"
+                if num_subs > 1:
+                    substring += k + "_[" + subgroups + "],"
+                else:
+                    substring += k + "_" + subgroups + ","
                 num_subgroups += num_subs
-    if num_subgroups > 1:
-        return substring[:-1], num_subgroups
-
-    return substring[:-1], num_subgroups
+    return substring[:-1], len(groups)
 
 
 class WandBLogger(cw_logging.AbstractLogger):
