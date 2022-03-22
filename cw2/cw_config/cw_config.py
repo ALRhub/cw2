@@ -66,8 +66,11 @@ class Config:
 
         original_yml_name = os.path.splitext(self.f_name)[0]
 
+
         # List so it can be merged easily
-        slurm_config = [dict(self.slurm_config)]
+        slurm_config = []
+        if self.slurm_config is not None:
+            slurm_config.append(dict(self.slurm_config))
 
         readable_configs = self._readable_exp_configs(relpath)
 
