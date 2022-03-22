@@ -84,6 +84,8 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
 
     @staticmethod
     def use_distributed_gpu_scheduling(conf: cw_config.Config) -> bool:
+        if conf.slurm_config is None:
+            return False
         # Use if
         # 1.) GPUs Requested
         # 2.) Number of GPUs per rep specified
