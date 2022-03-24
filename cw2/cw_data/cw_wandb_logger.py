@@ -105,6 +105,12 @@ class WandBLogger(cw_logging.AbstractLogger):
 
     def process(self, data: dict) -> None:
         if self.run is not None:
+
+            # Skip logging if interval is defined but not satisfied
+            log_interval = self.config.get("log_interval", None)
+            if log_interval is not None and data["iter"] % log_interval != 0:
+                return
+
             if "histogram" in self.config:
                 for el in self.config.histogram:
                     if el in data:
