@@ -74,13 +74,16 @@ class WandBLogger(cw_logging.AbstractLogger):
             job_name = group_parameters(job_name.split("_"))[0]
             runname = job_name + "_rep_{:02d}".format(rep)
             last_error = None
-            
+            # have entity and group config entry optional
+            entity = self.config.get("entity", None)
+            group = self.config.get("group", None)
+
             for i in range(10):
                 
                 try:
                     self.run = wandb.init(project=config.wandb.project,
-                                          entity=config.wandb.entity,
-                                          group=config.wandb.group,
+                                          entity=entity,
+                                          group=group,
                                           job_type=job_name[:63],
                                           name=runname[:63],
                                           config=config.params,
