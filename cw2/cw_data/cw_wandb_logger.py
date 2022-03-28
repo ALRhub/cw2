@@ -13,6 +13,7 @@ from typing import Optional, Iterable, List
 from itertools import groupby
 
 from cw2.cw_data import cw_logging
+from cw2.util import get_file_names_in_directory
 
 def reset_wandb_env():
     exclude = {
@@ -68,6 +69,7 @@ class WandBLogger(cw_logging.AbstractLogger):
     def initialize(self, config: ad.AttrDict, rep: int, rep_log_path: str) -> None:
         if "wandb" in config.keys():
             self.log_path = rep_log_path
+            self.rep = rep
             self.config = ad.AttrDict(config.wandb)
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
@@ -78,8 +80,15 @@ class WandBLogger(cw_logging.AbstractLogger):
             entity = self.config.get("entity", None)
             group = self.config.get("group", None)
 
+            # Get the model logging directory
+            self.wandb_log_model = self.config.get("log_model", False)
+            if self.wandb_log_model:
+                self._save_model_dir = os.path.join(self.log_path, "model")
+            else:
+                self._save_model_dir = None
+
             for i in range(10):
-                
+
                 try:
                     self.run = wandb.init(project=config.wandb.project,
                                           entity=entity,
@@ -123,7 +132,41 @@ class WandBLogger(cw_logging.AbstractLogger):
 
     def finalize(self) -> None:
         if self.run is not None:
+            self.log_model()
             self.run.finish()
 
     def load(self):
         pass
+
+    def log_model(self):
+        """
+        Log model as an Artifact
+
+        Returns:
+            None
+        """
+        if self.wandb_log_model is False:
+            return
+
+        # Initialize wandb artifact
+        model_artifact = wandb.Artifact(name="model", type="model")
+
+        # Get all file names in log dir
+        file_names = get_file_names_in_directory(self.save_model_dir)
+
+        if file_names is None:
+            warnings.warn("save model dir is not available or empty.")
+            return
+
+        # Add files into artifact
+        for file in file_names:
+            model_artifact.add_file(os.path.join(self.save_model_dir, file))
+
+        aliases = ["latest", f"finished-rep-{self.rep}"]
+
+        # Log and upload
+        self.run.log_artifact(model_artifact, aliases=aliases)
+
+    @property
+    def save_model_dir(self):
+        return self._save_model_dir
