@@ -169,4 +169,7 @@ class WandBLogger(cw_logging.AbstractLogger):
 
     @property
     def save_model_dir(self):
+        # You can call:
+        # logger._logger_array[1].save_model_dir
+        # in your initialize() function of your cw2 exp to get this directory
         return self._save_model_dir
