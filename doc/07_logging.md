@@ -140,8 +140,8 @@ wandb:
 - **log_model**: bool, indicates whether the model shall be logged by the wandb or not. 
 When it is false or not given, nothing happens.
 When it is true, the wandb logger will assume you have saved some meaning model files (such as NN weights) under `rep_xx/log/model`. 
-In the end of each repetition, the logger will upload all the files here as an Artifact. 
-The wandb logger does not care about the content and types of file in such dir.
+In the end of each repetition, the logger will upload all the files saved there as an Artifact. 
+The wandb logger does not care about the content and types of the files in such dir.
 If such directory does not exist or it contains no file, then wandb logger will log a warning but will not raise any error to break your experiment. 
 In your own experiment class, you can get this directory in the initialize function and save model:
 ```python
