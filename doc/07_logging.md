@@ -141,14 +141,15 @@ wandb:
 When it is false or not given, nothing happens.
 When it is true, the wandb logger will assume you have saved some meaning model files (such as NN weights) under `rep_xx/log/model`. 
 In the end of each repetition, the logger will upload all the files saved there as an Artifact. 
-The wandb logger does not care about the content and types of the files in such dir.
-If such directory does not exist or it contains no file, then wandb logger will log a warning but will not raise any error to break your experiment. 
+The wandb logger does not care about the content and types of the files in such directory, or how did you save model in such directory.
+If such directory does not exist, or it contains no file, then wandb logger will log a warning but will not raise any error to break your experiment. 
 In your own experiment class, you can get this directory in the initialize function and save model:
 ```python
 class MyCoolExp(experiment.AbstractIterativeExperiment):
     def initialize(self, cw_config: dict,
                        rep: int, logger: cw_logging.LoggerArray) -> None:
         self.net = CoolNet()
+        
         # Logger, the number 1 here indicates the wandb logger's index in the 
         # logger array
         self.save_model_dir = logger._logger_array[1].save_model_dir
