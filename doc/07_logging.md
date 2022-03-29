@@ -150,9 +150,8 @@ class MyCoolExp(experiment.AbstractIterativeExperiment):
                        rep: int, logger: cw_logging.LoggerArray) -> None:
         self.net = CoolNet()
         
-        # Logger, the number 1 here indicates the wandb logger's index in the 
-        # logger array
-        self.save_model_dir = logger._logger_array[1].save_model_dir
+        # Get the determined directory to save the model
+        self.save_model_dir = cw_config.save_model_dir
         
         # You need to make a new dir of this given save model dir too!
         # os.mkdir(...)

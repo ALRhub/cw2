@@ -83,10 +83,11 @@ class WandBLogger(cw_logging.AbstractLogger):
             # Get the model logging directory
             self.wandb_log_model = self.config.get("log_model", False)
             if self.wandb_log_model:
-                self._save_model_dir = os.path.join(self.log_path, "model")
+                self.save_model_dir = os.path.join(self.log_path, "model")
+                config["save_model_dir"] = self.save_model_dir
                 self.model_name = self.config.get("model_name", "model")
             else:
-                self._save_model_dir = None
+                self.save_model_dir = None
 
             for i in range(10):
 
@@ -168,9 +169,3 @@ class WandBLogger(cw_logging.AbstractLogger):
         # Log and upload
         self.run.log_artifact(model_artifact, aliases=aliases)
 
-    @property
-    def save_model_dir(self):
-        # You can call:
-        # logger._logger_array[1].save_model_dir
-        # in your initialize() function of your cw2 exp to get this directory
-        return self._save_model_dir
