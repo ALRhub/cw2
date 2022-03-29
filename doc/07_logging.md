@@ -132,6 +132,40 @@ def run(self, config, repetition, logger):
     logger.process(results)
 ```
 
+Optional config parameters of the wandb logger:
+```yaml
+wandb: 
+    optional_config: value_of_this_config
+```
+- **log_model**: bool, indicates whether the model shall be logged by the wandb or not. 
+When it is false or not given, nothing happens.
+When it is true, the wandb logger will assume you have saved some meaning model files (such as NN weights) under `rep_xx/log/model`. 
+In the end of each repetition, the logger will upload all the files here as an Artifact. 
+The wandb logger does not care about the content and types of file in such dir.
+If such directory does not exist or it contains no file, then wandb logger will log a warning but will not raise any error to break your experiment. 
+In your own experiment class, you can get this directory in the initialize function and save model:
+```python
+class MyCoolExp(experiment.AbstractIterativeExperiment):
+    def initialize(self, cw_config: dict,
+                       rep: int, logger: cw_logging.LoggerArray) -> None:
+        self.net = CoolNet()
+        # Logger, the number 1 here indicates the wandb logger's index in the 
+        # logger array
+        self.save_model_dir = logger._logger_array[1].save_model_dir
+        
+        # You need to make a new dir of this given save model dir too!
+        # os.mkdir(...)
 
+        # You may save your model for every M epochs
+        self.save_model_interval = 100
+        
+    def save_state(self, cw_config: dict, rep: int, n: int) -> None:        
+        if self.save_model_dir and ((n + 1) % self.save_model_interval == 0
+                                    or (n + 1) == cw_config.iterations):
+        self.net.save_weights(log_dir=self.save_model_dir, epoch=n + 1)
+```
+
+- **log_interval**: int value. If it is given, it indicates that you want to log result in a given interval. 
+This helps in the experiment which contains too many iterations (epochs), so that you do not want to log stuff for every iteration.   
 
 [Back to Overview](./)
