@@ -84,6 +84,7 @@ class WandBLogger(cw_logging.AbstractLogger):
             self.wandb_log_model = self.config.get("log_model", False)
             if self.wandb_log_model:
                 self._save_model_dir = os.path.join(self.log_path, "model")
+                self.model_name = self.config.get("model_name", "model")
             else:
                 self._save_model_dir = None
 
@@ -149,7 +150,7 @@ class WandBLogger(cw_logging.AbstractLogger):
             return
 
         # Initialize wandb artifact
-        model_artifact = wandb.Artifact(name="model", type="model")
+        model_artifact = wandb.Artifact(name=self.model_name, type="model")
 
         # Get all file names in log dir
         file_names = get_file_names_in_directory(self.save_model_dir)

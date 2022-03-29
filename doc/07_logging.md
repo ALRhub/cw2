@@ -166,6 +166,11 @@ class MyCoolExp(experiment.AbstractIterativeExperiment):
         self.net.save_weights(log_dir=self.save_model_dir, epoch=n + 1)
 ```
 
+- **model_name**: string, name of the saved model. 
+It is only useful when **log_model** is set. 
+If the **model_name** is not set, the saved model will use "model" as its default name.
+
+
 - **log_interval**: int value. If it is given, it indicates that you want to log result in a given interval. 
 This helps in the experiment which contains too many iterations (epochs), so that you do not want to log stuff for every iteration.   
 
