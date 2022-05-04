@@ -143,3 +143,23 @@ def convert_param_names(_param_names: list, values: list) -> str:
     _converted_name = re.sub("[)\]]", '', _converted_name)
     _converted_name = re.sub("[,]", '_', _converted_name)
     return _converted_name
+
+
+def get_file_names_in_directory(directory: str) -> [str]:
+    """
+    Get file names in given directory
+    Args:
+        directory: directory where you want to explore
+
+    Returns:
+        file names in a list
+
+    """
+    file_names = None
+    try:
+        (_, _, file_names) = next(os.walk(directory))
+        if len(file_names) == 0:
+            file_names = None
+    except StopIteration as e:
+        print("Cannot read files from directory: ", directory)
+    return file_names
