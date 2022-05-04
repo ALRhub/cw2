@@ -73,7 +73,9 @@ class WandBLogger(cw_logging.AbstractLogger):
             self.config = ad.AttrDict(config.wandb)
             reset_wandb_env()
             job_name = config['_experiment_name'].replace("__", "_")
-            job_name = group_parameters(job_name.split("_"))[0]
+            self.use_group_parameters = self.config.get("use_group_parameters", False)
+            if self.use_group_parameters:
+                job_name = group_parameters(job_name.split("_"))[0]
             runname = job_name + "_rep_{:02d}".format(rep)
             last_error = None
             # have entity and group config entry optional
