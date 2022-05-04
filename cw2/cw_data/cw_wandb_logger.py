@@ -68,56 +68,61 @@ class WandBLogger(cw_logging.AbstractLogger):
 
     def initialize(self, config: ad.AttrDict, rep: int, rep_log_path: str) -> None:
         if "wandb" in config.keys():
-            self.log_path = rep_log_path
-            self.rep = rep
-            self.config = ad.AttrDict(config.wandb)
-            reset_wandb_env()
-            job_name = config['_experiment_name'].replace("__", "_")
-            self.use_group_parameters = self.config.get("use_group_parameters", False)
-            if self.use_group_parameters:
-                job_name = group_parameters(job_name.split("_"))[0]
-            runname = job_name + "_rep_{:02d}".format(rep)
-            last_error = None
-            # have entity and group config entry optional
-            entity = self.config.get("entity", None)
-            group = self.config.get("group", None)
-
-            # Get the model logging directory
-            self.wandb_log_model = self.config.get("log_model", False)
-            if self.wandb_log_model:
-                self.save_model_dir = os.path.join(self.log_path, "model")
-                config["save_model_dir"] = self.save_model_dir
-                self.model_name = self.config.get("model_name", "model")
-            else:
-                self.save_model_dir = None
-
-            for i in range(10):
-
-                try:
-                    self.run = wandb.init(project=config.wandb.project,
-                                          entity=entity,
-                                          group=group,
-                                          job_type=job_name[:63],
-                                          name=runname[:63],
-                                          config=config.params,
-                                          dir=rep_log_path,
-                                          settings=wandb.Settings(_disable_stats=config.wandb.get("disable_stats",
-                                                                                                  False))
-                                          )
-                    return  # if starting the run is successful, exit the loop (and in this case the function)
-                except Exception as e:
-                    last_error = e
-                    # implement a simple randomized exponential backoff if starting a run fails
-                    waiting_time = ((random()/50)+0.01)*(2**i)
-                    # wait between 0.01 and 10.24 seconds depending on the random seed and the iteration of the exponent
-
-                    warnings.warn("Problem with starting wandb: {}. Trying again in {} seconds".format(e, waiting_time))
-                    sleep(waiting_time)
-            warnings.warn("wandb init failed several times.")
-            raise last_error
+            self.init_fields(config, rep, rep_log_path)
+            self.connect_to_wandb()
 
         else:
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
+
+    def init_fields(self,  config: ad.AttrDict, rep: int, rep_log_path: str):
+        self.log_path = rep_log_path
+        self.rep = rep
+        self.config = ad.AttrDict(config.wandb)
+        self.cw2_config = config
+        reset_wandb_env()
+        self.job_name = config['_experiment_name'].replace("__", "_")
+        self.use_group_parameters = self.config.get("use_group_parameters", False)
+        if self.use_group_parameters:
+            self.job_name = group_parameters(self.job_name.split("_"))[0]
+        self.runname = self.job_name + "_rep_{:02d}".format(rep)
+        # have entity and group config entry optional
+        self.entity = self.config.get("entity", None)
+        self.group = self.config.get("group", None)
+        # Get the model logging directory
+        self.wandb_log_model = self.config.get("log_model", False)
+        if self.wandb_log_model:
+            self.save_model_dir = os.path.join(self.log_path, "model")
+            self.cw2_config["save_model_dir"] = self.save_model_dir
+            self.model_name = self.config.get("model_name", "model")
+        else:
+            self.save_model_dir = None
+
+    def connect_to_wandb(self):
+        last_error = None
+        for i in range(10):
+
+            try:
+                self.run = wandb.init(project=self.cw2_config.wandb.project,
+                                      entity=self.entity,
+                                      group=self.group,
+                                      job_type=self.job_name[:63],
+                                      name=self.runname[:63],
+                                      config=self.cw2_config.params,
+                                      dir=self.log_path,
+                                      settings=wandb.Settings(_disable_stats=self.cw2_config.wandb.get("disable_stats",
+                                                                                              False))
+                                      )
+                return  # if starting the run is successful, exit the loop (and in this case the function)
+            except Exception as e:
+                last_error = e
+                # implement a simple randomized exponential backoff if starting a run fails
+                waiting_time = ((random() / 50) + 0.01) * (2 ** i)
+                # wait between 0.01 and 10.24 seconds depending on the random seed and the iteration of the exponent
+
+                warnings.warn("Problem with starting wandb: {}. Trying again in {} seconds".format(e, waiting_time))
+                sleep(waiting_time)
+        warnings.warn("wandb init failed several times.")
+        raise last_error
 
     def process(self, data: dict) -> None:
         if self.run is not None:
