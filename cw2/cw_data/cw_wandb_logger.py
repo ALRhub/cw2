@@ -85,6 +85,10 @@ class WandBLogger(cw_logging.AbstractLogger):
         if self.use_group_parameters:
             self.job_name = group_parameters(self.job_name.split("_"))[0]
         self.runname = self.job_name + "_rep_{:02d}".format(rep)
+
+        # optional: change the job_type to a fixed alias if the option is present
+        if "job_type" in self.config:
+            self.job_name = self.config.job_type
         # have entity and group config entry optional
         self.entity = self.config.get("entity", None)
         self.group = self.config.get("group", None)
