@@ -80,9 +80,9 @@ class SlurmConfig:
         cw_options = cli_parser.Arguments().get()
 
         sc[SKEYS.CW_ARGS] = ""
-        if cw_options.overwrite:
+        if cw_options['overwrite']:
             sc[SKEYS.CW_ARGS] += " -o"
-        if cw_options.experiments is not None:
+        if cw_options['experiments'] is not None:
             sc[SKEYS.CW_ARGS] += " -e " + " ".join(cw_options["experiments"])
 
     def _complete_sbatch_args(self):

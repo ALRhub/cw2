@@ -7,9 +7,8 @@ from random import random
 # see https://github.com/wandb/client/issues/1525 for reference
 os.environ["WANDB_START_METHOD"] = "thread"
 
-import attrdict as ad
 import wandb
-from typing import Optional, Iterable, List
+from typing import Optional, Iterable, List, Dict
 from itertools import groupby
 
 from cw2.cw_data import cw_logging
@@ -66,7 +65,7 @@ class WandBLogger(cw_logging.AbstractLogger):
         self.log_path = ""
         self.run = None
 
-    def initialize(self, config: ad.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: Dict, rep: int, rep_log_path: str) -> None:
         if "wandb" in config.keys():
             self.init_fields(config, rep, rep_log_path)
             self.connect_to_wandb()
@@ -74,10 +73,10 @@ class WandBLogger(cw_logging.AbstractLogger):
         else:
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
 
-    def init_fields(self,  config: ad.AttrDict, rep: int, rep_log_path: str):
+    def init_fields(self,  config: Dict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
         self.rep = rep
-        self.config = ad.AttrDict(config.wandb)
+        self.config = config.wandb
         self.cw2_config = config
         reset_wandb_env()
         self.job_name = config['_experiment_name'].replace("__", "_")

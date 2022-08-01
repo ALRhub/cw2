@@ -1,7 +1,6 @@
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
-import attrdict
 import yaml
 
 from cw2.cw_config import cw_conf_keys as KEY
@@ -40,12 +39,12 @@ def read_yaml(config_path: str) -> List[dict]:
     with open(config_path, 'r') as f:
         for exp_conf in yaml.load_all(f, yaml.FullLoader):
             if exp_conf is not None:
-                all_configs.append(attrdict.AttrDict(exp_conf))
+                all_configs.append(exp_conf)
     return all_configs
 
 
-def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
-                     suppress: bool = False) -> Tuple[dict, dict, List[dict]]:
+def seperate_configs(all_configs: List[Dict], experiment_selections: List[str],
+                     suppress: bool = False) -> Tuple[Dict, Dict, List[Dict]]:
     """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:

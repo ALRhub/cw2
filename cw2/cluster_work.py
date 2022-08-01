@@ -11,11 +11,11 @@ class ClusterWork:
 
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
-        self.config = cw_config.Config(self.args.config, self.args.experiments)
+        self.config = cw_config.Config(self.args['config'], self.args['experiments'])
 
         self.logArray = cw_logging.LoggerArray()
 
-        if not self.args.noconsolelog:
+        if not self.args['noconsolelog']:
             self.add_logger(cw_logging.PythonLogger())
         self.joblist = None
 
@@ -58,7 +58,7 @@ class ClusterWork:
         args = self.args
 
         # Handle SLURM execution
-        if args.slurm:
+        if args['slurm']:
             s = scheduler.SlurmScheduler(self.config)
         else:
             # Do Local execution
@@ -93,8 +93,8 @@ class ClusterWork:
         args = self.args
         job_list = self._get_jobs(False, root_dir, read_only)
 
-        if args.job is not None:
-            job_list = [job_list[args.job]]
+        if args['job'] is not None:
+            job_list = [job_list[args['job']]]
 
         s.assign(job_list)
-        return s.run(overwrite=args.overwrite)
+        return s.run(overwrite=args['overwrite'])

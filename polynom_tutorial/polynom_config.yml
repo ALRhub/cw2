@@ -14,11 +14,11 @@ cpus-per-task: 1
 mem-per-cpu: 1000
 time: 30
 
-experiment_copy_auto_dst: "/home/max/autodst"
+#experiment_copy_auto_dst: "/home/max/autodst"
 experiment_copy_src: "."
 
 # Optional
-venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
+#venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
 
 # Optional Code Copy: Both Args are required.
 #experiment_copy_dst: "/home/max_li/polylog/code"       # optional. dir TO which the current code will be copied. Useful to prevent unintentional changes while the job is in queue. Defaults to EXPERIMENTCONFIG.path/code
@@ -34,7 +34,7 @@ reps_per_job: 4
 reps_in_parallel: 3
 
 # Required: Can also be set in DEFAULT
-path: "/home/max/polylog"   # location to save results in
+path: "/tmp/polylog"   # location to save results in
 repetitions: 2    # number of times one set of parameters is run
 iterations: 1000  # number of iterations per repetition
 
@@ -60,8 +60,8 @@ name: "grid_polynom"
 repetitions: 1
 iterations: 100
 
-import_path: "./external_conf.yml"
-import_exp: "ext_exp"
+#import_path: "./external_conf.yml"
+#import_exp: "ext_exp"
 
 ablative:
   x_0: [2]

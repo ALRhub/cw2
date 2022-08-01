@@ -1,10 +1,9 @@
 import os
 
-import attrdict
 import pandas as pd
 
 from cw2.cw_data import cw_logging
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Dict
 
 
 class PandasLogger(cw_logging.AbstractLogger):
@@ -19,7 +18,7 @@ class PandasLogger(cw_logging.AbstractLogger):
         self.pkl_name = "rep.pkl"
         self.df = pd.DataFrame()
 
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str):
+    def initialize(self, config: Dict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
         self.csv_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
         self.pkl_name = os.path.join(self.log_path, 'rep_{}.pkl'.format(rep))

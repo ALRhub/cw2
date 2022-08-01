@@ -1,7 +1,5 @@
 import os
-from typing import List, Type
-
-import attrdict
+from typing import List, Type, Dict
 
 from cw2 import cw_error, experiment
 from cw2.cw_config import cw_conf_keys as KEYS
@@ -14,7 +12,7 @@ class Job():
     A task is an experiment configuration with unique repetition idx.
     """
 
-    def __init__(self, tasks: List[attrdict.AttrDict], exp_cls: experiment.AbstractExperiment.__class__,
+    def __init__(self, tasks: List[Dict], exp_cls: experiment.AbstractExperiment.__class__,
                  logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "",
                  read_only: bool = False):
         self.tasks = tasks
@@ -33,7 +31,7 @@ class Job():
             self.__create_experiment_directory(
                 tasks, delete_old_files, root_dir)
 
-    def __create_experiment_directory(self, tasks: List[attrdict.AttrDict], delete_old_files=False, root_dir=""):
+    def __create_experiment_directory(self, tasks: List[Dict], delete_old_files=False, root_dir=""):
         """internal function creating the directories in which the job will write its data.
 
         Args:
@@ -60,7 +58,7 @@ class Job():
             """
             os.makedirs(rep_path, exist_ok=True)
 
-    def run_task(self, c: attrdict.AttrDict, overwrite: bool):
+    def run_task(self, c: Dict, overwrite: bool):
         """Execute a single task of the job. 
 
         Args:
@@ -92,7 +90,7 @@ class Job():
         self.exp.finalize(surrender, crash)
         self.logger.finalize()
 
-    def load_task(self, c: attrdict.AttrDict) -> dict:
+    def load_task(self, c: Dict) -> Dict:
         """Load the results of a single task.
 
         Args:
@@ -106,7 +104,7 @@ class Job():
         self.logger.initialize(c, r, rep_path)
         return self.logger.load()
 
-    def _check_task_exists(self, c: attrdict.AttrDict, r: int) -> bool:
+    def _check_task_exists(self, c: Dict, r: int) -> bool:
         """internal function. checks if the task has already been run in the past.
 
         Args:
@@ -132,7 +130,7 @@ class JobFactory:
         self.root_dir = root_dir
         self.read_only = read_only
 
-    def _group_exp_tasks(self, task_confs: List[attrdict.AttrDict]) -> dict:
+    def _group_exp_tasks(self, task_confs: List[Dict]) -> Dict:
         """group tasks by experiment to access common attributes like reps_per_job
 
         Args:
@@ -149,7 +147,7 @@ class JobFactory:
             grouped_exps[name].append(t)
         return grouped_exps
 
-    def _divide_tasks(self, task_confs: List[attrdict.AttrDict]) -> List[List[attrdict.AttrDict]]:
+    def _divide_tasks(self, task_confs: List[Dict]) -> List[List[Dict]]:
         """internal function to divide experiment repetitions into sets of repetitions.
         Dependent on configured reps_per_job attribute. Each set of repetitions will be one job.
 
@@ -176,7 +174,7 @@ class JobFactory:
                 tasks.append(exp_group[start_rep:start_rep + rep_portion])
         return tasks
 
-    def create_jobs(self, exp_configs: List[attrdict.AttrDict]) -> List[Job]:
+    def create_jobs(self, exp_configs: List[Dict]) -> List[Job]:
         """creates a list of all jobs.
 
         Args:

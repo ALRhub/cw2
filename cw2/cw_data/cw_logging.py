@@ -5,8 +5,6 @@ import pprint
 import sys
 from typing import Iterable, Optional, Dict, List
 
-import attrdict
-
 
 class AbstractLogger(abc.ABC):
     """Abstract Base Class for all Loggers
@@ -44,7 +42,7 @@ class AbstractLogger(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
         """needs to be implemented by subclass.
         Called once at the start of each repetition.
         Used to configure / reset the Logger for each repetition.
@@ -93,7 +91,7 @@ class LoggerArray(AbstractLogger):
     def add(self, logger: AbstractLogger) -> None:
         self._logger_array.append(logger)
 
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
         for logger in self._logger_array:
             logger.initialize(config, rep, rep_log_path)
 
@@ -135,7 +133,7 @@ class Printer(AbstractLogger):
     """Prints the result of each iteration to the console.
     """
 
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
         pass
 
     def process(self, data: dict) -> None:
@@ -157,7 +155,7 @@ class PythonLogger(AbstractLogger):
     def __init__(self):
         self.logger = getLogger()
 
-    def initialize(self, config: attrdict.AttrDict, rep: int, rep_log_path: str) -> None:
+    def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
         self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'), delay=True)
         self.outh.setLevel(logging.INFO)
         self.outh.setFormatter(_formatter)

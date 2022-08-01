@@ -121,11 +121,11 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         # Delete Anchor when coming back
         del traversal_dict[import_yml]
 
-
         resolved_conf = merge_default(ext_resolved_conf, [config])[0]
         resolved_conf = archive_import_keys(resolved_conf)
         resolved_configs.append(resolved_conf)
     return resolved_configs
+
 
 def custom_import_exp(config: dict) -> bool:
     """check if the config uses a custom import_exp
@@ -141,6 +141,7 @@ def custom_import_exp(config: dict) -> bool:
     if config[KEY.IMPORT_EXP].lower() == KEY.DEFAULT:
         return False
     return True
+
 
 def archive_import_keys(config: dict) -> dict:
     """
