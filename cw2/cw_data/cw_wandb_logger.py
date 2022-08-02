@@ -76,7 +76,7 @@ class WandBLogger(cw_logging.AbstractLogger):
     def init_fields(self,  config: Dict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
         self.rep = rep
-        self.config = config.wandb
+        self.config = config['wandb']
         self.cw2_config = config
         reset_wandb_env()
         self.job_name = config['_experiment_name'].replace("__", "_")
@@ -87,7 +87,7 @@ class WandBLogger(cw_logging.AbstractLogger):
 
         # optional: change the job_type to a fixed alias if the option is present
         if "job_type" in self.config:
-            self.job_name = self.config.job_type
+            self.job_name = self.config['job_type']
         # have entity and group config entry optional
         self.entity = self.config.get("entity", None)
         self.group = self.config.get("group", None)
@@ -105,14 +105,14 @@ class WandBLogger(cw_logging.AbstractLogger):
         for i in range(10):
 
             try:
-                self.run = wandb.init(project=self.cw2_config.wandb.project,
+                self.run = wandb.init(project=self.cw2_config['wandb']['project'],
                                       entity=self.entity,
                                       group=self.group,
                                       job_type=self.job_name[:63],
                                       name=self.runname[:63],
-                                      config=self.cw2_config.params,
+                                      config=self.cw2_config['params'],
                                       dir=self.log_path,
-                                      settings=wandb.Settings(_disable_stats=self.cw2_config.wandb.get("disable_stats",
+                                      settings=wandb.Settings(_disable_stats=self.cw2_config['wandb'].get("disable_stats",
                                                                                               False))
                                       )
                 return  # if starting the run is successful, exit the loop (and in this case the function)
@@ -136,7 +136,7 @@ class WandBLogger(cw_logging.AbstractLogger):
                 return
 
             if "histogram" in self.config:
-                for el in self.config.histogram:
+                for el in self.config['histogram']:
                     if el in data:
                         self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
             filtered_data = self.filter(data)
