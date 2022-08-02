@@ -1,10 +1,8 @@
 import os
-from typing import List, Tuple, Dict
-
+from typing import List, Tuple
 import yaml
 
 from cw2.cw_config import cw_conf_keys as KEY
-from cw2.cw_data import cw_logging
 from cw2.cw_error import MissingConfigError, ExperimentNotFoundError
 
 
@@ -43,8 +41,8 @@ def read_yaml(config_path: str) -> List[dict]:
     return all_configs
 
 
-def seperate_configs(all_configs: List[Dict], experiment_selections: List[str],
-                     suppress: bool = False) -> Tuple[Dict, Dict, List[Dict]]:
+def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
+                     suppress: bool = False) -> Tuple[dict, dict, List[dict]]:
     """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:

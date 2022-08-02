@@ -38,8 +38,8 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
     def __init__(self, conf: cw_config.Config = None):
 
         super(GPUDistributingLocalScheduler, self).__init__(conf=conf)
-        self._total_num_gpus = int(conf.slurm_config.sbatch_args["gres"][4:])
-        self._gpus_per_rep = conf.slurm_config.gpus_per_rep
+        self._total_num_gpus = int(conf.slurm_config['sbatch_args']['gres'][4:])
+        self._gpus_per_rep = conf.slurm_config['gpus_per_rep']
         self._queue_elements = self._total_num_gpus // self._gpus_per_rep
 
     def run(self, overwrite: bool = False):
@@ -92,7 +92,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         # 3.) Number of GPUs per rep != total number of gpus requested
         return "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
                 "gpus_per_rep" in conf.slurm_config and \
-               (int(conf.slurm_config.sbatch_args["gres"][4:]) != conf.slurm_config.gpus_per_rep)
+               (int(conf.slurm_config["sbatch_args"]["gres"][4:]) != conf.slurm_config["gpus_per_rep"])
 
 
 class LocalScheduler(AbstractScheduler):

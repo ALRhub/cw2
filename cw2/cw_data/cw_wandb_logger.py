@@ -14,6 +14,7 @@ from itertools import groupby
 from cw2.cw_data import cw_logging
 from cw2.util import get_file_names_in_directory
 
+
 def reset_wandb_env():
     exclude = {
         "WANDB_PROJECT",

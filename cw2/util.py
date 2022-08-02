@@ -1,13 +1,16 @@
-import collections
 import datetime
 import os
 import re
 
-from collections.abc import MutableMapping, Mapping, MutableSequence
+try:
+    from collections.abc import MutableMapping, Mapping, MutableSequence  # noqa
+except ImportError:
+    from collections import MutableMapping, Mapping, MutableSequence  # noqa
 
 
 def deep_update(base_dict: dict, update_dict: dict) -> dict:
-    """Updates the base dictionary with corresponding values from the update dictionary, including nested collections. Not updated values are kept as is.
+    """Updates the base dictionary with corresponding values from the update dictionary, including nested collections.
+       Not updated values are kept as is.
 
     Arguments:
         base_dict {dict} -- dictionary to be updated
