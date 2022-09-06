@@ -141,7 +141,8 @@ class WandBLogger(cw_logging.AbstractLogger):
                     if el in data:
                         self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
             filtered_data = self.filter(data)
-            self.run.log(filtered_data, step=data["iter"])
+            step = data.get("iter", None)
+            self.run.log(filtered_data, step=step)
 
     def finalize(self) -> None:
         if self.run is not None:
