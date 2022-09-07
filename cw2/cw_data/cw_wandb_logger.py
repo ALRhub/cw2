@@ -182,3 +182,7 @@ class WandBLogger(cw_logging.AbstractLogger):
         # Log and upload
         self.run.log_artifact(model_artifact, aliases=aliases)
 
+    def log_plot(self, x, y, column_names=("x", "y"), plot_id="plot", title="Plot"):
+        data = [list(i) for i in zip(x, y)]
+        table = wandb.Table(data=data, columns = column_names)
+        self.run.log({plot_id : wandb.plot.line(table, column_names[0], column_names[0], title=title)})
