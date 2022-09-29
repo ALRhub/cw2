@@ -16,10 +16,11 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.5',
+    version='2.0.0',
 
-    description='A reengineered framework to run experiments on an computing cluster.',
+    description='A reengineered framework to run experiments on a computing cluster.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url='https://github.com/ALRhub/cw2',
@@ -28,15 +29,10 @@ setup(
     author='Maximilian Li',
     author_email='maximilian.xiling.li@gmail.com',
 
-    # Choose your license
-    # license='BSD-3',
+    license='MIT',
 
     classifiers=[
-        # How mature is this project?
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 3 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
@@ -44,8 +40,6 @@ setup(
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Education',
-
-        #'License :: OSI Approved :: BSD License',
 
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
@@ -55,6 +49,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Environment :: Console'
     ],
 

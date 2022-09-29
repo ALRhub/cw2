@@ -1,32 +1,14 @@
 # cw2 - ClusterWork 2
 
-A second iteration of a the software framework ClusterWork to easily deploy experiments on an computing cluster using SLURM.
+ClusterWork 2 is a pyhton framework to manage experiments using YAML config files. It also enables users to easily deploy multiple experiments using different configurations on computing clusters, which support the [slurm workload manager](https://slurm.schedmd.com/documentation.html).
 
 ## Installation
-0. We recommend creating a virtual environment with [virtualenv](https://virtualenv.pypa.io/en/stable/) or [conda](https://conda.io/miniconda.html) before installing **cw2**:
-    - Create a conda environment and activate it:
-    ```bash
-    conda create -n my_env python=3
-    conda activate my_env
-    ```
-    - Or create a virtualenv environment and activate it
-    ```bash
-    virtualenv -p python3 /path/to/my_env
-    source /path/to/my_env/bin/activate
-    ```
-1. Clone or Download **cw2**
-    ```bash
-    git clone https://github.com/ALRhub/cw2.git
-    ```
-
-2. Install **cw2**:
-     ```bash
-     cd /path/to/cw2
-     pip install .
-     ```
+```bash
+pip install cw2
+```
 
 ## Quickstart
-Please refer to the [Quickstart Guide](doc/01_quickstart.md) in the documentation folder.
+Please refer to the [Quickstart Guide](doc/01_quickstart.md).
 
 ## Program Execution
 To start an experiment locally, e.g. for testing:
