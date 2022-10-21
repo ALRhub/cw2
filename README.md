@@ -1,6 +1,6 @@
 # cw2 - ClusterWork 2
 
-ClusterWork 2 is a pyhton framework to manage experiments using YAML config files. It also enables users to easily deploy multiple experiments using different configurations on computing clusters, which support the [slurm workload manager](https://slurm.schedmd.com/documentation.html).
+ClusterWork 2 is a python framework to manage experiments using YAML config files. It also enables users to easily deploy multiple experiments using different configurations on computing clusters, which support the [slurm workload manager](https://slurm.schedmd.com/documentation.html).
 
 ## Installation
 ```bash
