@@ -42,8 +42,22 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         self._gpus_per_rep = conf.slurm_config['gpus_per_rep']
         self._queue_elements = self._total_num_gpus // self._gpus_per_rep
 
-    def run(self, overwrite: bool = False):
+    @staticmethod
+    def use_distributed_gpu_scheduling(conf: cw_config.Config) -> bool:
+        if conf.slurm_config is None:
+            return False
+        # Use if
+        # 1.) GPUs Requested
+        # 2.) Number of GPUs per rep specified
+        # 3.) Number of GPUs per rep != total number of gpus requested
+        return "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
+                "gpus_per_rep" in conf.slurm_config and \
+               (int(conf.slurm_config["sbatch_args"]["gres"][4:]) != conf.slurm_config["gpus_per_rep"])
 
+
+class StarmapGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
+
+    def run(self, overwrite: bool = False):
         num_parallel = self.joblist[0].n_parallel
         for j in self.joblist:
             assert j.n_parallel == num_parallel, "All jobs in list must have same n_parallel"
@@ -58,11 +72,8 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
                 gpu_queue.put(i)
 
             for j in self.joblist:
-                for c in j.tasks:
-                    pool.apply_async(GPUDistributingLocalScheduler._execute_task, (j, c, gpu_queue,
-                                                                                   self._gpus_per_rep,
-                                                                                   overwrite))
-
+                args = [(j, c, gpu_queue, self._gpus_per_rep, overwrite) for c in j.tasks]
+                pool.starmap_async(StarmapGPUDistributingLocalScheduler._execute_task, args)
             pool.close()
             pool.join()
 
@@ -82,17 +93,47 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         finally:
             q.put(gpu_idx)
 
-    @staticmethod
-    def use_distributed_gpu_scheduling(conf: cw_config.Config) -> bool:
-        if conf.slurm_config is None:
-            return False
-        # Use if
-        # 1.) GPUs Requested
-        # 2.) Number of GPUs per rep specified
-        # 3.) Number of GPUs per rep != total number of gpus requested
-        return "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
-                "gpus_per_rep" in conf.slurm_config and \
-               (int(conf.slurm_config["sbatch_args"]["gres"][4:]) != conf.slurm_config["gpus_per_rep"])
+
+class RayGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
+
+    def run(self, overwrite: bool = False):
+        import ray
+        from ray.util.queue import Queue
+
+        @ray.remote
+        def _execute_task(j: job.Job,
+                          c: dict,
+                          q,
+                          gpus_per_job: int,
+                          overwrite: bool = False):
+            gpu_idx = q.get()
+            print("I got gpu idx", gpu_idx)
+            s = ("{}," * gpus_per_job).format(*[gpu_idx * gpus_per_job + i for i in range(gpus_per_job)])[:-1]
+            try:
+                os.environ["CUDA_VISIBLE_DEVICES"] = s
+                j.run_task(c, overwrite)
+            except cw_error.ExperimentSurrender as _:
+                return
+            finally:
+                print("giving back gpu idx", gpu_idx)
+                q.put(gpu_idx)
+
+        ray.init()
+        num_parallel = self.joblist[0].n_parallel
+        for j in self.joblist:
+            assert j.n_parallel == num_parallel, "All jobs in list must have same n_parallel"
+            assert j.n_parallel == self._queue_elements, "Mismatch between GPUs Queue Elements and Jobs executed in" \
+                                                         "parallel. Fix for optimal resource usage!!"
+        gpu_queue = Queue(maxsize=self._queue_elements)
+
+        for i in range(self._queue_elements):
+            gpu_queue.put(i)
+        results = []
+        for j in self.joblist:
+            for i, c in enumerate(j.tasks):
+                results.append(RayGPUDistributingLocalScheduler._execute_task.remote(j, c, gpu_queue,
+                                                                                     self._gpus_per_rep, overwrite))
+        ray.get(results)
 
 
 class LocalScheduler(AbstractScheduler):

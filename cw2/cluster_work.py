@@ -63,7 +63,8 @@ class ClusterWork:
             # Do Local execution
             if sch is None:
                 if scheduler.GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
-                    s = scheduler.GPUDistributingLocalScheduler(self.config)
+                    s = scheduler.StarmapGPUDistributingLocalScheduler(self.config)
+                    #s = scheduler.RayGPUDistributingLocalScheduler(self.config)
                 else:
                     s = scheduler.LocalScheduler()
             else:

@@ -357,7 +357,11 @@ def run_slurm(conf: cw_config.Config, num_jobs: int) -> None:
     dir_mgr.move_files(num_jobs)
 
     # Write and call slurm script
-    slurm_script = write_slurm_script(sc, dir_mgr)
+    use_horeka = sc.slurm_conf.pop("horeka_template", False)
+    if use_horeka:
+        slurm_script = write_slurm_script_heureka_acc(sc, dir_mgr)
+    else:
+        slurm_script = write_slurm_script(sc, dir_mgr)
     cmd = "sbatch " + slurm_script
     print(cmd)
     subprocess.check_output(cmd, shell=True)
@@ -401,6 +405,74 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
         tline = tline.replace('%%slurm_log%%', sc[SKEYS.SLURM_LOG])
 
         tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
+        tline = tline.replace('%%cpus-per-task%%',
+                              '{:d}'.format(sc['cpus-per-task']))
+        tline = tline.replace('%%time%%', sc[SKEYS.TIME])
+
+        tline = tline.replace('%%sh_lines%%', sc[SKEYS.SH_LINES])
+
+        tline = tline.replace('%%venv%%', sc[SKEYS.VENV])
+        tline = tline.replace('%%pythonpath%%', dir_mgr.get_py_path())
+
+        tline = tline.replace('%%python_script%%', exp_main_file)
+        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
+
+        tline = tline.replace('%%cw_args%%', sc[SKEYS.CW_ARGS])
+        tline = tline.replace('%%sbatch_args%%', sc[SKEYS.SBATCH_ARGS])
+
+        fid_out.write(tline)
+
+        tline = fid_in.readline()
+    fid_in.close()
+    fid_out.close()
+    return output_path
+
+
+def write_slurm_script_heureka_acc(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) -> str:
+    """write the sbatch.sh script for slurm to disk
+
+    Args:
+        slurm_conf (SlurmConfig): Slurm configuration object
+
+    Returns:
+        str: path to the written script
+    """
+    sc = slurm_conf.slurm_conf
+    conf = slurm_conf.conf
+
+    template_path = sc[SKEYS.TEMPLATE_PATH]
+    template_path = template_path.split("/")
+    template_path[-1] = "horeka_sbatch_template.sh"
+    template_path = "/".join(template_path)
+    output_path = sc[SKEYS.SLURM_OUT]
+
+    exp_main_file = os.path.relpath(__main__.__file__, os.getcwd())
+
+    fid_in = open(template_path, 'r')
+    fid_out = open(output_path, 'w')
+
+    tline = fid_in.readline()
+
+    num_tasks = sc[SKEYS.LAST_IDX] + 1
+    assert num_tasks % 4 == 0
+    num_effective_tasks = num_tasks // 4
+
+    while tline:
+        tline = tline.replace('%%partition%%', sc['partition'])
+        tline = tline.replace('%%account%%', sc[SKEYS.ACCOUNT])
+        tline = tline.replace('%%job-name%%', sc['job-name'])
+
+        tline = tline.replace('%%last_job_idx%%',
+                              '{:d}'.format(num_effective_tasks - 1))
+        tline = tline.replace('%%num_parallel_jobs%%',
+                              '{:d}'.format(sc['num_parallel_jobs']))
+
+        tline = tline.replace('%%experiment_execution_dir%%',
+                              dir_mgr.get_exp_exec_dir())
+
+        tline = tline.replace('%%slurm_log%%', sc[SKEYS.SLURM_LOG])
+
+#        tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
         tline = tline.replace('%%cpus-per-task%%',
                               '{:d}'.format(sc['cpus-per-task']))
         tline = tline.replace('%%time%%', sc[SKEYS.TIME])
