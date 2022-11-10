@@ -41,6 +41,7 @@ if __name__ == "__main__":
 
     sys.argv.append("horeka_config.yml")
     sys.argv.append("-o")
+   # sys.argv.append("-s")
 
     cw = ClusterWork(TestExperiment)
     cw.run()
