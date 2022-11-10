@@ -9,7 +9,6 @@ time: 2
 ntasks: 1
 cpus-per-task: 10
 gpus_per_rep: 1
-scheduler: "pa"
 sbatch_args:
   gres: "gpu:4"
 

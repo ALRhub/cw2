@@ -59,12 +59,17 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         # 1.) GPUs Requested
         # 2.) Number of GPUs per rep specified
         # 3.) Number of GPUs per rep != total number of gpus requested
+        gpus_requested = "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT")
+        gpus_per_rep_specified = "gpus_per_rep" in conf.slurm_config
+        num_gpus_requested = int(conf.slurm_config["sbatch_args"]["gres"][4:]) if gpus_requested else 0
+
         use_distributed_gpu_scheduling = \
-            "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT") and \
-            "gpus_per_rep" in conf.slurm_config and \
-            (int(conf.slurm_config["sbatch_args"]["gres"][4:]) != conf.slurm_config["gpus_per_rep"])
+            gpus_requested and gpus_per_rep_specified and num_gpus_requested != conf.slurm_config["gpus_per_rep"]
+
         if not use_distributed_gpu_scheduling:
             on_horeka_gpu = "hkn" in socket.gethostname() and conf.slurm_config["partition"] == "accelerated"
+            if on_horeka_gpu:
+                assert num_gpus_requested == 4, "On HoreKA, you must request 4 GPUs (gres=gpu:4)"
             assert not on_horeka_gpu, "You are on HoreKA and not using the GPU scheduler, don't! "
 
         return use_distributed_gpu_scheduling

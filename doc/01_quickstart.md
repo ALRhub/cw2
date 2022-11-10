@@ -107,6 +107,6 @@ python3 MY_CW_MAIN.py YOUR_CONFIG.yml -s
 
 For more information on slurm: [Slurm Guide](04_slurm.md) 
 
-For more information on available CLI Arguments: [CLI at a Glance](10_cli_args.md)
+For more information on available CLI Arguments: [CLI at a Glance](11_cli_args.md)
 
 [Back to Overview](./)
