@@ -23,6 +23,8 @@ class Arguments:
         p.add_argument('--skipsizecheck', action='store_true', help='Skip check if code copy src < 200MByte')
         p.add_argument('--multicopy', action='store_true', help='Create a code copy for each job seperately')
         p.add_argument('--noconsolelog', action='store_true', help='Disables writing internal console log files')
+        p.add_argument('--debug', action='store_true', default=False, help='Enable debug mode.')
+        p.add_argument('--debugall', action='store_true', default=False, help='Enable debug mode for arguments.')
 
         self.args = p.parse_args(namespace=self)
 

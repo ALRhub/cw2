@@ -22,7 +22,7 @@ class Polynomial(experiment.AbstractIterativeExperiment):
             y = 3 / 0
 
         params = config['params']
-
+        print(params)
         x_0 = params['x_0']
         x_1 = params['x_1']
         x_2 = params['x_2']
@@ -44,6 +44,12 @@ class Polynomial(experiment.AbstractIterativeExperiment):
 
 
 if __name__ == "__main__":
+    import sys
+    sys.argv.append("polynom_config.yml")
+    sys.argv.append("-o")
+    sys.argv.append("-s")
+    sys.argv.append("--debug")
+
     cw = cluster_work.ClusterWork(Polynomial)
     cw.add_logger(cw_pd_logger.PandasLogger())
     cw.run()

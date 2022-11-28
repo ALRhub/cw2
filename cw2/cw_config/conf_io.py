@@ -17,7 +17,7 @@ def get_configs(config_path: str, experiment_selections: List[str]) -> Tuple[dic
         Tuple[dict, dict, List[dict]]: SLURM, DEFAULT, Experiment Configurations
     """
     all_configs = read_yaml(config_path)
-    return seperate_configs(all_configs, experiment_selections)
+    return separate_configs(all_configs, experiment_selections)
 
 
 def read_yaml(config_path: str) -> List[dict]:
@@ -41,26 +41,26 @@ def read_yaml(config_path: str) -> List[dict]:
     return all_configs
 
 
-def seperate_configs(all_configs: List[dict], experiment_selections: List[str],
-                     suppress: bool = False) -> Tuple[dict, dict, List[dict]]:
-    """seperates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
+def separate_configs(all_configs: List[dict], experiment_selections: List[str],
+                     suppress: bool = False) -> Tuple[List[dict], dict, List[dict]]:
+    """separates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:
-        all_configs {List[dict]}: a list of all configurations
+        all_configs (List[dict]): a list of all configurations
         experiment_selections (List[str], optional): List of specific experiments to run. If None runs all. Defaults to None.
 
     Returns:
         Tuple[dict, dict, List[dict]]: SLURM, DEFAULT, Experiment Configurations, in this order
     """
     default_config = None
-    slurm_config = None
+    slurm_config = []
     experiment_configs = []
 
     for c in all_configs:
         name = c[KEY.NAME]
 
-        if name.lower() == KEY.SLURM:
-            slurm_config = c
+        if KEY.SLURM in name.lower():
+            slurm_config.append(c)
         elif name.lower() == KEY.DEFAULT:
             default_config = c
         else:

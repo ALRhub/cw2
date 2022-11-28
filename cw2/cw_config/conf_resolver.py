@@ -101,7 +101,7 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
                 "Cyclic YML import with {} : {}".format(import_yml, ext_exp_name))
 
         # Default Merge External
-        _, external, ext_selection = conf_io.seperate_configs(all_external_configs, [ext_exp_name], suppress=True)
+        _, external, ext_selection = conf_io.separate_configs(all_external_configs, [ext_exp_name], suppress=True)
 
         if custom_import_exp(config):
             if len(ext_selection) == 0:

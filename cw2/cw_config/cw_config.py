@@ -1,4 +1,5 @@
 import os
+import socket
 from typing import List, Tuple
 
 import cw2.cw_config.cw_conf_keys as KEY
@@ -6,7 +7,9 @@ from cw2.cw_config import conf_io, conf_resolver, conf_path, conf_unfolder
 
 
 class Config:
-    def __init__(self, config_path: str = None, experiment_selections: List[str] = None):
+    def __init__(self, config_path: str = None,
+                 experiment_selections: List[str] = None,
+                 debug: bool = False, debug_all: bool = False):
         self.slurm_config = None
         self.exp_configs = None
 
@@ -15,9 +18,13 @@ class Config:
         self.exp_selections = experiment_selections
 
         if config_path is not None:
-            self.load_config(config_path, experiment_selections)
+            self.load_config(config_path, experiment_selections, debug, debug_all)
 
-    def load_config(self, config_path: str, experiment_selections: List[str] = None):
+    def load_config(self,
+                    config_path: str,
+                    experiment_selections: List[str] = None,
+                    debug: bool = False,
+                    debug_all: bool = False) -> None:
         """Loads config from YAML file
         The config can include multiple experiments, DEFAULT paramters and a SLURM configuration
 
@@ -31,11 +38,40 @@ class Config:
 
         self.exp_selections = experiment_selections
 
-        self.slurm_config, self.exp_configs = self._parse_configs(
-            config_path, experiment_selections)
+        slurm_configs, self.exp_configs = self._parse_configs(
+            config_path, experiment_selections, debug, debug_all)
+        self.slurm_config = self._filter_slurm_configs(slurm_configs)
 
-    def _parse_configs(self, config_path: str, experiment_selections: List[str] = None) -> Tuple[dict, List[dict]]:
-        """parse the config file, including seperating the SLURM configuration and expanding grid / list search params
+    @staticmethod
+    def _filter_slurm_configs(slurm_configs: List[dict]) -> dict:
+        """Returns machine/cluster specific slurm conf (identified by hostname)
+           if available, otherwise returns the default one (if available)
+
+        Arguments:
+            slurm_configs: (list[dict]) -- all slurm configurations found in the config file
+        Returns:
+            dict -- SLURM configuration to use for this machine
+        """
+        default_conf = None
+        specific_conf = None
+        hostname = socket.gethostname().lower()
+        print("Hostname: {}".format(hostname))
+        for c in slurm_configs:
+            print("Found slurm config: {}".format(c[KEY.NAME]))
+            if c[KEY.NAME].lower() == KEY.SLURM.lower():
+                print("Seeting default slurm config")
+                default_conf = c
+            elif c[KEY.NAME].split("_")[1].lower() in hostname:
+                print("Setting specific slurm config: {}".format(c[KEY.NAME]))
+                specific_conf = c
+                specific_conf[KEY.NAME] = KEY.SLURM
+
+        return specific_conf if specific_conf is not None else default_conf
+
+    def _parse_configs(self, config_path: str, experiment_selections: List[str] = None,
+                       debug: bool = False, debug_all: bool = False) \
+            -> Tuple[List[dict], List[dict]]:
+        """parse the config file, including separating the SLURM configuration and expanding grid / list search params
 
         Arguments:
             config_path {str} -- path to the configuration file
@@ -49,7 +85,7 @@ class Config:
 
         experiment_configs = conf_resolver.resolve_dependencies(default_config, experiment_configs,
                                                                 self.config_path)
-        experiment_configs = conf_unfolder.unfold_exps(experiment_configs)
+        experiment_configs = conf_unfolder.unfold_exps(experiment_configs, debug, debug_all)
 
         return slurm_config, experiment_configs
 
