@@ -9,7 +9,8 @@ from cw2.cw_config import cw_conf_keys as KEY
 from cw2.cw_data import cw_logging
 
 
-def unfold_exps(exp_configs: List[dict]) -> List[dict]:
+def unfold_exps(exp_configs: List[dict],
+                debug: bool, debug_all: bool) -> List[dict]:
     """unfolds a list of experiment configurations into the different
     hyperparameter runs and repetitions
 
@@ -19,12 +20,13 @@ def unfold_exps(exp_configs: List[dict]) -> List[dict]:
     Returns:
         List[dict]: list of unfolded experiment configurations
     """
-    param_expansion = expand_experiments(exp_configs)
+    param_expansion = expand_experiments(exp_configs, debug, debug_all)
     unrolled = unroll_exp_reps(param_expansion)
     return unrolled
 
 
-def expand_experiments(_experiment_configs: List[dict]) -> List[dict]:
+def expand_experiments(_experiment_configs: List[dict],
+                       debug: bool, debug_all: bool) -> List[dict]:
     """Expand the experiment configuration with concrete parameter instantiations
 
     Arguments:
@@ -36,6 +38,9 @@ def expand_experiments(_experiment_configs: List[dict]) -> List[dict]:
 
     # get all options that are iteratable and build all combinations (grid) or tuples (list)
     experiment_configs = deepcopy(_experiment_configs)
+    if debug or debug_all:
+        for ec in experiment_configs:
+            ec[KEY.REPS] = ec["iterations"] = ec[KEY.REPS_PARALL] = ec[KEY.REPS_P_JOB] = 1
     expanded_config_list = []
     for config in experiment_configs:
         iter_func = None
@@ -58,7 +63,7 @@ def expand_experiments(_experiment_configs: List[dict]) -> List[dict]:
             key = KEY.LIST
 
             experiment_configs += params_combine(
-                config, key, iter_func)
+                config, key, iter_func)[:1 if debug else 0:]
             continue
 
         if KEY.GRID in config:
@@ -74,7 +79,7 @@ def expand_experiments(_experiment_configs: List[dict]) -> List[dict]:
         if KEY.ABLATIVE in config:
             expansion += ablative_expand(expansion)
 
-        expanded_config_list += expansion
+        expanded_config_list += expansion[:1] if debug and not debug_all else expansion
     return conf_path.normalize_expanded_paths(expanded_config_list)
 
 

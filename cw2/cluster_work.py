@@ -10,7 +10,10 @@ class ClusterWork:
 
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
-        self.config = cw_config.Config(self.args['config'], self.args['experiments'])
+        self.config = cw_config.Config(self.args['config'],
+                                       self.args['experiments'],
+                                       self.args['debug'],
+                                       self.args['debugall'])
 
         self.logArray = cw_logging.LoggerArray()
 

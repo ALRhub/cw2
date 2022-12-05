@@ -1,6 +1,6 @@
 ---
 # Slurm config (optional)
-name: "SLURM"   # MUST BE "SLURM"
+name: "SLURM_ret"   # MUST BE "SLURM"
 
 # Required
 partition: "dev"
@@ -15,7 +15,7 @@ mem-per-cpu: 1000
 time: 30
 
 #experiment_copy_auto_dst: "/home/max/autodst"
-experiment_copy_src: "."
+#experiment_copy_src: "."
 
 # Optional
 #venv: "/home/max_li/venv/bin/activate"   # optional. path to your virtual environment activate-file
@@ -31,7 +31,7 @@ sh_lines:
 # DEFAULT parameters (Optional)
 name: "DEFAULT"   # MUST BE 'DEFAULT'
 reps_per_job: 4
-reps_in_parallel: 3
+reps_in_parallel: 1
 
 # Required: Can also be set in DEFAULT
 path: "/tmp/polylog"   # location to save results in
@@ -62,6 +62,10 @@ iterations: 100
 
 #import_path: "./external_conf.yml"
 #import_exp: "ext_exp"
+
+params:
+  x_0: 0
+  x_3: 0
 
 ablative:
   x_0: [2]
