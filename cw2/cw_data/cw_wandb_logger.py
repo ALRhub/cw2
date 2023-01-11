@@ -114,7 +114,8 @@ class WandBLogger(cw_logging.AbstractLogger):
                                       config=self.cw2_config['params'],
                                       dir=self.log_path,
                                       settings=wandb.Settings(_disable_stats=self.cw2_config['wandb'].get("disable_stats",
-                                                                                              False))
+                                                                                              False)),
+                                      mode="online" if self.cw2_config['wandb'].get("enabled", True) else "disabled",
                                       )
                 return  # if starting the run is successful, exit the loop (and in this case the function)
             except Exception as e:
