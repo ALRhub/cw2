@@ -5,7 +5,7 @@ from random import random
 
 # To prevent conflicts between wandb and the joblib scheduler
 # see https://github.com/wandb/client/issues/1525 for reference
-os.environ["WANDB_START_METHOD"] = "thread"
+# os.environ["WANDB_START_METHOD"] = "thread"
 
 import wandb
 from typing import Optional, Iterable, List, Dict
@@ -114,7 +114,8 @@ class WandBLogger(cw_logging.AbstractLogger):
                                       config=self.cw2_config['params'],
                                       dir=self.log_path,
                                       settings=wandb.Settings(_disable_stats=self.cw2_config['wandb'].get("disable_stats",
-                                                                                              False))
+                                                                                              False)),
+                                      mode="online" if self.cw2_config['wandb'].get("enabled", True) else "disabled",
                                       )
                 return  # if starting the run is successful, exit the loop (and in this case the function)
             except Exception as e:
