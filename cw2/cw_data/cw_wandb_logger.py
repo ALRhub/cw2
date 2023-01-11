@@ -5,7 +5,7 @@ from random import random
 
 # To prevent conflicts between wandb and the joblib scheduler
 # see https://github.com/wandb/client/issues/1525 for reference
-# os.environ["WANDB_START_METHOD"] = "thread"
+os.environ["WANDB_START_METHOD"] = "thread"
 
 import wandb
 from typing import Optional, Iterable, List, Dict
