@@ -154,7 +154,7 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
 
             for j in self.joblist:
                 for c in j.tasks:
-                    pool.apply_async(HOREKAAffinityGPUDistributingLocalScheduler._execute_task, (j, c, gpu_queue,
+                    pool.map(HOREKAAffinityGPUDistributingLocalScheduler._execute_task, (j, c, gpu_queue,
                                                                                                  self._gpus_per_rep,
                                                                                                  self._cpus_per_rep,
                                                                                                  overwrite))
