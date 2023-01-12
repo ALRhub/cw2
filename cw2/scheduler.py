@@ -1,4 +1,5 @@
 import abc
+import concurrent.futures
 import os
 from typing import List
 
@@ -143,7 +144,8 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
             assert j.n_parallel == self._queue_elements, "Mismatch between GPUs Queue Elements and Jobs executed in" \
                                                          "parallel. Fix for optimal resource usage!!"
 
-        with multiprocessing.Pool(processes=num_parallel) as pool:
+        # with multiprocessing.Pool(processes=num_parallel) as pool:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_parallel) as pool:
             # setup gpu resource queue
             m = multiprocessing.Manager()
             gpu_queue = m.Queue(maxsize=self._queue_elements)
