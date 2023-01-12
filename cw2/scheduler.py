@@ -158,8 +158,8 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
                                                                                                  self._gpus_per_rep,
                                                                                                  self._cpus_per_rep,
                                                                                                  overwrite))
-            pool.close()
-            pool.join()
+            # pool.close()
+            # pool.join()
 
     @staticmethod
     def _execute_task(j: job.Job,
