@@ -145,8 +145,7 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
                                                          "parallel. Fix for optimal resource usage!!"
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=num_parallel,
-                                                    ) as pool:  # Bruce
-            # with multiprocessing.Pool(processes=num_parallel) as pool:
+                                                    ) as pool:
             # setup gpu resource queue
             m = multiprocessing.Manager()
             gpu_queue = m.Queue(maxsize=self._queue_elements)
@@ -159,14 +158,6 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
                         HOREKAAffinityGPUDistributingLocalScheduler._execute_task,
                         j, c, gpu_queue, self._gpus_per_rep, self._cpus_per_rep,
                         overwrite)
-                #     pool.apply_async(
-                # HOREKAAffinityGPUDistributingLocalScheduler._execute_task,
-                # (j, c, gpu_queue, self._gpus_per_rep,
-                #  self._cpus_per_rep,
-                #  overwrite))
-
-                # pool.close()
-                # pool.join()
 
     @staticmethod
     def _execute_task(j: job.Job,
