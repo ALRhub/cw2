@@ -172,7 +172,7 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
         cpus = set(range(queue_idx * cpus_per_rep, (queue_idx + 1) * cpus_per_rep))
         print("Job {}: Using GPUs: {} and CPUs: {}".format(queue_idx, gpu_str, cpus))
         try:
-            os.sched_setaffinity(0, cpus)
+            # os.sched_setaffinity(0, cpus)
             os.environ["CUDA_VISIBLE_DEVICES"] = gpu_str
             j.run_task(c, overwrite)
         except cw_error.ExperimentSurrender as _:
