@@ -10,6 +10,7 @@ import warnings
 from cw2 import cw_error, job
 from cw2.cw_config import cw_config
 from cw2.cw_slurm import cw_slurm
+from cw2.cw_config import cw_conf_keys as KEYS
 
 
 class AbstractScheduler(abc.ABC):
@@ -172,7 +173,8 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
         cpus = set(range(queue_idx * cpus_per_rep, (queue_idx + 1) * cpus_per_rep))
         print("Job {}: Using GPUs: {} and CPUs: {}".format(queue_idx, gpu_str, cpus))
         try:
-            # os.sched_setaffinity(0, cpus)
+            os.sched_setaffinity(0, cpus)
+            c[KEYS.i_CPU_CORES] = cpus
             os.environ["CUDA_VISIBLE_DEVICES"] = gpu_str
             j.run_task(c, overwrite)
         except cw_error.ExperimentSurrender as _:

@@ -33,3 +33,6 @@ i_REP_LOG_PATH = "_rep_log_path"
 # INTERNAL IMPORT ARCHIVE
 i_IMPORT_PATH_ARCHIVE = "_import_path_archive"
 i_IMPORT_EXP_ARCHIVE = "_import_exp_archive"
+
+# CPU CORES ASSIGNMENT
+i_CPU_CORES = "cpu_cores"
