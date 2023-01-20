@@ -62,8 +62,12 @@ def expand_experiments(_experiment_configs: List[dict],
             iter_func = zip
             key = KEY.LIST
 
-            experiment_configs += params_combine(
-                config, key, iter_func)[:1 if debug else 0:]
+            expansion = params_combine(config, key, iter_func)
+
+            if debug:
+                expansion = expansion[:1]
+
+            experiment_configs += expansion
             continue
 
         if KEY.GRID in config:
@@ -79,7 +83,10 @@ def expand_experiments(_experiment_configs: List[dict],
         if KEY.ABLATIVE in config:
             expansion += ablative_expand(expansion)
 
-        expanded_config_list += expansion[:1] if debug and not debug_all else expansion
+        if debug and not debug_all:
+            expansion = expansion[:1]
+
+        expanded_config_list += expansion
     return conf_path.normalize_expanded_paths(expanded_config_list)
 
 
