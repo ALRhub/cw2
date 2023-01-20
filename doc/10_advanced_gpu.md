@@ -98,3 +98,14 @@ You can use them via the `scheduler` key in the `slurm` block of your config, po
 
 - "kluster": Explicitly limits the number of threads used (if you use something else than PyTorch, you probably need to have another look at that)
 - "horeka": Explicitly handles the cpu affinity of individual repetitions.  
+
+## 10.3 Use full CPU's computation power in a GPU node.
+I (Bruce) had some low CPU computation speed issues when do online RL in Horeka GPU node, where I have to use both CPU (for mujoco) and GPU (for agent update). The reason is that for each experiment's generated gym environment, it can use all the cpus of this node and thus often blocks the access of the other environments or other repititions (when multple repititions are running in parallel). To solve it, I added the assigned CPU cores into the cw_config and you can manually assign theses cores to the environments yourself, e.g. one environment has one distinct core. Something like:
+```python
+   env_pids = [envs.processes[i].pid for i in range(num_env)]
+   cores_per_env = len(cw_config["cpu_cores"]) // num_env
+   cpu_cores_list = list(cw_config["cpu_cores"])
+   for i, pid in enumerate(env_pids):
+       cores_env = cpu_cores_list[i * cores_per_env: (i + 1) * cores_per_env]
+       util.assign_process_to_cpu(pid, set(cores_env))
+```

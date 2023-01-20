@@ -1,4 +1,5 @@
 import abc
+import concurrent.futures
 import os
 from typing import List
 
@@ -9,6 +10,7 @@ import warnings
 from cw2 import cw_error, job
 from cw2.cw_config import cw_config
 from cw2.cw_slurm import cw_slurm
+from cw2.cw_config import cw_conf_keys as KEYS
 
 
 class AbstractScheduler(abc.ABC):
@@ -143,7 +145,8 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
             assert j.n_parallel == self._queue_elements, "Mismatch between GPUs Queue Elements and Jobs executed in" \
                                                          "parallel. Fix for optimal resource usage!!"
 
-        with multiprocessing.Pool(processes=num_parallel) as pool:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_parallel,
+                                                    ) as pool:
             # setup gpu resource queue
             m = multiprocessing.Manager()
             gpu_queue = m.Queue(maxsize=self._queue_elements)
@@ -152,12 +155,10 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
 
             for j in self.joblist:
                 for c in j.tasks:
-                    pool.apply_async(HOREKAAffinityGPUDistributingLocalScheduler._execute_task, (j, c, gpu_queue,
-                                                                                                 self._gpus_per_rep,
-                                                                                                 self._cpus_per_rep,
-                                                                                                 overwrite))
-            pool.close()
-            pool.join()
+                    pool.submit(
+                        HOREKAAffinityGPUDistributingLocalScheduler._execute_task,
+                        j, c, gpu_queue, self._gpus_per_rep, self._cpus_per_rep,
+                        overwrite)
 
     @staticmethod
     def _execute_task(j: job.Job,
@@ -173,6 +174,7 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
         print("Job {}: Using GPUs: {} and CPUs: {}".format(queue_idx, gpu_str, cpus))
         try:
             os.sched_setaffinity(0, cpus)
+            c[KEYS.i_CPU_CORES] = cpus
             os.environ["CUDA_VISIBLE_DEVICES"] = gpu_str
             j.run_task(c, overwrite)
         except cw_error.ExperimentSurrender as _:
