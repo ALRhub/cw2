@@ -100,4 +100,4 @@ class ClusterWork:
             job_list = [job_list[args['job']]]
 
         s.assign(job_list)
-        return s.run(overwrite=args['overwrite'])
+        return s.run(overwrite=args['overwrite'], args=args)

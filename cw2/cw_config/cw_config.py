@@ -17,6 +17,9 @@ class Config:
         self.config_path = config_path
         self.exp_selections = experiment_selections
 
+
+        self.path_relative_config = None
+
         if config_path is not None:
             self.load_config(config_path, experiment_selections, debug, debug_all)
 
@@ -126,6 +129,7 @@ class Config:
 
         # Merge into single list
         data = slurm_config + readable_configs
+        self.path_relative_config = fpath
         conf_io.write_yaml(fpath, data)
 
     def _readable_exp_configs(self, relpath: bool = True) -> List[dict]:

@@ -341,7 +341,7 @@ class SlurmDirectoryManager:
         return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
 
 
-def run_slurm(conf: cw_config.Config, num_jobs: int) -> None:
+def run_slurm(conf: cw_config.Config, num_jobs: int, args:dict=None) -> None:
     """starts slurm execution
 
     Args:
@@ -357,13 +357,13 @@ def run_slurm(conf: cw_config.Config, num_jobs: int) -> None:
     dir_mgr.move_files(num_jobs)
 
     # Write and call slurm script
-    slurm_script = write_slurm_script(sc, dir_mgr)
+    slurm_script = write_slurm_script(sc, dir_mgr, args)
     cmd = "sbatch " + slurm_script
     print(cmd)
     subprocess.check_output(cmd, shell=True)
 
 
-def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) -> str:
+def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager, args: dict= None) -> str:
     """write the sbatch.sh script for slurm to disk
 
     Args:
@@ -372,6 +372,10 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
     Returns:
         str: path to the written script
     """
+    if args is not None:
+        rel = args["rel_config"]
+
+
     sc = slurm_conf.slurm_conf
     conf = slurm_conf.conf
 
@@ -411,7 +415,7 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
         tline = tline.replace('%%pythonpath%%', dir_mgr.get_py_path())
 
         tline = tline.replace('%%python_script%%', exp_main_file)
-        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
+        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path if not rel else conf.path_relative_config)
 
         tline = tline.replace('%%cw_args%%', sc[SKEYS.CW_ARGS])
         tline = tline.replace('%%sbatch_args%%', sc[SKEYS.SBATCH_ARGS])

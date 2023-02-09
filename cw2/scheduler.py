@@ -27,7 +27,7 @@ class AbstractScheduler(abc.ABC):
         self.joblist = joblist
 
     @abc.abstractmethod
-    def run(self, overwrite=False):
+    def run(self, overwrite=False, args: dict=None):
         """the scheduler begins to execute all assigned jobs
 
         Args:
@@ -88,7 +88,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
 
 class MPGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
 
-    def run(self, overwrite: bool = False):
+    def run(self, overwrite: bool = False, args: dict=None):
         num_parallel = self.joblist[0].n_parallel
         for j in self.joblist:
             assert j.n_parallel == num_parallel, "All jobs in list must have same n_parallel"
@@ -137,7 +137,7 @@ class HOREKAAffinityGPUDistributingLocalScheduler(GPUDistributingLocalScheduler)
 
         assert self._cpus_per_rep > 0, "Not enough CPUs for the number of GPUs requested"
 
-    def run(self, overwrite: bool = False):
+    def run(self, overwrite: bool = False, args: dict=None):
         print("Seeing CPUs:", os.sched_getaffinity(0))
         num_parallel = self.joblist[0].n_parallel
         for j in self.joblist:
@@ -191,7 +191,7 @@ class KlusterThreadLimitingScheduler(GPUDistributingLocalScheduler):
         self._num_threads = total_cpus // self._queue_elements
         print("Using {} threads per Rep".format(self._num_threads))
 
-    def run(self, overwrite: bool = False):
+    def run(self, overwrite: bool = False, args: dict=None):
         num_parallel = self.joblist[0].n_parallel
         for j in self.joblist:
             assert j.n_parallel == num_parallel, "All jobs in list must have same n_parallel"
@@ -207,8 +207,8 @@ class KlusterThreadLimitingScheduler(GPUDistributingLocalScheduler):
 
             for j in self.joblist:
                 for c in j.tasks:
-                    args = (j, c, gpu_queue, self._gpus_per_rep, self._num_threads, overwrite)
-                    pool.apply_async(KlusterThreadLimitingScheduler._execute_task, args)
+                    arguments = (j, c, gpu_queue, self._gpus_per_rep, self._num_threads, overwrite)
+                    pool.apply_async(KlusterThreadLimitingScheduler._execute_task, arguments)
             pool.close()
             pool.join()
 
@@ -252,7 +252,7 @@ def get_gpu_scheduler_cls(scheduler: str):
 
 
 class LocalScheduler(AbstractScheduler):
-    def run(self, overwrite: bool = False):
+    def run(self, overwrite: bool = False, args: dict=None):
         for j in self.joblist:
             Parallel(n_jobs=j.n_parallel)(delayed(self.execute_task)(j, c, overwrite)
                                           for c in j.tasks)
@@ -265,5 +265,5 @@ class LocalScheduler(AbstractScheduler):
 
 
 class SlurmScheduler(AbstractScheduler):
-    def run(self, overwrite: bool = False):
-        cw_slurm.run_slurm(self.config, len(self.joblist))
+    def run(self, overwrite: bool = False, args: dict=None):
+        cw_slurm.run_slurm(self.config, len(self.joblist), args)
