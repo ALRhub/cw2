@@ -16,7 +16,7 @@ class Arguments:
                        help='Allows to specify which experiments should be run.')
         p.add_argument('-s', '--slurm', action='store_true',
                        help='Run using SLURM Workload Manager.')
-        p.add_argument(-'r', '--rel_config', action='store_true', help='Use relative Configs for Slurm.')
+        p.add_argument('-r', '--rel_config', action='store_true', help='Use relative Configs for Slurm.')
         p.add_argument('-o', '--overwrite', action='store_true',
                        help='Overwrite existing results.')
         p.add_argument('--nocodecopy', action='store_true', help='Skip code copy.')
