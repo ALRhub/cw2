@@ -9,10 +9,8 @@ if __name__ == "__main__":
 
     # load() -> pd.DataFrame
     df = cw.load()
-    
-    rep0 = df.cw2.filter({
-        "x_1": 0
-    })
+
+    rep0 = df.cw2.filter({"x_1": 0})
 
     print(df.head())
 
@@ -21,4 +19,4 @@ if __name__ == "__main__":
     for i, job in df.iterrows():
         single_df = job["PandasLogger"]
         single_df[["sample_y", "true_y"]].plot.line()
-        plt.savefig(job['rep_path'] + "plot.png")
+        plt.savefig(job["rep_path"] + "plot.png")

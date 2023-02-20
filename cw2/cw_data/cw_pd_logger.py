@@ -1,9 +1,9 @@
 import os
+from typing import Dict, Iterable, Optional
 
 import pandas as pd
 
 from cw2.cw_data import cw_logging
-from typing import Optional, Iterable, Dict
 
 
 class PandasLogger(cw_logging.AbstractLogger):
@@ -11,7 +11,11 @@ class PandasLogger(cw_logging.AbstractLogger):
     Each repetition is saved in its own directory. Write occurs after every iteration.
     """
 
-    def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
+    def __init__(
+        self,
+        ignore_keys: Optional[Iterable] = None,
+        allow_keys: Optional[Iterable] = None,
+    ):
         super().__init__(ignore_keys=ignore_keys, allow_keys=allow_keys)
         self.log_path = ""
         self.csv_name = "rep.csv"
@@ -20,8 +24,8 @@ class PandasLogger(cw_logging.AbstractLogger):
 
     def initialize(self, config: Dict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
-        self.csv_name = os.path.join(self.log_path, 'rep_{}.csv'.format(rep))
-        self.pkl_name = os.path.join(self.log_path, 'rep_{}.pkl'.format(rep))
+        self.csv_name = os.path.join(self.log_path, "rep_{}.csv".format(rep))
+        self.pkl_name = os.path.join(self.log_path, "rep_{}.pkl".format(rep))
         self.df = pd.DataFrame()
 
     def process(self, log_data: dict) -> None:
@@ -30,14 +34,14 @@ class PandasLogger(cw_logging.AbstractLogger):
         self.df = self.df.append(data, ignore_index=True)
 
         try:
-            self.df.to_csv(self.csv_name, index_label='index')
+            self.df.to_csv(self.csv_name, index_label="index")
         except:
-            cw_logging.getLogger().warning('Could not save {}'.format(self.csv_name))
+            cw_logging.getLogger().warning("Could not save {}".format(self.csv_name))
 
         try:
             self.df.to_pickle(self.pkl_name)
         except:
-            cw_logging.getLogger().warning('Could not save {}'.format(self.pkl_name))
+            cw_logging.getLogger().warning("Could not save {}".format(self.pkl_name))
 
     def finalize(self) -> None:
         pass

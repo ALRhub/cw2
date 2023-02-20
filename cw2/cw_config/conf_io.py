@@ -1,12 +1,15 @@
 import os
 from typing import List, Tuple
+
 import yaml
 
 from cw2.cw_config import cw_conf_keys as KEY
-from cw2.cw_error import MissingConfigError, ExperimentNotFoundError
+from cw2.cw_error import ExperimentNotFoundError, MissingConfigError
 
 
-def get_configs(config_path: str, experiment_selections: List[str]) -> Tuple[dict, dict, List[dict]]:
+def get_configs(
+    config_path: str, experiment_selections: List[str]
+) -> Tuple[dict, dict, List[dict]]:
     """reads and seperates the experiment configs from a yaml file
 
     Args:
@@ -34,15 +37,16 @@ def read_yaml(config_path: str) -> List[dict]:
 
     all_configs = []
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         for exp_conf in yaml.load_all(f, yaml.FullLoader):
             if exp_conf is not None:
                 all_configs.append(exp_conf)
     return all_configs
 
 
-def separate_configs(all_configs: List[dict], experiment_selections: List[str],
-                     suppress: bool = False) -> Tuple[List[dict], dict, List[dict]]:
+def separate_configs(
+    all_configs: List[dict], experiment_selections: List[str], suppress: bool = False
+) -> Tuple[List[dict], dict, List[dict]]:
     """separates the list of individual configs into the 'special' SLURM, DEFAULT and normal experiment configs
 
     Arguments:
@@ -81,5 +85,5 @@ def write_yaml(fpath, data):
         data : payload
     """
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
-    with open(fpath, 'w') as f:
+    with open(fpath, "w") as f:
         yaml.dump_all(data, f, default_flow_style=False)

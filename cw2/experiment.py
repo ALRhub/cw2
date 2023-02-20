@@ -7,7 +7,9 @@ from cw2.cw_error import ExperimentSurrender
 
 class AbstractExperiment(abc.ABC):
     @abc.abstractmethod
-    def initialize(self, cw_config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
+    def initialize(
+        self, cw_config: dict, rep: int, logger: cw_logging.LoggerArray
+    ) -> None:
         """needs to be implemented by subclass.
         Called once at the start of each repition for initialization purposes.
 

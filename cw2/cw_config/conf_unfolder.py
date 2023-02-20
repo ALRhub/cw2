@@ -9,8 +9,7 @@ from cw2.cw_config import cw_conf_keys as KEY
 from cw2.cw_data import cw_logging
 
 
-def unfold_exps(exp_configs: List[dict],
-                debug: bool, debug_all: bool) -> List[dict]:
+def unfold_exps(exp_configs: List[dict], debug: bool, debug_all: bool) -> List[dict]:
     """unfolds a list of experiment configurations into the different
     hyperparameter runs and repetitions
 
@@ -25,8 +24,9 @@ def unfold_exps(exp_configs: List[dict],
     return unrolled
 
 
-def expand_experiments(_experiment_configs: List[dict],
-                       debug: bool, debug_all: bool) -> List[dict]:
+def expand_experiments(
+    _experiment_configs: List[dict], debug: bool, debug_all: bool
+) -> List[dict]:
     """Expand the experiment configuration with concrete parameter instantiations
 
     Arguments:
@@ -40,7 +40,9 @@ def expand_experiments(_experiment_configs: List[dict],
     experiment_configs = deepcopy(_experiment_configs)
     if debug or debug_all:
         for ec in experiment_configs:
-            ec[KEY.REPS] = ec["iterations"] = ec[KEY.REPS_PARALL] = ec[KEY.REPS_P_JOB] = 1
+            ec[KEY.REPS] = ec["iterations"] = ec[KEY.REPS_PARALL] = ec[
+                KEY.REPS_P_JOB
+            ] = 1
     expanded_config_list = []
     for config in experiment_configs:
         iter_func = None
@@ -55,7 +57,7 @@ def expand_experiments(_experiment_configs: List[dict],
             config[KEY.i_EXP_NAME] = config.get(KEY.NAME)
         # add empty string for parent DIR in case of grid
         if KEY.i_NEST_DIR not in config:
-            config[KEY.i_NEST_DIR] = ''
+            config[KEY.i_NEST_DIR] = ""
 
         # In-Between Step to solve grid AND list combinations
         if all(k in config for k in (KEY.GRID, KEY.LIST)):
@@ -108,12 +110,15 @@ def params_combine(config: dict, key: str, iter_func) -> List[dict]:
     # convert list/grid dictionary into flat dictionary, where the key is a tuple of the keys and the
     # value is the list of values
     tuple_dict = util.flatten_dict_to_tuple_keys(config[key])
-    _param_names = ['.'.join(t) for t in tuple_dict]
+    _param_names = [".".join(t) for t in tuple_dict]
 
     param_lengths = map(len, tuple_dict.values())
     if key == KEY.LIST and len(set(param_lengths)) != 1:
         cw_logging.getLogger().warning(
-            "list params of experiment \"{}\" are not of equal length.".format(config[KEY.NAME]))
+            'list params of experiment "{}" are not of equal length.'.format(
+                config[KEY.NAME]
+            )
+        )
 
     # create a new config for each parameter setting
     for values in iter_func(*tuple_dict.values()):
@@ -146,7 +151,7 @@ def ablative_expand(conf_list: List[dict]) -> List[dict]:
     combined_configs = []
     for config in conf_list:
         tuple_dict = util.flatten_dict_to_tuple_keys(config[KEY.ABLATIVE])
-        _param_names = ['.'.join(t) for t in tuple_dict]
+        _param_names = [".".join(t) for t in tuple_dict]
 
         for i, key in enumerate(tuple_dict):
             for val in tuple_dict[key]:
@@ -155,9 +160,7 @@ def ablative_expand(conf_list: List[dict]) -> List[dict]:
                 if KEY.PARAMS not in _config:
                     _config[KEY.PARAMS] = {}
 
-                util.insert_deep_dictionary(
-                    _config[KEY.PARAMS], key, val
-                )
+                util.insert_deep_dictionary(_config[KEY.PARAMS], key, val)
 
                 _config = extend_config_name(_config, [_param_names[i]], [val])
                 combined_configs.append(_config)
@@ -179,9 +182,9 @@ def extend_config_name(config: dict, param_names: list, values: list) -> dict:
     _converted_name = util.convert_param_names(param_names, values)
 
     # Use __ only once as a seperator
-    sep = '__'
+    sep = "__"
     if KEY.i_EXP_NAME in config and sep in config.get(KEY.i_EXP_NAME):
-        sep = '_'
+        sep = "_"
 
     config[KEY.i_EXP_NAME] = config.get(KEY.i_EXP_NAME) + sep + _converted_name
     config[KEY.i_NEST_DIR] = config.get(KEY.NAME)
@@ -207,6 +210,8 @@ def unroll_exp_reps(exp_configs: List[dict]) -> List[dict]:
         for r in range(config[KEY.REPS]):
             c = deepcopy(config)
             c[KEY.i_REP_IDX] = r
-            c[KEY.i_REP_LOG_PATH] = os.path.join(c.get(KEY.LOG_PATH), 'rep_{:02d}'.format(r))
+            c[KEY.i_REP_LOG_PATH] = os.path.join(
+                c.get(KEY.LOG_PATH), "rep_{:02d}".format(r)
+            )
             unrolled_exps.append(c)
     return unrolled_exps

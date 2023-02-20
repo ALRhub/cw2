@@ -1,21 +1,31 @@
 import os
-#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-import sys
 import subprocess
-import torch
+import sys
 import time
+
 import numpy as np
+import torch
 
 from cw2.cw_data import cw_logging
 from cw2.experiment import AbstractExperiment, ExperimentSurrender
 
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+
+
 
 class TestExperiment(AbstractExperiment):
-
-    def initialize(self, cw_config: dict, rep: int, logger: cw_logging.LoggerArray) -> None:
+    def initialize(
+        self, cw_config: dict, rep: int, logger: cw_logging.LoggerArray
+    ) -> None:
         np.random.seed(rep * 13)
-        print("Hello, repetition ", rep, "here. I see ", torch.cuda.device_count(), " GPU(s)")
+        print(
+            "Hello, repetition ",
+            rep,
+            "here. I see ",
+            torch.cuda.device_count(),
+            " GPU(s)",
+        )
         if torch.cuda.is_available():
             device = torch.device("cuda")
             print(torch.cuda.get_device_name(device))
@@ -41,8 +51,7 @@ if __name__ == "__main__":
 
     sys.argv.append("horeka_config.yml")
     sys.argv.append("-o")
-   # sys.argv.append("-s")
+    # sys.argv.append("-s")
 
     cw = ClusterWork(TestExperiment)
     cw.run()
-

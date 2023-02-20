@@ -6,11 +6,11 @@ import sys
 
 import __main__
 
+import cw2.cw_config.cw_conf_keys as CKEYS
+import cw2.cw_slurm.cw_slurm_keys as SKEYS
 from cw2 import cli_parser, cw_error, util
 from cw2.cw_config import cw_config
 from cw2.cw_data import cw_logging
-import cw2.cw_slurm.cw_slurm_keys as SKEYS
-import cw2.cw_config.cw_conf_keys as CKEYS
 
 
 class SlurmConfig:
@@ -20,7 +20,8 @@ class SlurmConfig:
 
         if self.slurm_conf is None:
             raise cw_error.MissingConfigError(
-                "No SLURM configuration found in {}".format(self.conf.config_path))
+                "No SLURM configuration found in {}".format(self.conf.config_path)
+            )
 
         self._check_template()
 
@@ -31,15 +32,16 @@ class SlurmConfig:
 
         if SKEYS.TEMPLATE_PATH not in self.slurm_conf:
             self.slurm_conf[SKEYS.TEMPLATE_PATH] = os.path.join(
-                os.path.dirname(__file__), '../default_sbatch.sh')
+                os.path.dirname(__file__), "../default_sbatch.sh"
+            )
 
         if not os.path.exists(self.slurm_conf[SKEYS.TEMPLATE_PATH]):
             raise cw_error.ConfigKeyError(
-                "Could not find default sbatch template. Please specify your own 'path_to_template'.")
+                "Could not find default sbatch template. Please specify your own 'path_to_template'."
+            )
 
     def _complete_optionals(self):
-        """Fill in any optional values.
-        """
+        """Fill in any optional values."""
 
         sc: dict = self.slurm_conf
 
@@ -56,8 +58,9 @@ class SlurmConfig:
 
         # COMPLEX CONVERSIONS
         if isinstance(sc[SKEYS.TIME], int):
-            sc[SKEYS.TIME] = '{:d}:{:d}:00'.format(
-                sc[SKEYS.TIME] // 60, sc[SKEYS.TIME] % 60)
+            sc[SKEYS.TIME] = "{:d}:{:d}:00".format(
+                sc[SKEYS.TIME] // 60, sc[SKEYS.TIME] % 60
+            )
 
         if SKEYS.CPU_MEM in sc:
             sc[SKEYS.SBATCH_ARGS][SKEYS.CPU_MEM] = sc.get(SKEYS.CPU_MEM)
@@ -74,20 +77,18 @@ class SlurmConfig:
             sc[SKEYS.SH_LINES] = ""
 
     def _complete_cli_args(self):
-        """identify and process the relevant CLI flags from the original call.
-        """
+        """identify and process the relevant CLI flags from the original call."""
         sc = self.slurm_conf
         cw_options = cli_parser.Arguments().get()
 
         sc[SKEYS.CW_ARGS] = ""
-        if cw_options['overwrite']:
+        if cw_options["overwrite"]:
             sc[SKEYS.CW_ARGS] += " -o"
-        if cw_options['experiments'] is not None:
+        if cw_options["experiments"] is not None:
             sc[SKEYS.CW_ARGS] += " -e " + " ".join(cw_options["experiments"])
 
     def _complete_sbatch_args(self):
-        """if optional SBATCH arguments are present, build a corresponding string.
-        """
+        """if optional SBATCH arguments are present, build a corresponding string."""
         sc = self.slurm_conf
 
         if SKEYS.SBATCH_ARGS not in sc:  # Check if empty
@@ -96,8 +97,7 @@ class SlurmConfig:
         else:  # Else build String
             sbatch_args = sc.get(SKEYS.SBATCH_ARGS)
 
-            args_list = ["#SBATCH --{} {}".format(k, v)
-                         for k, v in sbatch_args.items()]
+            args_list = ["#SBATCH --{} {}".format(k, v) for k, v in sbatch_args.items()]
             sc[SKEYS.SBATCH_ARGS] = "\n".join(args_list)
 
     def finalize(self, num_jobs: int):
@@ -153,18 +153,22 @@ class SlurmDirectoryManager:
         # MODE SWITCH
         if cp_error_count == 1:
             raise cw_error.ConfigKeyError(
-                "Incomplete SLURM experiment copy config. Missing key: {}".format(missing_arg))
+                "Incomplete SLURM experiment copy config. Missing key: {}".format(
+                    missing_arg
+                )
+            )
 
         cw_options = cli_parser.Arguments().get()
-        if cw_options.get('zip'):
+        if cw_options.get("zip"):
             return self.MODE_ZIP
 
-        if cw_options.get('multicopy'):
+        if cw_options.get("multicopy"):
             if cp_error_count == 0:
                 return self.MODE_MULTI
             else:
                 raise cw_error.ConfigKeyError(
-                    "Incomplete SLURM experiment copy config. Please define SRC and DST for --multicopy")
+                    "Incomplete SLURM experiment copy config. Please define SRC and DST for --multicopy"
+                )
 
         if cp_error_count == 0:
             return self.MODE_COPY
@@ -180,15 +184,19 @@ class SlurmDirectoryManager:
             cw_error.ConfigKeyError: if directory is greater than 200MB
         """
         cw_options = cli_parser.Arguments().get()
-        if cw_options.get('skipsizecheck'):
+        if cw_options.get("skipsizecheck"):
             return
 
         dirsize = util.get_size(src)
         if dirsize > 200.0:
-            cw_logging.getLogger().warning("SourceDir {} is greater than 200MByte".format(src))
-            msg = "Directory {} is greater than 200MByte." \
-                  " If you are sure you want to copy/zip this dir, use --skipsizecheck." \
-                  "\nElse check experiment_copy__ configuration keys".format(src)
+            cw_logging.getLogger().warning(
+                "SourceDir {} is greater than 200MByte".format(src)
+            )
+            msg = (
+                "Directory {} is greater than 200MByte."
+                " If you are sure you want to copy/zip this dir, use --skipsizecheck."
+                "\nElse check experiment_copy__ configuration keys".format(src)
+            )
             raise cw_error.ConfigKeyError(msg)
 
     def get_exp_src(self) -> str:
@@ -210,26 +218,26 @@ class SlurmDirectoryManager:
         """
         sc = self.slurm_config.slurm_conf
         if SKEYS.EXP_CP_AUTO in sc and SKEYS.EXP_CP_DST not in sc:
-            sc[SKEYS.EXP_CP_DST] = os.path.join(sc.get(SKEYS.EXP_CP_AUTO),
-                                                datetime.datetime.now().strftime("%Y%m%d%G%M%S"))
+            sc[SKEYS.EXP_CP_DST] = os.path.join(
+                sc.get(SKEYS.EXP_CP_AUTO),
+                datetime.datetime.now().strftime("%Y%m%d%G%M%S"),
+            )
         if SKEYS.EXP_CP_DST in sc:
             return sc[SKEYS.EXP_CP_DST]
         else:
             exp_output_path = self.conf.exp_configs[0][CKEYS.i_BASIC_PATH]
-            return os.path.join(exp_output_path, 'code')
+            return os.path.join(exp_output_path, "code")
 
     def zip_exp(self):
-        """procedure for creating a zip backup
-        """
+        """procedure for creating a zip backup"""
         src = self.get_exp_src()
         dst = self.get_exp_dst()
         self.dir_size_validation(src)
 
-        shutil.make_archive(dst, 'zip', src)
+        shutil.make_archive(dst, "zip", src)
 
     def create_single_copy(self):
-        """creates a copy of the exp for slurm execution
-        """
+        """creates a copy of the exp for slurm execution"""
         src = self.get_exp_src()
         dst = self.get_exp_dst()
         self._copy_files(src, dst)
@@ -248,8 +256,9 @@ class SlurmDirectoryManager:
             self._copy_files(src, dst)
 
         # Add MultiCopy ChangeDir to Slurmconf
-        self.slurm_config.slurm_conf[SKEYS.SH_LINES] += "\ncd {} \n".format(os.path.join(self.get_exp_dst(),
-                                                                                         "$SLURM_ARRAY_TASK_ID"))
+        self.slurm_config.slurm_conf[SKEYS.SH_LINES] += "\ncd {} \n".format(
+            os.path.join(self.get_exp_dst(), "$SLURM_ARRAY_TASK_ID")
+        )
 
     def _copy_files(self, src, dst):
         """copies files from src to dst
@@ -267,16 +276,17 @@ class SlurmDirectoryManager:
         # Check Filesystem
         if util.check_subdir(src, dst):
             raise cw_error.ConfigKeyError(
-                "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad.")
+                "experiment_copy_dst is a subdirectory of experiment_copy_src. Recursive Copying is bad."
+            )
         try:
-            os.makedirs(
-                dst, exist_ok=cli_parser.Arguments().get()['overwrite'])
+            os.makedirs(dst, exist_ok=cli_parser.Arguments().get()["overwrite"])
         except FileExistsError:
             raise cw_error.ConfigKeyError(
-                "{} already exists. Please define a different 'experiment_copy_dst', use '-o' to overwrite or '--nocodecopy' to skip.")
+                "{} already exists. Please define a different 'experiment_copy_dst', use '-o' to overwrite or '--nocodecopy' to skip."
+            )
 
         # Copy files
-        ign = shutil.ignore_patterns('*.pyc', 'tmp*', '.git*')
+        ign = shutil.ignore_patterns("*.pyc", "tmp*", ".git*")
         for item in os.listdir(src):
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
@@ -292,8 +302,8 @@ class SlurmDirectoryManager:
         """
         # Check Skip Flag
         cw_options = cli_parser.Arguments().get()
-        if cw_options.get('nocodecopy'):
-            print('Skipping Code Copy')
+        if cw_options.get("nocodecopy"):
+            print("Skipping Code Copy")
             return
 
         if self.m == self.MODE_COPY:
@@ -334,8 +344,9 @@ class SlurmDirectoryManager:
         if self.m == self.MODE_MULTI:
             dst = os.path.join(dst, "$SLURM_ARRAY_TASK_ID")
 
-        new_path = [x.replace(os.path.abspath(src), os.path.abspath(dst))
-                    for x in pypath]
+        new_path = [
+            x.replace(os.path.abspath(src), os.path.abspath(dst)) for x in pypath
+        ]
         # return "export PYTHONPATH=" + ":".join(new_path)
         # Maybe this is better?
         return "export PYTHONPATH=$PYTHONPATH:" + ":".join(new_path)
@@ -380,41 +391,41 @@ def write_slurm_script(slurm_conf: SlurmConfig, dir_mgr: SlurmDirectoryManager) 
 
     exp_main_file = os.path.relpath(__main__.__file__, os.getcwd())
 
-    fid_in = open(template_path, 'r')
-    fid_out = open(output_path, 'w')
+    fid_in = open(template_path, "r")
+    fid_out = open(output_path, "w")
 
     tline = fid_in.readline()
 
     while tline:
-        tline = tline.replace('%%partition%%', sc['partition'])
-        tline = tline.replace('%%account%%', sc[SKEYS.ACCOUNT])
-        tline = tline.replace('%%job-name%%', sc['job-name'])
+        tline = tline.replace("%%partition%%", sc["partition"])
+        tline = tline.replace("%%account%%", sc[SKEYS.ACCOUNT])
+        tline = tline.replace("%%job-name%%", sc["job-name"])
 
-        tline = tline.replace('%%last_job_idx%%',
-                              '{:d}'.format(sc[SKEYS.LAST_IDX]))
-        tline = tline.replace('%%num_parallel_jobs%%',
-                              '{:d}'.format(sc['num_parallel_jobs']))
+        tline = tline.replace("%%last_job_idx%%", "{:d}".format(sc[SKEYS.LAST_IDX]))
+        tline = tline.replace(
+            "%%num_parallel_jobs%%", "{:d}".format(sc["num_parallel_jobs"])
+        )
 
-        tline = tline.replace('%%experiment_execution_dir%%',
-                              dir_mgr.get_exp_exec_dir())
+        tline = tline.replace(
+            "%%experiment_execution_dir%%", dir_mgr.get_exp_exec_dir()
+        )
 
-        tline = tline.replace('%%slurm_log%%', sc[SKEYS.SLURM_LOG])
+        tline = tline.replace("%%slurm_log%%", sc[SKEYS.SLURM_LOG])
 
-        tline = tline.replace('%%ntasks%%', '{:d}'.format(sc['ntasks']))
-        tline = tline.replace('%%cpus-per-task%%',
-                              '{:d}'.format(sc['cpus-per-task']))
-        tline = tline.replace('%%time%%', sc[SKEYS.TIME])
+        tline = tline.replace("%%ntasks%%", "{:d}".format(sc["ntasks"]))
+        tline = tline.replace("%%cpus-per-task%%", "{:d}".format(sc["cpus-per-task"]))
+        tline = tline.replace("%%time%%", sc[SKEYS.TIME])
 
-        tline = tline.replace('%%sh_lines%%', sc[SKEYS.SH_LINES])
+        tline = tline.replace("%%sh_lines%%", sc[SKEYS.SH_LINES])
 
-        tline = tline.replace('%%venv%%', sc[SKEYS.VENV])
-        tline = tline.replace('%%pythonpath%%', dir_mgr.get_py_path())
+        tline = tline.replace("%%venv%%", sc[SKEYS.VENV])
+        tline = tline.replace("%%pythonpath%%", dir_mgr.get_py_path())
 
-        tline = tline.replace('%%python_script%%', exp_main_file)
-        tline = tline.replace('%%path_to_yaml_config%%', conf.config_path)
+        tline = tline.replace("%%python_script%%", exp_main_file)
+        tline = tline.replace("%%path_to_yaml_config%%", conf.config_path)
 
-        tline = tline.replace('%%cw_args%%', sc[SKEYS.CW_ARGS])
-        tline = tline.replace('%%sbatch_args%%', sc[SKEYS.SBATCH_ARGS])
+        tline = tline.replace("%%cw_args%%", sc[SKEYS.CW_ARGS])
+        tline = tline.replace("%%sbatch_args%%", sc[SKEYS.SBATCH_ARGS])
 
         fid_out.write(tline)
 

@@ -3,9 +3,9 @@ import os
 import re
 
 try:
-    from collections.abc import MutableMapping, Mapping, MutableSequence  # noqa
+    from collections.abc import Mapping, MutableMapping, MutableSequence  # noqa
 except ImportError:
-    from collections import MutableMapping, Mapping, MutableSequence  # noqa
+    from collections import Mapping, MutableMapping, MutableSequence  # noqa
 
 
 def deep_update(base_dict: dict, update_dict: dict) -> dict:
@@ -29,7 +29,7 @@ def deep_update(base_dict: dict, update_dict: dict) -> dict:
     return base_dict
 
 
-def flatten_dict(d, parent_key='', sep='_'):
+def flatten_dict(d, parent_key="", sep="_"):
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -87,11 +87,11 @@ def format_time(time_in_secs: float) -> str:
 
 
 def shorten_param(_param_name):
-    name_parts = _param_name.split('.')
-    shortened_parts = '.'.join(map(lambda s: s[:3], name_parts[:-1]))
-    shortened_leaf = ''.join(map(lambda s: s[0], name_parts[-1].split('_')))
+    name_parts = _param_name.split(".")
+    shortened_parts = ".".join(map(lambda s: s[:3], name_parts[:-1]))
+    shortened_leaf = "".join(map(lambda s: s[0], name_parts[-1].split("_")))
     if shortened_parts:
-        return shortened_parts + '.' + shortened_leaf
+        return shortened_parts + "." + shortened_leaf
     else:
         return shortened_leaf
 
@@ -126,7 +126,9 @@ def check_subdir(parent: str, child: str) -> bool:
     parent_path = os.path.abspath(parent)
     child_path = os.path.abspath(child)
 
-    return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+    return os.path.commonpath([parent_path]) == os.path.commonpath(
+        [parent_path, child_path]
+    )
 
 
 def convert_param_names(_param_names: list, values: list) -> str:
@@ -139,14 +141,15 @@ def convert_param_names(_param_names: list, values: list) -> str:
         str: shorthand name
     """
 
-    _converted_name = '_'.join("{}{}".format(
-        shorten_param(k), v) for k, v in zip(_param_names, values))
+    _converted_name = "_".join(
+        "{}{}".format(shorten_param(k), v) for k, v in zip(_param_names, values)
+    )
     # _converted_name = re.sub("[' \[\],()]", '', _converted_name)
-    _converted_name = re.sub("[' ]", '', _converted_name)
-    _converted_name = re.sub('["]', '', _converted_name)
-    _converted_name = re.sub("[(\[]", '_', _converted_name)
-    _converted_name = re.sub("[)\]]", '', _converted_name)
-    _converted_name = re.sub("[,]", '_', _converted_name)
+    _converted_name = re.sub("[' ]", "", _converted_name)
+    _converted_name = re.sub('["]', "", _converted_name)
+    _converted_name = re.sub("[(\[]", "_", _converted_name)
+    _converted_name = re.sub("[)\]]", "", _converted_name)
+    _converted_name = re.sub("[,]", "_", _converted_name)
     return _converted_name
 
 

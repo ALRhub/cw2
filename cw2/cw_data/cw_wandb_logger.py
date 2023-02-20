@@ -1,15 +1,16 @@
 import os
 import warnings
-from time import sleep
 from random import random
+from time import sleep
 
 # To prevent conflicts between wandb and the joblib scheduler
 # see https://github.com/wandb/client/issues/1525 for reference
 os.environ["WANDB_START_METHOD"] = "thread"
 
-import wandb
-from typing import Optional, Iterable, List, Dict
 from itertools import groupby
+from typing import Dict, Iterable, List, Optional
+
+import wandb
 
 from cw2.cw_data import cw_logging
 from cw2.util import get_file_names_in_directory
@@ -28,7 +29,7 @@ def reset_wandb_env():
 
 
 def group_parameters(list_of_strings: List[str]):
-    """ groups different strings that start with a common substring (using "." as delimiter)
+    """groups different strings that start with a common substring (using "." as delimiter)
         and outputs a single, more concise string.
     Example:
         outstring = group_parameters['local', 'mod.enc.tidentity', 'mod.hea.nhl5', 'mod.hea.ioFalse', 'mod.enc.hd64']
@@ -60,9 +61,14 @@ def group_parameters(list_of_strings: List[str]):
 
 
 class WandBLogger(cw_logging.AbstractLogger):
-
-    def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
-        super(WandBLogger, self).__init__(ignore_keys=ignore_keys, allow_keys=allow_keys)
+    def __init__(
+        self,
+        ignore_keys: Optional[Iterable] = None,
+        allow_keys: Optional[Iterable] = None,
+    ):
+        super(WandBLogger, self).__init__(
+            ignore_keys=ignore_keys, allow_keys=allow_keys
+        )
         self.log_path = ""
         self.run = None
 
@@ -74,13 +80,13 @@ class WandBLogger(cw_logging.AbstractLogger):
         else:
             warnings.warn("No 'wandb' field in yaml - Ignoring Weights & Biases Logger")
 
-    def init_fields(self,  config: Dict, rep: int, rep_log_path: str):
+    def init_fields(self, config: Dict, rep: int, rep_log_path: str):
         self.log_path = rep_log_path
         self.rep = rep
-        self.config = config['wandb']
+        self.config = config["wandb"]
         self.cw2_config = config
         reset_wandb_env()
-        self.job_name = config['_experiment_name'].replace("__", "_")
+        self.job_name = config["_experiment_name"].replace("__", "_")
         self.use_group_parameters = self.config.get("use_group_parameters", False)
         if self.use_group_parameters:
             self.job_name = group_parameters(self.job_name.split("_"))[0]
@@ -88,7 +94,7 @@ class WandBLogger(cw_logging.AbstractLogger):
 
         # optional: change the job_type to a fixed alias if the option is present
         if "job_type" in self.config:
-            self.job_name = self.config['job_type']
+            self.job_name = self.config["job_type"]
         # have entity and group config entry optional
         self.entity = self.config.get("entity", None)
         self.group = self.config.get("group", None)
@@ -104,43 +110,54 @@ class WandBLogger(cw_logging.AbstractLogger):
     def connect_to_wandb(self):
         last_error = None
         for i in range(10):
-
             try:
-                self.run = wandb.init(project=self.cw2_config['wandb']['project'],
-                                      entity=self.entity,
-                                      group=self.group,
-                                      job_type=self.job_name[:63],
-                                      name=self.runname[:63],
-                                      config=self.cw2_config['params'],
-                                      dir=self.log_path,
-                                      settings=wandb.Settings(_disable_stats=self.cw2_config['wandb'].get("disable_stats",
-                                                                                              False)),
-                                      mode="online" if self.cw2_config['wandb'].get("enabled", True) else "disabled",
-                                      )
+                self.run = wandb.init(
+                    project=self.cw2_config["wandb"]["project"],
+                    entity=self.entity,
+                    group=self.group,
+                    job_type=self.job_name[:63],
+                    name=self.runname[:63],
+                    config=self.cw2_config["params"],
+                    dir=self.log_path,
+                    settings=wandb.Settings(
+                        _disable_stats=self.cw2_config["wandb"].get(
+                            "disable_stats", False
+                        )
+                    ),
+                    mode="online"
+                    if self.cw2_config["wandb"].get("enabled", True)
+                    else "disabled",
+                )
                 return  # if starting the run is successful, exit the loop (and in this case the function)
             except Exception as e:
                 last_error = e
                 # implement a simple randomized exponential backoff if starting a run fails
-                waiting_time = ((random() / 50) + 0.01) * (2 ** i)
+                waiting_time = ((random() / 50) + 0.01) * (2**i)
                 # wait between 0.01 and 10.24 seconds depending on the random seed and the iteration of the exponent
 
-                warnings.warn("Problem with starting wandb: {}. Trying again in {} seconds".format(e, waiting_time))
+                warnings.warn(
+                    "Problem with starting wandb: {}. Trying again in {} seconds".format(
+                        e, waiting_time
+                    )
+                )
                 sleep(waiting_time)
         warnings.warn("wandb init failed several times.")
         raise last_error
 
     def process(self, data: dict) -> None:
         if self.run is not None:
-
             # Skip logging if interval is defined but not satisfied
             log_interval = self.config.get("log_interval", None)
             if log_interval is not None and data["iter"] % log_interval != 0:
                 return
 
             if "histogram" in self.config:
-                for el in self.config['histogram']:
+                for el in self.config["histogram"]:
                     if el in data:
-                        self.run.log({el: wandb.Histogram(np_histogram=data[el])}, step=data["iter"])
+                        self.run.log(
+                            {el: wandb.Histogram(np_histogram=data[el])},
+                            step=data["iter"],
+                        )
             filtered_data = self.filter(data)
             step = data.get("iter", None)
             self.run.log(filtered_data, step=step)
@@ -181,4 +198,3 @@ class WandBLogger(cw_logging.AbstractLogger):
 
         # Log and upload
         self.run.log_artifact(model_artifact, aliases=aliases)
-
