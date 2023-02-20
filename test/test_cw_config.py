@@ -2,7 +2,7 @@ from typing import Dict
 import unittest
 from unittest import main
 
-from cw2 import cw_config
+from cw2.cw_config import cw_config, conf_unfolder
 
 
 class TestParamsExpansion(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestParamsExpansion(unittest.TestCase):
     
     def expand_dict(self, _d: dict) -> list:
         d = _d.copy()
-        expands = self.conf_obj._expand_experiments([d])
+        expands = conf_unfolder.expand_experiments([d], False, False)
         return [self.remove_non_param_keys(e) for e in expands]
 
     def create_minimal_dict(self) -> dict:
