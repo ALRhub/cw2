@@ -12,8 +12,6 @@ from cw2.experiment import AbstractExperiment, ExperimentSurrender
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
-
-
 class TestExperiment(AbstractExperiment):
     def initialize(
         self, cw_config: dict, rep: int, logger: cw_logging.LoggerArray

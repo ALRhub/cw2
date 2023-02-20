@@ -1,5 +1,6 @@
 import itertools
 import os
+from collections import deque
 from copy import deepcopy
 from typing import List
 
@@ -37,16 +38,17 @@ def expand_experiments(
     """
 
     # get all options that are iteratable and build all combinations (grid) or tuples (list)
-    experiment_configs = deepcopy(_experiment_configs)
+    experiment_configs = deque(deepcopy(_experiment_configs))
     if debug or debug_all:
         for ec in experiment_configs:
             ec[KEY.REPS] = ec["iterations"] = ec[KEY.REPS_PARALL] = ec[
                 KEY.REPS_P_JOB
             ] = 1
+
     expanded_config_list = []
-    for config in experiment_configs:
-        iter_func = None
-        key = None
+
+    while len(experiment_configs) > 0:
+        config = experiment_configs.popleft()
 
         # Set Default Values
         # save path argument from YML for grid modification
@@ -59,36 +61,25 @@ def expand_experiments(
         if KEY.i_NEST_DIR not in config:
             config[KEY.i_NEST_DIR] = ""
 
-        # In-Between Step to solve grid AND list combinations
-        if all(k in config for k in (KEY.GRID, KEY.LIST)):
-            iter_func = zip
-            key = KEY.LIST
+        expansion = None
+        for key in config:
+            if key.startswith(KEY.GRID):
+                expansion = params_combine(config, key, itertools.product)
+                break
+            if key.startswith(KEY.LIST):
+                expansion = params_combine(config, key, zip)
+                break
+            if key.startswith(KEY.ABLATIVE):
+                expansion = ablative_expand(config, key)
+                break
 
-            expansion = params_combine(config, key, iter_func)
-
-            if debug:
+        if expansion is not None:
+            if debug and not debug_all:
                 expansion = expansion[:1]
+            experiment_configs.extend(expansion)
+        else:
+            expanded_config_list.append(config)
 
-            experiment_configs += expansion
-            continue
-
-        if KEY.GRID in config:
-            iter_func = itertools.product
-            key = KEY.GRID
-
-        if KEY.LIST in config:
-            iter_func = zip
-            key = KEY.LIST
-
-        expansion = params_combine(config, key, iter_func)
-
-        if KEY.ABLATIVE in config:
-            expansion += ablative_expand(expansion)
-
-        if debug and not debug_all:
-            expansion = expansion[:1]
-
-        expanded_config_list += expansion
     return conf_path.normalize_expanded_paths(expanded_config_list)
 
 
@@ -113,11 +104,9 @@ def params_combine(config: dict, key: str, iter_func) -> List[dict]:
     _param_names = [".".join(t) for t in tuple_dict]
 
     param_lengths = map(len, tuple_dict.values())
-    if key == KEY.LIST and len(set(param_lengths)) != 1:
+    if key.startswith(KEY.LIST) and len(set(param_lengths)) != 1:
         cw_logging.getLogger().warning(
-            'list params of experiment "{}" are not of equal length.'.format(
-                config[KEY.NAME]
-            )
+            f'experiment "{config[KEY.NAME]}" list params [{key}] are not of equal length.'.format()
         )
 
     # create a new config for each parameter setting
@@ -139,31 +128,24 @@ def params_combine(config: dict, key: str, iter_func) -> List[dict]:
     return combined_configs
 
 
-def ablative_expand(conf_list: List[dict]) -> List[dict]:
-    """expand experiment configurations according to the "ablative" design
-
-    Args:
-        conf_list (List[dict]): a list of experiment configurations
-
-    Returns:
-        List[dict]: list of experiment configurations with ablative expansion
-    """
+def ablative_expand(config: dict, key: str):
+    tuple_dict = util.flatten_dict_to_tuple_keys(config[key])
+    _param_names = [".".join(t) for t in tuple_dict]
     combined_configs = []
-    for config in conf_list:
-        tuple_dict = util.flatten_dict_to_tuple_keys(config[KEY.ABLATIVE])
-        _param_names = [".".join(t) for t in tuple_dict]
+    for i, t in enumerate(tuple_dict.keys()):
+        for val in tuple_dict[t]:
+            _config = deepcopy(config)
 
-        for i, key in enumerate(tuple_dict):
-            for val in tuple_dict[key]:
-                _config = deepcopy(config)
+            # Remove Grid/List Argument
+            del _config[key]
 
-                if KEY.PARAMS not in _config:
-                    _config[KEY.PARAMS] = {}
+            if KEY.PARAMS not in _config:
+                _config[KEY.PARAMS] = {}
+            util.insert_deep_dictionary(d=_config.get(KEY.PARAMS), t=t, value=val)
+            # TODO: TEST
+            _config = extend_config_name(_config, [_param_names[i]], [val])
 
-                util.insert_deep_dictionary(_config[KEY.PARAMS], key, val)
-
-                _config = extend_config_name(_config, [_param_names[i]], [val])
-                combined_configs.append(_config)
+            combined_configs.append(_config)
     return combined_configs
 
 

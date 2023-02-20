@@ -114,6 +114,66 @@ class TestParamsExpansion(unittest.TestCase):
         res = self.expand_dict(g)
         self.assertEqual(4, len(res))
 
+    def test_multi_listt(self):
+        g = self.create_minimal_dict()
+        g["list1"] = {
+            "a": [1],
+            "b": [2],
+        }
+        g["list--2"] = {
+            "c": [1],
+            "d": [2],
+        }
+        res = self.expand_dict(g)
+        self.assertEqual(1, len(res))
+
+        g["list1"]["a"] = [3, 4]
+        g["list1"]["b"] = [11, 12, 13]
+        res = self.expand_dict(g)
+        self.assertEqual(2, len(res))
+
+        g["list--2"]["c"] = [3, 4]
+        g["list--2"]["d"] = [3, 4]
+        res = self.expand_dict(g)
+        self.assertEqual(4, len(res))
+
+        g["list1"]["a"] = [11, 12, 13]
+        g["list1"]["b"] = [11, 12, 13]
+        g["list--2"]["c"] = [11, 12, 13]
+        g["list--2"]["d"] = [11, 12, 13]
+        res = self.expand_dict(g)
+        self.assertEqual(9, len(res))
+
+    def test_ablation(self):
+        g = self.create_minimal_dict()
+        g["list1"] = {
+            "a": [1],
+            "b": [2],
+        }
+        g["ablative"] = {
+            "c": [3],
+        }
+        res = self.expand_dict(g)
+        self.assertEqual(1, len(res))
+
+        g["ablative"] = {
+            "c": [3, 4],
+        }
+        res = self.expand_dict(g)
+        self.assertEqual(2, len(res))
+
+        g["ablative"] = {"c": [3], "d": [4]}
+        res = self.expand_dict(g)
+        self.assertEqual(2, len(res))
+
+        g["ablative"] = {"c": [3], "d": [4, 5]}
+        g["list1"] = {
+            "a": [1, 2],
+            "b": [2, 3],
+        }
+        res = self.expand_dict(g)
+        self.assertEqual(6, len(res))
+
 
 if __name__ == "__main__":
     unittest.main()
