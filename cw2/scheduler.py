@@ -260,6 +260,7 @@ class CpuDistributingLocalScheduler(AbstractScheduler):
         self._queue_elements = int(self._total_num_cpus / self._cpus_per_rep)
         print("CPUDistributingLocalScheduler: {} CPUs available, {} CPUs per rep, {} queue elements".format(
             self._total_num_cpus, self._cpus_per_rep, self._queue_elements))
+
     def run(self, overwrite: bool = False):
         print("Seeing CPUs:", os.sched_getaffinity(0))
         num_parallel = self.joblist[0].n_parallel
