@@ -63,7 +63,12 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         # 3.) Number of GPUs per rep != total number of gpus requested
         gpus_requested = "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT")
         gpus_per_rep_specified = "gpus_per_rep" in conf.slurm_config
-        num_gpus_requested = int(conf.slurm_config["sbatch_args"]["gres"][4:]) if gpus_requested else 0
+
+        if gpus_requested:
+            num_gpus_requested = int(conf.slurm_config["sbatch_args"]["gres"].rsplit(":", 1)[1])
+            # e.g. gres=gpu:4 or gres=gpu:full:4
+        else:
+            num_gpus_requested = 0
 
         use_distributed_gpu_scheduling = \
             gpus_requested and gpus_per_rep_specified and num_gpus_requested != conf.slurm_config["gpus_per_rep"]
