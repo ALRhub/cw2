@@ -51,8 +51,6 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         if self._gpus_per_rep >= 1.0:
             assert self._gpus_per_rep == int(self._gpus_per_rep), "gpus_per_rep must be integer"
 
-
-
     @staticmethod
     def use_distributed_gpu_scheduling(conf: cw_config.Config) -> bool:
         if conf.slurm_config is None:
