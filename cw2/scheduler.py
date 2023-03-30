@@ -41,7 +41,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
     def __init__(self, conf: cw_config.Config = None):
 
         super(GPUDistributingLocalScheduler, self).__init__(conf=conf)
-        self._total_num_gpus = int(conf.slurm_config['sbatch_args']['gres'][4:])
+        self._total_num_gpus = int(conf.slurm_config["sbatch_args"]["gres"].rsplit(":", 1)[1])
         self._gpus_per_rep = conf.slurm_config['gpus_per_rep']
         self._queue_elements = int(self._total_num_gpus / self._gpus_per_rep)
 
@@ -86,7 +86,8 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
             gpus_per_rep = int(gpus_per_rep)
             return ("{}," * gpus_per_rep).format(*[queue_idx * gpus_per_rep + i for i in range(gpus_per_rep)])[:-1]
         else:
-            return str(int(queue_idx * gpus_per_rep))
+            import math
+            return str(math.ceil(queue_idx * gpus_per_rep))
 
 
 class MPGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
