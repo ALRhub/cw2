@@ -86,8 +86,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
             gpus_per_rep = int(gpus_per_rep)
             return ("{}," * gpus_per_rep).format(*[queue_idx * gpus_per_rep + i for i in range(gpus_per_rep)])[:-1]
         else:
-            import math
-            return str(math.ceil(queue_idx * gpus_per_rep))
+            return str(int(queue_idx * gpus_per_rep) + 0.01)
 
 
 class MPGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
