@@ -307,7 +307,9 @@ class CpuDistributingLocalScheduler(AbstractScheduler):
     def use_distributed_cpu_scheduling(conf: cw_config.Config) -> bool:
         if conf.slurm_config is None:
             return False
-        return conf.slurm_config['scheduler'] == 'cpu_distribute'
+        else:
+            scheduler = conf.slurm_config.get('scheduler', None)
+            return scheduler == 'cpu_distribute'
 
 class LocalScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
