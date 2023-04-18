@@ -68,6 +68,10 @@ class ClusterWork:
                 if scheduler.GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
                     scheduler_cls = scheduler.get_gpu_scheduler_cls(self.config.slurm_config.get("scheduler", "mp"))
                     s = scheduler_cls(self.config)
+
+                elif scheduler.CpuDistributingLocalScheduler.use_distributed_cpu_scheduling(self.config):
+                    s = scheduler.CpuDistributingLocalScheduler(self.config)
+
                 else:
                     s = scheduler.LocalScheduler()
             else:
