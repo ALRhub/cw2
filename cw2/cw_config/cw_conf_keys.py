@@ -25,7 +25,7 @@ ABLATIVE = "ablative"
 i_BASIC_PATH = "_basic_path"
 i_EXP_NAME = "_experiment_name"
 i_NEST_DIR = "_nested_dir"
-
+i_DEBUG_FLAG = "_debug"
 # INTERNAL REP
 i_REP_IDX = "_rep_idx"
 i_REP_LOG_PATH = "_rep_log_path"
