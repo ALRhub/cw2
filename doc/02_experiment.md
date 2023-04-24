@@ -170,7 +170,7 @@ Instead of implementing the `run()` method, you have to implement `iterate()`:
 def iterate(self, cw_config: dict, rep: int, n: int) -> dict:
     return {"Result": "Current Iteration is {}".format(n)}
 ```
-In addition to the `cw_config` configuration object and `rep` repetition indicator, it also receives the current iteration `n`. This function should perform one single iteration of your process and return a dict with yhour results / messages / metrics you want to log.
+In addition to the `cw_config` configuration object and `rep` repetition indicator, it also receives the current iteration `n`. This function should perform one single iteration of your process and return a dict with your results / messages / metrics you want to log.
 
 The following keys are already reserved:
 - `"ts"` timestamp of the iteration results
