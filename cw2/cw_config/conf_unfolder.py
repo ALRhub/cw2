@@ -56,6 +56,8 @@ def expand_experiments(_experiment_configs: List[dict],
         # add empty string for parent DIR in case of grid
         if KEY.i_NEST_DIR not in config:
             config[KEY.i_NEST_DIR] = ''
+        # set debug flag
+        config[KEY.i_DEBUG_FLAG] = (debug or debug_all)
 
         # In-Between Step to solve grid AND list combinations
         if all(k in config for k in (KEY.GRID, KEY.LIST)):
