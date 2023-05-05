@@ -15,7 +15,7 @@ class TestParamsExpansion(unittest.TestCase):
         return [self.remove_non_param_keys(e) for e in expands]
 
     def create_minimal_dict(self) -> dict:
-        return {"name": "exp", "path": "test"}
+        return {"name": "exp", "path": "test", "_debug": False}
 
     def remove_non_param_keys(self, _d: dict) -> dict:
         d = _d.copy()
