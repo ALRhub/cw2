@@ -40,7 +40,9 @@ class AbstractScheduler(abc.ABC):
 class GPUDistributingLocalScheduler(AbstractScheduler):
     def __init__(self, conf: cw_config.Config = None):
         super(GPUDistributingLocalScheduler, self).__init__(conf=conf)
-        self._total_num_gpus = int(conf.slurm_config["sbatch_args"]["gres"][4:])
+        self._total_num_gpus = int(
+            conf.slurm_config["sbatch_args"]["gres"].rsplit(":", 1)[1]
+        )
         self._gpus_per_rep = conf.slurm_config["gpus_per_rep"]
         self._queue_elements = int(self._total_num_gpus / self._gpus_per_rep)
 
@@ -65,9 +67,14 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
         # 3.) Number of GPUs per rep != total number of gpus requested
         gpus_requested = "gres" in conf.slurm_config.get("sbatch_args", "DUMMY_DEFAULT")
         gpus_per_rep_specified = "gpus_per_rep" in conf.slurm_config
-        num_gpus_requested = (
-            int(conf.slurm_config["sbatch_args"]["gres"][4:]) if gpus_requested else 0
-        )
+
+        if gpus_requested:
+            num_gpus_requested = int(
+                conf.slurm_config["sbatch_args"]["gres"].rsplit(":", 1)[1]
+            )
+            # e.g. gres=gpu:4 or gres=gpu:full:4
+        else:
+            num_gpus_requested = 0
 
         use_distributed_gpu_scheduling = (
             gpus_requested
@@ -101,7 +108,7 @@ class GPUDistributingLocalScheduler(AbstractScheduler):
                 *[queue_idx * gpus_per_rep + i for i in range(gpus_per_rep)]
             )[:-1]
         else:
-            return str(int(queue_idx * gpus_per_rep))
+            return str(int(queue_idx * gpus_per_rep) + 0.01)
 
 
 class MPGPUDistributingLocalScheduler(GPUDistributingLocalScheduler):
@@ -301,6 +308,85 @@ def get_gpu_scheduler_cls(scheduler: str):
         return KlusterThreadLimitingScheduler
     else:
         raise NotImplementedError
+
+
+class CpuDistributingLocalScheduler(AbstractScheduler):
+    def __init__(self, conf: cw_config.Config = None):
+        super(CpuDistributingLocalScheduler, self).__init__(conf=conf)
+        self._total_num_cpus = (
+            conf.slurm_config["cpus-per-task"] * conf.slurm_config["ntasks"]
+        )
+        self._cpus_per_rep = conf.slurm_config["cpus_per_rep"]
+        assert self._cpus_per_rep == int(
+            self._cpus_per_rep
+        ), "cpus_per_rep must be integer"
+        self._queue_elements = int(self._total_num_cpus / self._cpus_per_rep)
+        print(
+            "CPUDistributingLocalScheduler: {} CPUs available, {} CPUs per rep, {} queue elements".format(
+                self._total_num_cpus, self._cpus_per_rep, self._queue_elements
+            )
+        )
+
+    def run(self, overwrite: bool = False):
+        print("Seeing CPUs:", os.sched_getaffinity(0))
+        num_parallel = self.joblist[0].n_parallel
+        for j in self.joblist:
+            assert (
+                j.n_parallel == num_parallel
+            ), "All jobs in list must have same n_parallel"
+            assert j.n_parallel == self._queue_elements, (
+                "Mismatch between CPUs Queue Elements and Jobs executed in"
+                "parallel. Fix for optimal resource usage!!"
+            )
+
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=num_parallel,
+        ) as pool:
+            # setup gpu resource queue
+            m = multiprocessing.Manager()
+            cpu_queue = m.Queue(maxsize=self._queue_elements)
+            for i in range(self._queue_elements):
+                cpu_queue.put(i)
+
+            for j in self.joblist:
+                for c in j.tasks:
+                    pool.submit(
+                        CpuDistributingLocalScheduler._execute_task,
+                        j,
+                        c,
+                        cpu_queue,
+                        self._cpus_per_rep,
+                        overwrite,
+                    )
+
+    @staticmethod
+    def _execute_task(
+        j: job.Job,
+        c: dict,
+        q: multiprocessing.Queue,
+        cpus_per_rep: int,
+        overwrite: bool = False,
+    ):
+        print("Seeing CPUs:", os.sched_getaffinity(0))
+        queue_idx = q.get()
+        cpus = set(range(queue_idx * cpus_per_rep, (queue_idx + 1) * cpus_per_rep))
+        print("Job {}: Using CPUs: {}".format(queue_idx, cpus))
+        try:
+            os.sched_setaffinity(0, cpus)
+            c[KEYS.i_CPU_CORES] = cpus
+            j.run_task(c, overwrite)
+        except cw_error.ExperimentSurrender as _:
+            return
+        finally:
+            q.put(queue_idx)
+
+    @staticmethod
+    def use_distributed_cpu_scheduling(conf: cw_config.Config) -> bool:
+        if conf.slurm_config is None:
+            return False
+        else:
+            scheduler = conf.slurm_config.get("scheduler", None)
+            return scheduler == "cpu_distribute"
 
 
 class LocalScheduler(AbstractScheduler):

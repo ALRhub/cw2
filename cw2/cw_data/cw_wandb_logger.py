@@ -10,6 +10,7 @@ os.environ["WANDB_START_METHOD"] = "thread"
 from itertools import groupby
 from typing import Dict, Iterable, List, Optional
 
+import pandas as pd
 import wandb
 
 from cw2.cw_data import cw_logging
@@ -198,3 +199,19 @@ class WandBLogger(cw_logging.AbstractLogger):
 
         # Log and upload
         self.run.log_artifact(model_artifact, aliases=aliases)
+
+    def log_plot(self, x, y, column_names=("x", "y"), plot_id="plot", title="Plot"):
+        data = [list(i) for i in zip(x, y)]
+        table = wandb.Table(data=data, columns=column_names)
+        self.run.log(
+            {
+                plot_id: wandb.plot.line(
+                    table, column_names[0], column_names[0], title=title
+                )
+            }
+        )
+
+    def log_table(self, data, table_id="table"):
+        assert type(data) is pd.DataFrame
+        table = wandb.Table(dataframe=data)
+        self.run.log({table_id: table})

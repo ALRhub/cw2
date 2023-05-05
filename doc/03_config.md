@@ -36,7 +36,7 @@ name: "name_1"
 name: "name_2"
 ```
 
-The name is used to identify an experiment configuration an can be chosen freely, **EXCEPT** for these names:
+The name is used to identify an experiment configuration and can be chosen freely, **EXCEPT** for these names:
 1. `DEFAULT` defines a default configuration. It may only exist *once* in your YAML file. If some parameter settings are shared between your experiments, you can define them inside the `DEFAULT` document. Unless they are specified differently in a named experiment, the settings from the `DEFAULT` will be used. The `DEFAULT` document follows the same structure as a generic experiment configuration document.
 
 1. `SLURM` defines a slurm configuration. It may only exist *once* in your YAML file. This document defines the relevant settings for the execution on a computing cluster, and are specific to each cluster. It follows its own special structure.

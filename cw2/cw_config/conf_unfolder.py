@@ -60,6 +60,8 @@ def expand_experiments(
         # add empty string for parent DIR in case of grid
         if KEY.i_NEST_DIR not in config:
             config[KEY.i_NEST_DIR] = ""
+        # set debug flag
+        config[KEY.i_DEBUG_FLAG] = debug or debug_all
 
         expansion = None
         for key in config:
