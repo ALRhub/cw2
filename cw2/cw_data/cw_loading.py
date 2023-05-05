@@ -14,10 +14,10 @@ class Loader(scheduler.AbstractScheduler):
             cw_res._load_job(j)
 
         cw_res._compile()
-        return cw_res.data().set_index(['name', 'r'])
+        return cw_res.data().set_index(["name", "r"])
 
 
-class CWResult():
+class CWResult:
     def __init__(self, df: pd.DataFrame = None):
         self.data_list = []
         self.df = df
@@ -29,13 +29,15 @@ class CWResult():
     def _load_job(self, j: job.Job) -> None:
         for c in j.tasks:
             rep_data = j.load_task(c)
-            rep_data.update({
-                'name': c['name'],
-                'r': c['_rep_idx'],
-                'rep_path': c['_rep_log_path'],
-                'params': c['params']
-            })
-            rep_data.update(util.flatten_dict(c['params']))
+            rep_data.update(
+                {
+                    "name": c["name"],
+                    "r": c["_rep_idx"],
+                    "rep_path": c["_rep_log_path"],
+                    "params": c["params"],
+                }
+            )
+            rep_data.update(util.flatten_dict(c["params"]))
             self.data_list.append(rep_data)
 
     def data(self) -> pd.DataFrame:
@@ -74,7 +76,7 @@ class Cw2Accessor:
             pd.DataFrame: filtered result
         """
         df = self._obj
-        return df[df['r'] == r]
+        return df[df["r"] == r]
 
     def name(self, name: str):
         """only select experiments with a specific name
@@ -86,10 +88,14 @@ class Cw2Accessor:
             pd.DataFrame: filtered result
         """
         df = self._obj
-        return df[df['name'] == name]
+        return df[df["name"] == name]
 
-    def logger(self, l_name: str = "", l_obj: cw_logging.AbstractLogger = None,
-               l_cls: Type[cw_logging.AbstractLogger] = None):
+    def logger(
+        self,
+        l_name: str = "",
+        l_obj: cw_logging.AbstractLogger = None,
+        l_cls: Type[cw_logging.AbstractLogger] = None,
+    ):
         """select the column containg the results from a specific logger
 
         Args:
@@ -126,7 +132,7 @@ class Cw2Accessor:
                     nested_df[c] = nested_df[c].map(eval)
                     continue
                 nested_df[c] = v
-            nested_df['name'] = idx[0]
-            nested_df['r'] = idx[1]
+            nested_df["name"] = idx[0]
+            nested_df["r"] = idx[1]
             new_df = new_df.append(nested_df, ignore_index=True)
-        return new_df.set_index(['name', 'r', 'iter'])
+        return new_df.set_index(["name", "r", "iter"])

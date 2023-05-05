@@ -7,17 +7,18 @@ from cw2.cw_data import cw_loading, cw_logging
 
 class ClusterWork:
     def __init__(self, exp_cls: Type[experiment.AbstractExperiment] = None):
-
         self.args = cli_parser.Arguments().get()
         self.exp_cls = exp_cls
-        self.config = cw_config.Config(self.args['config'],
-                                       self.args['experiments'],
-                                       self.args['debug'],
-                                       self.args['debugall'])
+        self.config = cw_config.Config(
+            self.args["config"],
+            self.args["experiments"],
+            self.args["debug"],
+            self.args["debugall"],
+        )
 
         self.logArray = cw_logging.LoggerArray()
 
-        if not self.args['noconsolelog']:
+        if not self.args["noconsolelog"]:
             self.add_logger(cw_logging.PythonLogger())
         self.joblist = None
 
@@ -29,7 +30,9 @@ class ClusterWork:
         """
         self.logArray.add(logger)
 
-    def _get_jobs(self, delete: bool = False, root_dir: str = "", read_only: bool = False) -> List[job.Job]:
+    def _get_jobs(
+        self, delete: bool = False, root_dir: str = "", read_only: bool = False
+    ) -> List[job.Job]:
         """private method. creates and returns all configured jobs.
 
         Args:
@@ -41,7 +44,8 @@ class ClusterWork:
         """
         if self.joblist is None:
             factory = job.JobFactory(
-                self.exp_cls, self.logArray, delete, root_dir, read_only)
+                self.exp_cls, self.logArray, delete, root_dir, read_only
+            )
             self.joblist = factory.create_jobs(self.config.exp_configs)
         return self.joblist
 
@@ -53,23 +57,30 @@ class ClusterWork:
         """
         if self.exp_cls is None:
             raise NotImplementedError(
-                "Cannot run with missing experiment.AbstractExperiment Implementation.")
+                "Cannot run with missing experiment.AbstractExperiment Implementation."
+            )
 
         self.config.to_yaml(relpath=True)
 
         args = self.args
 
         # Handle SLURM execution
-        if args['slurm']:
+        if args["slurm"]:
             s = scheduler.SlurmScheduler(self.config)
         else:
             # Do Local execution
             if sch is None:
-                if scheduler.GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(self.config):
-                    scheduler_cls = scheduler.get_gpu_scheduler_cls(self.config.slurm_config.get("scheduler", "mp"))
+                if scheduler.GPUDistributingLocalScheduler.use_distributed_gpu_scheduling(
+                    self.config
+                ):
+                    scheduler_cls = scheduler.get_gpu_scheduler_cls(
+                        self.config.slurm_config.get("scheduler", "mp")
+                    )
                     s = scheduler_cls(self.config)
 
-                elif scheduler.CpuDistributingLocalScheduler.use_distributed_cpu_scheduling(self.config):
+                elif scheduler.CpuDistributingLocalScheduler.use_distributed_cpu_scheduling(
+                    self.config
+                ):
                     s = scheduler.CpuDistributingLocalScheduler(self.config)
 
                 else:
@@ -93,15 +104,20 @@ class ClusterWork:
 
         return self._run_scheduler(loader, root_dir, True)
 
-    def _run_scheduler(self, s: scheduler.AbstractScheduler, root_dir: str = "", read_only: bool = False):
+    def _run_scheduler(
+        self,
+        s: scheduler.AbstractScheduler,
+        root_dir: str = "",
+        read_only: bool = False,
+    ):
         if self.logArray.is_empty():
             cw_logging.getLogger().warning("No Logger has been added. Are you sure?")
 
         args = self.args
         job_list = self._get_jobs(False, root_dir, read_only)
 
-        if args['job'] is not None:
-            job_list = [job_list[args['job']]]
+        if args["job"] is not None:
+            job_list = [job_list[args["job"]]]
 
         s.assign(job_list)
-        return s.run(overwrite=args['overwrite'])
+        return s.run(overwrite=args["overwrite"])

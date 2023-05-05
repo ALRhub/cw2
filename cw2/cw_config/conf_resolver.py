@@ -8,7 +8,9 @@ from cw2.cw_config import cw_conf_keys as KEY
 from cw2.cw_error import ConfigKeyError, MissingConfigError
 
 
-def resolve_dependencies(default_config: dict, experiment_configs: List[dict], conf_path: str) -> List[dict]:
+def resolve_dependencies(
+    default_config: dict, experiment_configs: List[dict], conf_path: str
+) -> List[dict]:
     """resolves all internal (DEFAULT) and external (import) dependencies
 
     Args:
@@ -47,7 +49,9 @@ def merge_default(default_config: dict, experiment_configs: List[dict]) -> List[
     return expanded_exp_configs
 
 
-def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal_dict: dict = None) -> List[dict]:
+def import_external_yml(
+    experiment_configs: List[dict], abs_path: str, traversal_dict: dict = None
+) -> List[dict]:
     """recursively imports external yaml files
     The external yaml files are first merged with their own DEFAULT configuration,
     then their external dependencies get resolved.
@@ -67,9 +71,7 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
     """
 
     if traversal_dict is None:
-        traversal_dict = {
-            abs_path: []
-        }
+        traversal_dict = {abs_path: []}
 
     resolved_configs = []
     for config in experiment_configs:
@@ -87,7 +89,8 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
 
         # Get absolute Path for import
         import_yml = os.path.abspath(
-            os.path.join(os.path.dirname(abs_path), import_yml))
+            os.path.join(os.path.dirname(abs_path), import_yml)
+        )
 
         all_external_configs = conf_io.read_yaml(import_yml)
 
@@ -98,15 +101,19 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         # Recursion Anchor:
         if import_yml in traversal_dict and ext_exp_name in traversal_dict[import_yml]:
             raise ConfigKeyError(
-                "Cyclic YML import with {} : {}".format(import_yml, ext_exp_name))
+                "Cyclic YML import with {} : {}".format(import_yml, ext_exp_name)
+            )
 
         # Default Merge External
-        _, external, ext_selection = conf_io.separate_configs(all_external_configs, [ext_exp_name], suppress=True)
+        _, external, ext_selection = conf_io.separate_configs(
+            all_external_configs, [ext_exp_name], suppress=True
+        )
 
         if custom_import_exp(config):
             if len(ext_selection) == 0:
                 raise MissingConfigError(
-                    "Could not import {} from {}".format(ext_exp_name, import_yml))
+                    "Could not import {} from {}".format(ext_exp_name, import_yml)
+                )
 
             external = merge_default(external, ext_selection)[0]
 
@@ -116,7 +123,9 @@ def import_external_yml(experiment_configs: List[dict], abs_path: str, traversal
         traversal_dict[import_yml].append(ext_exp_name)
 
         # Recursion call
-        ext_resolved_conf = import_external_yml([external], import_yml, traversal_dict)[0]
+        ext_resolved_conf = import_external_yml([external], import_yml, traversal_dict)[
+            0
+        ]
 
         # Delete Anchor when coming back
         del traversal_dict[import_yml]

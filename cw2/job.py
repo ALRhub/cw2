@@ -1,20 +1,26 @@
 import os
-from typing import List, Type, Dict
+from typing import Dict, List, Type
 
 from cw2 import cw_error, experiment
 from cw2.cw_config import cw_conf_keys as KEYS
 from cw2.cw_data import cw_logging
 
 
-class Job():
+class Job:
     """Class defining a computation job.
     Can contain 1..n tasks. Each job should encapsulate all information necessary for execution.
     A task is an experiment configuration with unique repetition idx.
     """
 
-    def __init__(self, tasks: List[Dict], exp_cls: experiment.AbstractExperiment.__class__,
-                 logger: cw_logging.AbstractLogger, delete_old_files: bool = False, root_dir: str = "",
-                 read_only: bool = False):
+    def __init__(
+        self,
+        tasks: List[Dict],
+        exp_cls: experiment.AbstractExperiment.__class__,
+        logger: cw_logging.AbstractLogger,
+        delete_old_files: bool = False,
+        root_dir: str = "",
+        read_only: bool = False,
+    ):
         self.tasks = tasks
 
         if exp_cls is not None:
@@ -28,10 +34,11 @@ class Job():
         self._root_dir = root_dir
 
         if not read_only:
-            self.__create_experiment_directory(
-                tasks, delete_old_files, root_dir)
+            self.__create_experiment_directory(tasks, delete_old_files, root_dir)
 
-    def __create_experiment_directory(self, tasks: List[Dict], delete_old_files=False, root_dir=""):
+    def __create_experiment_directory(
+        self, tasks: List[Dict], delete_old_files=False, root_dir=""
+    ):
         """internal function creating the directories in which the job will write its data.
 
         Args:
@@ -44,12 +51,10 @@ class Job():
             os.makedirs(os.path.join(root_dir, conf[KEYS.PATH]), exist_ok=True)
 
             # create a directory for the log path
-            os.makedirs(os.path.join(
-                root_dir, conf[KEYS.LOG_PATH]), exist_ok=True)
+            os.makedirs(os.path.join(root_dir, conf[KEYS.LOG_PATH]), exist_ok=True)
 
             # create log path for each repetition
-            rep_path = os.path.join(
-                root_dir, conf[KEYS.i_REP_LOG_PATH])
+            rep_path = os.path.join(root_dir, conf[KEYS.i_REP_LOG_PATH])
 
             # XXX: Disable Delete for now
             """
@@ -59,7 +64,7 @@ class Job():
             os.makedirs(rep_path, exist_ok=True)
 
     def run_task(self, c: Dict, overwrite: bool):
-        """Execute a single task of the job. 
+        """Execute a single task of the job.
 
         Args:
             c (attrdict.AttrDict): task configuration
@@ -70,7 +75,10 @@ class Job():
 
         if not overwrite and self._check_task_exists(c, r):
             cw_logging.getLogger().warning(
-                "Skipping run, as {} is not empty. Use -o to overwrite.".format(rep_path))
+                "Skipping run, as {} is not empty. Use -o to overwrite.".format(
+                    rep_path
+                )
+            )
             return
 
         surrender = None
@@ -81,11 +89,11 @@ class Job():
             self.exp.initialize(c, r, self.logger)
             self.exp.run(c, r, self.logger)
         except cw_error.ExperimentSurrender as s:
-            cw_logging.getLogger().warning('SURRENDER: {}'.format(rep_path))
+            cw_logging.getLogger().warning("SURRENDER: {}".format(rep_path))
             surrender = s
         except:
             crash = True
-            cw_logging.getLogger().exception('EXCEPTION: {}'.format(rep_path))
+            cw_logging.getLogger().exception("EXCEPTION: {}".format(rep_path))
 
         self.exp.finalize(surrender, crash)
         self.logger.finalize()
@@ -122,8 +130,14 @@ class JobFactory:
     Specifially used to map experiment repetitions to Jobs.
     """
 
-    def __init__(self, exp_cls: Type[experiment.AbstractExperiment], logger: cw_logging.AbstractLogger,
-                 delete_old_files: bool = False, root_dir: str = "", read_only: bool = False):
+    def __init__(
+        self,
+        exp_cls: Type[experiment.AbstractExperiment],
+        logger: cw_logging.AbstractLogger,
+        delete_old_files: bool = False,
+        root_dir: str = "",
+        read_only: bool = False,
+    ):
         self.exp_cls = exp_cls
         self.logger = logger
         self.delete_old_files = delete_old_files
@@ -171,7 +185,7 @@ class JobFactory:
                 rep_portion = exp_group[0][KEYS.REPS_P_JOB]
 
             for start_rep in range(0, max_rep, rep_portion):
-                tasks.append(exp_group[start_rep:start_rep + rep_portion])
+                tasks.append(exp_group[start_rep : start_rep + rep_portion])
         return tasks
 
     def create_jobs(self, exp_configs: List[Dict]) -> List[Job]:
@@ -192,7 +206,7 @@ class JobFactory:
                 self.logger,
                 self.delete_old_files,
                 self.root_dir,
-                self.read_only
+                self.read_only,
             )
             joblist.append(j)
         return joblist

@@ -3,21 +3,25 @@ import logging
 import os
 import pprint
 import sys
-from typing import Iterable, Optional, Dict, List
+from typing import Dict, Iterable, List, Optional
 
 
 class AbstractLogger(abc.ABC):
-    """Abstract Base Class for all Loggers
-    """
+    """Abstract Base Class for all Loggers"""
 
-    def __init__(self, ignore_keys: Optional[Iterable] = None, allow_keys: Optional[Iterable] = None):
+    def __init__(
+        self,
+        ignore_keys: Optional[Iterable] = None,
+        allow_keys: Optional[Iterable] = None,
+    ):
         """
         Initialize a logger that records based on (a subset of) the provided keys
         :param ignore_keys: A list of keys
         :param allow_keys:
         """
-        assert ignore_keys is None or allow_keys is None, \
-            "Logging keys can either be whitelisted ('ignore_keys') or blacklisted ('allow_keys'), but not both"
+        assert (
+            ignore_keys is None or allow_keys is None
+        ), "Logging keys can either be whitelisted ('ignore_keys') or blacklisted ('allow_keys'), but not both"
         self.ignore_keys = ignore_keys
         self.allow_keys = allow_keys
 
@@ -29,7 +33,9 @@ class AbstractLogger(abc.ABC):
             data: data payload dict
         """
         if self.ignore_keys is not None:  # blacklist ignored keys
-            return {key: value for key, value in data.items() if key not in self.ignore_keys}
+            return {
+                key: value for key, value in data.items() if key not in self.ignore_keys
+            }
         elif self.allow_keys is not None:  # whitelist allowed keys
             return {key: value for key, value in data.items() if key in self.allow_keys}
         else:  # use all keys
@@ -130,8 +136,7 @@ class LoggerArray(AbstractLogger):
 
 
 class Printer(AbstractLogger):
-    """Prints the result of each iteration to the console.
-    """
+    """Prints the result of each iteration to the console."""
 
     def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
         pass
@@ -156,12 +161,14 @@ class PythonLogger(AbstractLogger):
         self.logger = getLogger()
 
     def initialize(self, config: dict, rep: int, rep_log_path: str) -> None:
-        self.outh = logging.FileHandler(os.path.join(rep_log_path, 'out.log'), delay=True)
+        self.outh = logging.FileHandler(
+            os.path.join(rep_log_path, "out.log"), delay=True
+        )
         self.outh.setLevel(logging.INFO)
         self.outh.setFormatter(_formatter)
         self.logger.addHandler(self.outh)
 
-        self.errh = logging.FileHandler(os.path.join(rep_log_path, 'err.log'))
+        self.errh = logging.FileHandler(os.path.join(rep_log_path, "err.log"))
         self.errh.setLevel(logging.ERROR)
         self.errh.setFormatter(_formatter)
         self.logger.addHandler(self.errh)
@@ -181,15 +188,16 @@ class PythonLogger(AbstractLogger):
 
 ### logging module functionality ####
 
+
 class _CWFormatter(logging.Formatter):
-    """Taken From CW V1
-    """
+    """Taken From CW V1"""
 
     def __init__(self):
         # self.std_formatter = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
-        self.std_formatter = logging.Formatter('[%(name)s] [%(levelname)s] %(message)s')
+        self.std_formatter = logging.Formatter("[%(name)s] [%(levelname)s] %(message)s")
         self.red_formatter = logging.Formatter(
-            '[%(asctime)s]:[%(name)s] [%(levelname)s] %(message)s')
+            "[%(asctime)s]:[%(name)s] [%(levelname)s] %(message)s"
+        )
 
     def format(self, record: logging.LogRecord):
         if record.levelno < logging.ERROR:
@@ -208,7 +216,7 @@ def getLogger() -> logging.Logger:
     Returns:
         logging.Logger
     """
-    _logging_logger = logging.getLogger('cw2')
+    _logging_logger = logging.getLogger("cw2")
 
     if _logging_logger.getEffectiveLevel() > logging.INFO:
         ch = logging.StreamHandler(sys.stdout)
