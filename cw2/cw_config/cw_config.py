@@ -1,6 +1,7 @@
 import os
 import socket
 from typing import List, Tuple
+from datetime import datetime
 
 import cw2.cw_config.cw_conf_keys as KEY
 from cw2.cw_config import conf_io, conf_path, conf_resolver, conf_unfolder
@@ -95,6 +96,8 @@ class Config:
         slurm_config, default_config, experiment_configs = conf_io.get_configs(
             config_path, experiment_selections
         )
+
+        default_config["start_time_str"] = datetime.now().strftime("%y%m%d-%H%M%S-%f")
 
         experiment_configs = conf_resolver.resolve_dependencies(
             default_config, experiment_configs, self.config_path
