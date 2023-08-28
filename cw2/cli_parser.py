@@ -61,6 +61,13 @@ class Arguments:
             default=False,
             help="Enable debug mode for arguments.",
         )
+        p.add_argument(
+            "--add-group-id",
+            dest="add_group_id",
+            action="store_true",
+            default=False,
+            help="Add global group ID (timestamp str) to each run config",
+        )
 
         self.args = p.parse_args(namespace=self)
 

@@ -14,6 +14,7 @@ class Config:
         experiment_selections: List[str] = None,
         debug: bool = False,
         debug_all: bool = False,
+        add_group_id: bool = False
     ):
         self.slurm_config = None
         self.exp_configs = None
@@ -21,6 +22,8 @@ class Config:
         self.f_name = None
         self.config_path = config_path
         self.exp_selections = experiment_selections
+
+        self.add_group_id = add_group_id
 
         if config_path is not None:
             self.load_config(config_path, experiment_selections, debug, debug_all)
@@ -97,7 +100,8 @@ class Config:
             config_path, experiment_selections
         )
 
-        default_config["start_time_str"] = datetime.now().strftime("%y%m%d-%H%M%S-%f")
+        if self.add_group_id:
+            default_config["group_id"] = datetime.now().strftime("%y%m%d-%H%M%S-%f")
 
         experiment_configs = conf_resolver.resolve_dependencies(
             default_config, experiment_configs, self.config_path
