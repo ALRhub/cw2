@@ -101,7 +101,7 @@ class Config:
         )
 
         if self.add_group_id:
-            default_config["group_id"] = datetime.now().strftime("%y%m%d-%H%M%S-%f")
+            default_config["group_id"] = datetime.now().strftime("%y%m%d-%H%M%S")
 
         experiment_configs = conf_resolver.resolve_dependencies(
             default_config, experiment_configs, self.config_path
