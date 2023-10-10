@@ -1,6 +1,7 @@
 import os
 import socket
 from typing import List, Tuple
+from datetime import datetime
 
 import cw2.cw_config.cw_conf_keys as KEY
 from cw2.cw_config import conf_io, conf_path, conf_resolver, conf_unfolder
@@ -13,6 +14,7 @@ class Config:
         experiment_selections: List[str] = None,
         debug: bool = False,
         debug_all: bool = False,
+        add_group_id: bool = False
     ):
         self.slurm_config = None
         self.exp_configs = None
@@ -20,6 +22,8 @@ class Config:
         self.f_name = None
         self.config_path = config_path
         self.exp_selections = experiment_selections
+
+        self.add_group_id = add_group_id
 
         if config_path is not None:
             self.load_config(config_path, experiment_selections, debug, debug_all)
@@ -95,6 +99,9 @@ class Config:
         slurm_config, default_config, experiment_configs = conf_io.get_configs(
             config_path, experiment_selections
         )
+
+        if self.add_group_id:
+            default_config["group_id"] = datetime.now().strftime("%y%m%d-%H%M%S")
 
         experiment_configs = conf_resolver.resolve_dependencies(
             default_config, experiment_configs, self.config_path
