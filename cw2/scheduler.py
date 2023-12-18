@@ -403,6 +403,21 @@ class LocalScheduler(AbstractScheduler):
             return
 
 
+class NonparallelScheduler(AbstractScheduler):
+    """Performs task locally, without multiprocessing. Useful for debugging."""
+
+    def run(self, overwrite: bool = False):
+        for j in self.joblist:
+            for c in j.tasks:
+                self.execute_task(j, c, overwrite)
+
+    def execute_task(self, j: job.Job, c: dict, overwrite: bool = False):
+        try:
+            j.run_task(c, overwrite)
+        except cw_error.ExperimentSurrender as _:
+            return
+
+
 class SlurmScheduler(AbstractScheduler):
     def run(self, overwrite: bool = False):
         cw_slurm.run_slurm(self.config, len(self.joblist))
