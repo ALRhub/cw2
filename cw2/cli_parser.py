@@ -33,6 +33,16 @@ class Arguments:
         p.add_argument(
             "-o", "--overwrite", action="store_true", help="Overwrite existing results."
         )
+        p.add_argument(
+            "-t",
+            "--prefix-with-timestamp",
+            dest="prefix_with_timestamp",
+            action="store_true",
+            default=False,
+            help="If specified, prefix all started experiment runs with this timestamp. "
+                 "This can help with telling runs apart from one another, "
+                 "but will also modify the log directiories created.",
+        )
         p.add_argument("--nocodecopy", action="store_true", help="Skip code copy.")
         p.add_argument(
             "--zip", action="store_true", help="Make a Zip Copy of the Code."
@@ -60,13 +70,6 @@ class Arguments:
             action="store_true",
             default=False,
             help="Enable debug mode for arguments.",
-        )
-        p.add_argument(
-            "--add-group-id",
-            dest="add_group_id",
-            action="store_true",
-            default=False,
-            help="Add global group ID (timestamp str) to each run config",
         )
 
         self.args = p.parse_args(namespace=self)

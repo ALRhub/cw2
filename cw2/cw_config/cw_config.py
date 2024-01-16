@@ -14,7 +14,7 @@ class Config:
         experiment_selections: List[str] = None,
         debug: bool = False,
         debug_all: bool = False,
-        add_group_id: bool = False
+        prefix_with_timestamp: bool = False
     ):
         self.slurm_config = None
         self.exp_configs = None
@@ -23,7 +23,7 @@ class Config:
         self.config_path = config_path
         self.exp_selections = experiment_selections
 
-        self.add_group_id = add_group_id
+        self.prefix_with_timestamp = prefix_with_timestamp
 
         if config_path is not None:
             self.load_config(config_path, experiment_selections, debug, debug_all)
@@ -100,8 +100,11 @@ class Config:
             config_path, experiment_selections
         )
 
-        if self.add_group_id:
-            default_config["group_id"] = datetime.now().strftime("%y%m%d-%H%M%S")
+        # if desired, prefix experiments with timestamp
+        if self.prefix_with_timestamp:
+            experiment_start = datetime.now().strftime("%m%d-%H%M%S")
+            for exp_config in experiment_configs:
+                exp_config.update(name=f"{experiment_start}_{exp_config['name']}")
 
         experiment_configs = conf_resolver.resolve_dependencies(
             default_config, experiment_configs, self.config_path
