@@ -33,6 +33,16 @@ class Arguments:
         p.add_argument(
             "-o", "--overwrite", action="store_true", help="Overwrite existing results."
         )
+        p.add_argument(
+            "-t",
+            "--prefix-with-timestamp",
+            dest="prefix_with_timestamp",
+            action="store_true",
+            default=False,
+            help="If specified, prefix all started experiment runs with this timestamp. "
+                 "This can help with telling runs apart from one another. but will also modify the log "
+                 "directiories created. CAUTION: Only works with local schedulers (no SLURM etc.)",
+        )
         p.add_argument("--nocodecopy", action="store_true", help="Skip code copy.")
         p.add_argument(
             "--zip", action="store_true", help="Make a Zip Copy of the Code."
@@ -61,15 +71,13 @@ class Arguments:
             default=False,
             help="Enable debug mode for arguments.",
         )
-        p.add_argument(
-            "--add-group-id",
-            dest="add_group_id",
-            action="store_true",
-            default=False,
-            help="Add global group ID (timestamp str) to each run config",
-        )
 
         self.args = p.parse_args(namespace=self)
+        if self.args.slurm and self.args.prefix_with_timestamp:
+            raise ValueError(
+                "Timestep prefixing (-t) only work on local schedulers, "
+                "so cannot use args --slurm (-s) and --prefix-with-timestamp (-t) at the same time."
+            )
 
     def get(self) -> dict:
         return vars(self.args)

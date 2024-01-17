@@ -14,7 +14,7 @@ class ClusterWork:
             self.args["experiments"],
             self.args["debug"],
             self.args["debugall"],
-            self.args["add_group_id"]
+            self.args["prefix_with_timestamp"]
         )
 
         self.logArray = cw_logging.LoggerArray()
