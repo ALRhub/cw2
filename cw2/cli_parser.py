@@ -40,8 +40,8 @@ class Arguments:
             action="store_true",
             default=False,
             help="If specified, prefix all started experiment runs with this timestamp. "
-                 "This can help with telling runs apart from one another, "
-                 "but will also modify the log directiories created.",
+                 "This can help with telling runs apart from one another. but will also modify the log "
+                 "directiories created. CAUTION: Only works with local schedulers (no SLURM etc.)",
         )
         p.add_argument("--nocodecopy", action="store_true", help="Skip code copy.")
         p.add_argument(
@@ -73,6 +73,11 @@ class Arguments:
         )
 
         self.args = p.parse_args(namespace=self)
+        if self.args.slurm and self.args.prefix_with_timestamp:
+            raise ValueError(
+                "Timestep prefixing (-t) only work on local schedulers, "
+                "so cannot use args --slurm (-s) and --prefix-with-timestamp (-t) at the same time."
+            )
 
     def get(self) -> dict:
         return vars(self.args)
