@@ -89,6 +89,7 @@ def format_time(time_in_secs: float) -> str:
 def shorten_param(_param_name):
     name_parts = _param_name.split(".")
     shortened_parts = ".".join(map(lambda s: s[:3], name_parts[:-1]))
+    # also handle cases where the leaf name contains '__' then splitting at '_' yields an empty '' string element
     shortened_leaf = "".join(map(lambda s: '' if len(s) <= 0 else s[0], name_parts[-1].split("_")))
     if shortened_parts:
         return shortened_parts + "." + shortened_leaf
